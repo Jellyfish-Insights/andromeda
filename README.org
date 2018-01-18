@@ -1,0 +1,14 @@
+#+TITLE: FEE YEAR Analytics Platform
+
+* Introduction
+
+** What is this repo?
+
+This repo contains all code related to the "FEE YEAR Analytics Platform"
+delivered by Brickabode.
+
+** What is the FEE YEAR Analytics Platform
+
+It is an application that will collect analytics data from Youtube and Facebook
+and generate reports about it, so that FEE can improve their reach on the
+population and spread their ideas on liberty.
