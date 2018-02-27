@@ -1,0 +1,4 @@
+from data_sources.linear_log_popularity_data_source import MetaTagExclusiveEarlyToLatePopularityDataSource
+import experiment
+
+experiment.run(MetaTagExclusiveEarlyToLatePopularityDataSource)

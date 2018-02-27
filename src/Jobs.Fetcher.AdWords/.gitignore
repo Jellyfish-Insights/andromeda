@@ -1,0 +1,6 @@
+# Credentials
+App.config
+
+# Build
+bin/
+obj/

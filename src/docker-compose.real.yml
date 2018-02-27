@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+    analytics_platform:
+        image: postgres:10
+        environment:
+            - POSTGRES_USER=fee
+            - POSTGRES_PASSWORD=dbpassword
+            - POSTGRES_DB=analytics_platform
+        ports:
+            - 5432:5432
+        volumes:
+            - analytics_platform_data:/var/lib/postgresql/data
+
+    webapp:
+        build:
+            context: WebApp/
+            args:
+                docker_user: "${DOCKER_USER}"
+        depends_on:
+            - analytics_platform
+        links:
+            - analytics_platform:analytics_platform
+        ports:
+            - 5005:5000
+        volumes:
+            - ../:/home/app/app
+        user: $DOCKER_USER
+
+    nginx:
+        image: nginx
+        ports:
+            - 80:80
+            - 443:443
+        depends_on:
+            - webapp
+        links:
+            - webapp:webapp
+        volumes:
+            - ./nginx/:/etc/nginx/conf.d
+            - ./ssl-keys:/etc/keys
+            - ./WebApp/wwwroot:/app
+
+volumes:
+    analytics_platform_data:

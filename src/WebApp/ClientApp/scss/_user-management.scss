@@ -1,0 +1,41 @@
+.page-container {
+  .header {
+    background: white;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding: 20px;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .content {
+    background: white;
+  }
+
+  .user-form {
+    padding: 20px;
+  }
+
+  .invalid {
+    border-color: red;
+    border-width: 1px;
+  }
+
+  .user-changed {
+    color: blue;
+  }
+
+  .user-row td {
+    position: relative;
+  }
+
+  .strike td::before {
+    content: ' ';
+    width: 100%;
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    border-bottom: 1px solid black;
+  }
+}

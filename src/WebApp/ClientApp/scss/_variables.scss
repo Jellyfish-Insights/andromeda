@@ -1,0 +1,176 @@
+//-- Foundation Overrides --//
+$foundation-palette: (
+  primary: #fa7676,
+  secondary: #767676,
+  success: #3adb76,
+  warning: #ffae00,
+  alert: #cc4b37
+);
+//--------------------------//
+
+$nav-menu-color: #eaeaea;
+$nav-menu-border-width: thin;
+$font-size: rem-calc(12px);
+$tag-font-size: rem-calc(14px);
+$title-font-size: rem-calc(16px);
+$icon-font-size: rem-calc(22px);
+$project-title-font-size: rem-calc(24px);
+
+$background-color: rgb(89, 89, 92);
+$title-color: #59595c;
+
+$fee-palette: (
+  #f68e20,
+  #f9c82e,
+  #56d063,
+  #8fc9fb,
+  #e78dfc
+);
+
+$title-font: 'Montserrat', sans-serif;
+$body-font-family: 'Montserrat', sans-serif;
+
+@mixin page-component($margin: false) {
+  background-color: white;
+  padding: rem-calc(14px);
+  @if $margin {
+    margin-top: rem-calc(5px);
+  }
+}
+
+@mixin box-shadow {
+  box-shadow: 0px 3px 5px 0px rgb(89, 89, 92);
+}
+
+@mixin little-box-shadow {
+  box-shadow: 1px 1px 4px 0px #ccc;
+}
+
+@mixin fee-palette($hollow: false) {
+  $len: length($fee-palette);
+  @for $i from 1 to $len {
+    &:nth-of-type(#{$len}n + #{($i - 1)}) {
+      @if $hollow {
+        border: 1px solid nth($fee-palette, $i);
+        color: nth($fee-palette, $i);
+      } @else {
+        background-color: nth($fee-palette, $i);
+        color: $white;
+      }
+    }
+  }
+}
+
+$default-padding: rem-calc(28px) rem-calc(25px);
+
+$black: #000000;
+$almost-black: #3a3a3a;
+$grey: #878787;
+$light-grey: #eaeaea;
+$almost-white: #f7f7f7;
+$white: #ffffff;
+
+$highlight: #eb4032;
+$highlight-faded: #fa7676;
+$highlight-hover: #fa7676;
+
+@mixin filter-selector-autosuggestion {
+    font-family: $title-font;
+    span {
+      font-size: $title-font-size;
+    }
+
+    form {
+      display: flex;
+      border : 1px solid #aaa;
+      .react-autosuggest__container {
+        position: relative;
+        @include xy-cell(auto);
+        input[type=text] {
+          width: 100%;
+          background: inherit;
+          border: none;
+          margin: 0;
+          padding: 0;
+          box-shadow: none;
+        }
+      }
+
+      .react-autosuggest__suggestions-container {
+        display: none;
+        max-height: rem-calc(300px);
+        overflow-y: auto;
+      }
+
+      .react-autosuggest__suggestions-container--open {
+        display: block;
+        position: absolute;
+        top: 51px;
+        width: 100%;
+        border: 1px solid #aaa;
+        background-color: #fff;
+        font-weight: 300;
+        font-size: 16px;
+        border-bottom-left-radius: 4px;
+        border-bottom-right-radius: 4px;
+        z-index: 2;
+      }
+      .react-autosuggest__suggestions-list {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+      }
+      .react-autosuggest__suggestion {
+        cursor: pointer;
+        padding: 10px 20px;
+      }
+      .react-autosuggest__suggestion--highlighted {
+        background-color: $highlight-hover;
+        color: $white;
+      }
+      .react-autosuggest__section-container {
+        border-top: 1px dashed #ccc;
+      }
+
+      .react-autosuggest__section-container--first {
+        border-top: 0;
+      }
+      .react-autosuggest__section-title {
+        padding: 10px 0 0 10px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #777;
+      }
+    }
+}
+
+@mixin header {
+  @include page-component(true);
+  @include xy-grid;
+  @include flex-align(right, middle);
+  border-bottom: 1px solid $light-grey;
+  position: sticky;
+  position: -webkit-sticky;
+  // Top is set from react depending on the actual size of the boxes
+  top: 81px;
+  z-index: 999;
+
+  .video-pagination {
+    @include xy-cell(shrink, false);
+    >span {
+      margin-left: rem-calc(5px);
+      margin-right: rem-calc(5px);
+    }
+    >a {
+      padding: rem-calc(7px);
+    }
+  }
+  .placeholder {
+    @include xy-cell(auto);
+  }
+
+  .title {
+    @include xy-cell(shrink, false);
+    margin-right: rem-calc(50);
+  }
+}

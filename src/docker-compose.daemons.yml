@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+    analytics_platform:
+        image: postgres:10
+        environment:
+            - POSTGRES_USER=fee
+            - POSTGRES_PASSWORD=dbpassword
+            - POSTGRES_DB=analytics_platform
+        ports:
+            - 5432:5432
+        volumes:
+            - analytics_platform_data:/var/lib/postgresql/data
+
+    data_lake:
+        image: postgres:10
+        environment:
+            - POSTGRES_USER=fee
+            - POSTGRES_PASSWORD=dbpassword
+            - POSTGRES_DB=data_lake
+        ports:
+            - 5433:5433
+        command: -p 5433
+        volumes:
+            - data_lake_data:/var/lib/postgresql/data
+
+    daemons:
+        build:
+            context: ./
+            dockerfile: Dockerfile.daemon
+            args:
+                docker_user: "${DOCKER_USER}"
+        depends_on:
+            - analytics_platform
+            - data_lake
+        links:
+            - analytics_platform:analytics_platform
+            - data_lake:data_lake
+        volumes:
+            - ../:/home/app/app
+        user: $DOCKER_USER
+
+volumes:
+    analytics_platform_data:
+    data_lake_data:

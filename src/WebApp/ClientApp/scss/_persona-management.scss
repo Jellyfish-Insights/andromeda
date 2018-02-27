@@ -1,0 +1,153 @@
+@import 'variables';
+@import 'video';
+@import 'video-management';
+.persona-page-body {
+  @include xy-grid();
+  .admin-persona-container {
+    @include xy-cell(5 of 7);
+    @include xy-grid-container(100%, 0);
+    @include xy-grid();
+    margin-right: rem-calc(10px);
+    flex-direction: column;
+    .persona-operations {
+      @include component;
+      @include header;
+      margin-top: 0;
+      border-bottom: rem-calc(10px) solid #59595c;
+      margin-bottom: 0px;
+      height: 100px;
+      top: 70px;
+      input[type=checkbox] {
+        margin-bottom: 0 !important;
+        margin-right: rem-calc(10px);
+      }
+      .operation {
+        cursor: pointer;
+        padding-top: rem-calc(7px);
+        padding-bottom: rem-calc(7px);
+        font-size: rem-calc(22px);
+        margin: 0;
+        margin-right: rem-calc(10px);
+        color: black;
+      }
+      .archive-selector {
+        @include xy-cell(2 of 7);
+      }
+    }
+    .persona-list {
+      @include component;
+      padding: 0;
+      display: block;
+      .separator {
+        height: rem-calc(10px);
+        width: 100%;
+        background: $background-color;
+      }
+    }
+    .list-item {
+      width: 100%;
+      .basic {
+        @include xy-grid();
+        input[type=checkbox] {
+          margin-bottom: 0 !important;
+        }
+        .title {
+          @include xy-cell(90%);
+          padding: 0;
+          padding-left: rem-calc(10px);
+          margin: 0;
+        }
+        .archived-message {
+          @include xy-cell(100%);
+          font-size: $font-size;
+          padding-left: rem-calc(10px);
+        }
+        padding: rem-calc(10px);
+        @include flex-align(left, middle);
+        margin-bottom: 0;
+      }
+      .associations {
+        @include associations-list;
+      }
+    }
+  }
+  .unassociated {
+    @include xy-cell(auto, false);
+    min-width: rem-calc(250px);
+    @include xy-grid-container(100%, 0);
+    @include xy-grid(vertical);
+    background: $white;
+    margin-left: 0;
+    margin-right: 0;
+    padding: rem-calc(10px);
+    .unassoc-title {
+      font-weight: 500;
+      text-align: center;
+      position: sticky;
+      position: -webkit-sticky;
+      top: 70px;
+      z-index: 1000;
+      background: $white;
+      padding-top: rem-calc(10px);
+      padding-bottom: rem-calc(10px);
+    };
+    .video-pagination {
+      @include xy-cell(100%, false);
+      @include xy-grid-container(100%, 0);
+      @include xy-grid();
+      @include flex-align(center, middle);
+      .left {
+        @include xy-cell(10%);
+      }
+      .center {
+        @include xy-cell(30%);
+        margin: 0;
+      }
+      .center-right {
+        @include xy-cell(shrink);
+      }
+      .right {
+        @include xy-cell(10%);
+        margin: 0;
+      }
+      position: sticky;
+      position: -webkit-sticky;
+      top: 110px;
+      z-index: 1000;
+      background: $white;
+      padding-top: rem-calc(10px);
+      padding-bottom: rem-calc(10px);
+    }
+    .search {
+      @include association-search-mixin;
+      position: sticky;
+      position: -webkit-sticky;
+      top: 150px;
+      z-index: 1000;
+      background: $white;
+      padding-bottom: rem-calc(10px);
+    }
+    .unassociated-sources {
+      margin-top: rem-calc(10px);
+      flex-grow: 1;
+      @include xy-cell(100%);
+      @include source-component-mixin;
+      overflow-y: auto;
+      max-height: calc(100vh - 155px);
+      position: sticky;
+      position: -webkit-sticky;
+      top: 240px;
+      z-index: 999;
+    }
+  }
+}
+
+.persona-management {
+  .date-picker-container {
+    position: sticky;
+    position: -webkit-sticky;
+    top: rem-calc(0px);
+    z-index: 3000;
+    @include box-shadow;
+  }
+}

@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DefaultItemExcludes>$(DefaultItemExcludes);out\**;cache\**</DefaultItemExcludes>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ApplicationModels\ApplicationModels.csproj" />
+    <ProjectReference Include="..\DataLakeModels\DataLakeModels.csproj" />
+    <ProjectReference Include="..\Jobs.Fetcher.AdWords\Jobs.Fetcher.AdWords.csproj" />
+    <ProjectReference Include="..\Jobs.Fetcher.YouTube\Jobs.Fetcher.YouTube.csproj" />
+    <ProjectReference Include="..\Jobs.Fetcher.Facebook\Jobs.Fetcher.Facebook.csproj" />
+    <ProjectReference Include="..\Jobs.Transformation\Jobs.Transformation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <Target Name="CreateVersionFile" BeforeTargets="BeforeBuild" Condition="'$(OS)' != 'Windows_NT'">
+    <Exec Command="git log --pretty=format:%H -n 1 &gt; version.txt" />
+  </Target>
+
+  <ItemGroup>
+    <Content Include=".\version.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include=".\schema\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
+  </ItemGroup>
+
+</Project>

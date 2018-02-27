@@ -1,0 +1,4 @@
+from data_sources.linear_log_popularity_data_source import MetaTagAwareEarlyToLatePopularityDataSource
+import experiment
+
+experiment.run(MetaTagAwareEarlyToLatePopularityDataSource)
