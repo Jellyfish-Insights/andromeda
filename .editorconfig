@@ -1,0 +1,20 @@
+root = true
+
+# Rules for every file
+[*]
+end_of_line = lf
+insert_final_newline = true
+charset = utf-8
+indent_style = space
+trim_trailing_whitespace = true
+indent_size = 4
+
+[*.{ts,tsx}]
+indent_size = 2
+
+[*.scss]
+indent_size = 2
+
+# We don't have a Makefile, but just in case
+[Makefile]
+indent_style = tab

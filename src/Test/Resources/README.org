@@ -1,0 +1,8 @@
+This directory should contain test data for the following scnearios:
+
+- clean.zip
+- tFetcher.sFacebook.max3.run1.zip
+- tFetcher.sFacebook.max3.run2.zip
+
+These files were used for running the unit test for the FacebookFetcher in CI,
+and were removing when open sourcing the project.

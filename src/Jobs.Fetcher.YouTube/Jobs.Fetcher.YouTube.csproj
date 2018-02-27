@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataLakeModels\DataLakeModels.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Apis" Version="1.36.1" />
+    <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.36.1.1404" />
+    <PackageReference Include="Google.Apis.YouTube.v3" Version="1.36.1.1226" />
+    <PackageReference Include="Google.Apis.YouTubeAnalytics.v2" Version="1.36.1.1406" />
+    <PackageReference Include="Microsoft.Extensions.CommandLineUtils" Version="1.1.1" />
+  </ItemGroup>
+
+</Project>

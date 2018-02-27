@@ -1,0 +1,99 @@
+@import '../_variables';
+@import '~foundation-sites/scss/foundation';
+@include foundation-xy-grid-classes;
+@include foundation-button;
+
+.login-container {
+  width: 89%;
+  height: 100vh;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-content: center;
+  text-align: left;
+  background: white;
+
+  .message-border {
+    border: 1px solid #ff0000;
+    padding: 20px;
+  }
+
+  .logo-container {
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+
+    .logo-container-up, .logo-container-down {
+      height: 50%;
+      background-color: #000;
+      padding-left: 100px;
+    }
+
+    .logo-container-up {
+      svg {
+        fill: white;
+        width: 50%;
+      }
+      border-bottom: 1px solid #fff;
+      padding-top: 35%;
+      padding-bottom: 0;
+    }
+
+    .logo-container-down {
+      color: white;
+      font-weight: 900;
+      font-size: 40px;
+      padding-top: 30px;
+      border-top: 2px solid #fff;
+    }
+  }
+
+  .form-container {
+    width: 40%;
+    margin-top: auto;
+    margin-bottom: auto;
+
+    h2 {
+      color: #FF0000;
+      font-size: 18px;
+    }
+
+    h3 {
+      font-size: 16px;
+    }
+
+    .cell {
+
+      input[type=checkbox] {
+        position: relative;
+        top: 2px;
+        left: 5px;
+      }
+
+      label {
+        font-weight: 400;
+      }
+    }
+  }
+}
+
+
+// Source: https://designpieces.com/2012/12/social-media-colours-hex-and-rgb/
+$social-brand-facebook: #3b5998;
+$social-brand-google-plus: #dd4b39;
+
+.social {
+  margin-right: .25rem;
+
+  &.facebook {
+    @include button-style($social-brand-facebook, auto, $white);
+  }
+  &.google-plus {
+    @include button-style($social-brand-google-plus, auto, $white);
+  }
+
+  > .fa {
+    color: $white;
+    margin-right: .25rem;
+  }
+}

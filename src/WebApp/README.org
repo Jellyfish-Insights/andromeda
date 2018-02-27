@@ -1,0 +1,342 @@
+#+title: WebApp README
+
+* Introduction
+
+The purpose of this document is to give a short introduction to the packages
+used by the YEAR-AP Frontend project. The list of packages used is available in
+=packages.json=, but the newcomer developer may be overwhelmed by the long list
+there and that's where this document comes in: to facilitate your understanding.
+
+Another point that will be dealt with is code styling and formatting, with some
+instructions on how to set up linting.
+
+* The Project Cornerstones
+
+The Frontend project is built using:
+- [[https://reactjs.org][React]] :: Responsible for identifying state changes in order to update the
+     DOM/WebPage
+- [[https://redux.js.org][Redux]] :: Used to store state that is shared across pages, like the date range
+     and filters
+- [[https://reacttraining.com/react-router/][React-Router]] :: Allows creation of routes like =/content=, =/dashboard=,
+     =/admin/user/= and so on.
+- [[https://www.typescriptlang.org][Typescript]] :: Usage of types with Javascript
+- [[https://sass-lang.com][Sass]] :: Extra syntax to make dealing with CSS easier
+- [[https://foundation.zurb.com][Foundation]] :: CSS Framework, mainly used for its grid system. The Dropdown
+     from Foundation includes some Javascript as well and to inject it on the
+     page we use jquery
+
+In =packages.json=, the relevant parts are:
+
+#+BEGIN_SRC json
+{
+  "@types/react": "^16.4.5",
+  "@types/react-dom": "^16.0.5",
+  "@types/react-hot-loader": "^3.0.6",
+  "@types/react-redux": "^5.0.19",
+  "@types/react-router": "^4.0.27",
+  "@types/react-router-dom": "^4.2.7",
+  "@types/react-router-redux": "^5.0.12",
+  "react": "^16.3.1",
+  "react-dom": "^16.3.1",
+  "react-hot-loader": "^3.1.3",
+  "react-redux": "^5.0.7",
+  "react-router-dom": "^4.3.1",
+  "react-router-redux": "5.0.0-alpha.9",
+  "redux": "^3.7.2",
+  "redux-thunk": "2.2.0",
+  "@typed/compose": "^1.0.0",
+  "typescript": "2.9.2",
+  "react-router": "^4.3.1",
+  "foundation-sites": "^6.4.4-rc1",
+  "@types/jquery": "^3.3.1",
+  "jquery": "^3.3.1",
+  "prop-types": "^15.6.2",
+}
+#+END_SRC
+
+The packages that start with =@types/= are necessary when the original package
+does not ship with typescript types. The package =@typed/compose= is not a types
+package, as you can see it starts with /typed/, not /types/. This one is used in
+the redux configuration file in the project: =configureStore.ts=.
+
+The package =prop-types= is not directly used, but is required as a /peer
+dependency/ by some of the packages installed.
+
+* Development and Deployment Goodies
+
+For development and deployment, the most important package would be our bundler
+[[https://webpack.js.org][webpack]]. It has related configurations in the files =webpack.config.vendor.js=
+and =webpack.config.js=. The former is for dealing with vendor packages, while
+the latter is for the code specific to YEAR-AP. Webpack does not work alone and
+a bunch of loaders are necessary in order for files to be used properly. In
+these configuration files we need to specify the loaders for typescript and
+sass, which are responsible by the transpilation to Javascript and CSS. Besides
+that, while development, hot reloading and injection of new CSS is nice and
+webpack is set up to do that. As we are using ASP.NET, some packages were added
+to help with the integration. The relevant list is below:
+
+#+BEGIN_SRC json
+{
+  "@types/webpack": "2.2.15",
+  "@types/webpack-env": "1.13.0",
+  "aspnet-webpack": "^2.0.3",
+  "aspnet-webpack-react": "^3.0.0",
+  "awesome-typescript-loader": "3.2.1",
+  "css-hot-loader": "^1.3.8",
+  "css-loader": "^0.28.11",
+  "domain-task": "^3.0.3",
+  "event-source-polyfill": "0.0.9",
+  "extract-text-webpack-plugin": "2.1.2",
+  "style-loader": "^0.20.3",
+  "uglifyjs-webpack-plugin": "^1.2.7",
+  "webpack": "^2.7.0",
+  "webpack-hot-middleware": "2.18.2",
+  "webpack-merge": "^4.1.2"
+  "@types/webfontloader": "^1.6.29",
+  "node-sass": "^4.9.0",
+  "sass-loader": "^6.0.7",
+  "webfontloader": "^1.6.28",
+  "node-noop": "1.0.0",
+  "file-loader": "0.11.2",
+  "@types/history": "^4.6.2",
+  "history": "4.6.3",
+  }
+#+END_SRC
+
+Regarding =uglifyjs=, this is the responsible for javascript code minification
+when building for production. As for the =aspnet= packages and =domain-task=,
+=event-source-polyfill=, these came with the [[https://docs.microsoft.com/en-us/aspnet/core/client-side/spa/react-with-redux?view=aspnetcore-2.1][ASP.NET template for react-redux]].
+Notice that this may differ if a more recent version of the template is used.
+
+As for the package =node-noop=, it is require to resolve an issue with
+=webpack=, it is mentioned in a comment in the file =webpack.config.vendor.js=.
+The packages =history= and =file-loader= are not used directly, but are /peer
+dependencies/ of other packages.
+
+* Icons
+
+[[https://fontawesome.com][Fontawesome]] is used for icons and the relevant packages are the following:
+#+BEGIN_SRC json
+{
+  "@fortawesome/fontawesome": "^1.1.4",
+  "@fortawesome/fontawesome-free-brands": "^5.0.8",
+  "@fortawesome/fontawesome-free-regular": "^5.0.10",
+  "@fortawesome/fontawesome-free-solid": "^5.0.8",
+  "@fortawesome/fontawesome-svg-core": "^1.2.0-7",
+  "@fortawesome/react-fontawesome": "0.1.0-6",
+}
+#+END_SRC
+
+* Testing
+
+For frontend tests, [[https://jestjs.io][jest]] is being used.
+
+#+BEGIN_SRC json
+{
+  "@types/jest": "^22.2.3",
+  "jest": "^22.4.3",
+  "ts-jest": "^22.4.6",
+}
+#+END_SRC
+
+* Specific Components and Libraries Used
+
+** Charts
+
+#+BEGIN_SRC json
+{
+  "@types/recharts": "^1.0.20",
+  "recharts": "^1.0.0-beta.10",
+}
+#+END_SRC
+
+** Selectors
+
+This is for selecting the
+- sorting method in the VideoList
+- active metrics in the Video List
+- Unassociated source to Show in Video Management page
+- All/Archived/Unarchived option in Video Management page
+
+#+BEGIN_SRC json
+{
+  "@types/react-select": "^1.2.6",
+  "react-select": "^1.2.1",
+}
+#+END_SRC
+
+** Autosuggestions
+
+This is used for
+- Selecting tags in the filter component
+- Selecting tags in the VideoList component
+- Showing video suggestions in the search bar
+
+Regarding the =fuse.js= package, that is used only in the search bar. It is a
+library to do fuzzy matching in the video title. This is used for
+- Selecting tags in the filter component
+- Selecting tags in the VideoList component
+- Showing video suggestions in the search bar
+
+Regarding the =fuse.js= package, that is used only in the search bar. It is a
+library to do fuzzy matching in the video title.
+#+BEGIN_SRC json
+{
+  "react-autosuggest": "^9.3.4",
+  "@types/react-autosuggest": "^9.3.4",
+  "fuse.js": "^3.2.0",
+}
+#+END_SRC
+
+** Drag and Drop
+
+Used in Video Management Page and Persona Management Page
+#+BEGIN_SRC json
+{
+    "react-dnd": "^5.0.0",
+    "react-dnd-html5-backend": "^5.0.1",
+    "@types/react-dnd": "^2.0.36",
+    "@types/react-dnd-html5-backend": "^2.1.9",
+}
+#+END_SRC
+
+** Utility Functions
+
+These packages have functions that are helpful for dealing with javascript
+  data structure that are not available by default with the language.
+#+BEGIN_SRC json
+{
+    "@types/underscore": "^1.8.8",
+    "@types/lodash": "^4.14.112",
+    "immutability-helper": "^2.7.1",
+    "lodash": "^4.17.10",
+    "underscore": "^1.8.3",
+  }
+#+END_SRC
+
+** Date Ranges
+
+Dealing with dates is done using momentjs, while the date range picker is
+  another package.
+#+BEGIN_SRC json
+{
+    "moment": "^2.22.0",
+    "react-day-picker": "^7.1.4",
+  }
+#+END_SRC
+
+** Complex Tooltips
+
+The one that appear on Persona and Video Management pages for the associations.
+#+BEGIN_SRC json
+{
+  "@types/react-tooltip": "^3.3.5",
+  "react-tooltip": "^3.6.1",
+}
+#+END_SRC
+
+** Modal
+
+The modal that appears when you click on the YouTube/Facebook icons on the
+  VideoList on Content/Marketing/Video Management pages.
+#+BEGIN_SRC json
+{
+    "@types/react-modal": "^3.1.2",
+    "react-modal": "^3.4.4",
+  }
+#+END_SRC
+
+** Tabs
+
+The tabs on the Tag Management page
+#+BEGIN_SRC json
+{
+    "@types/react-tabs": "^1.0.4",
+    "react-tabs": "^2.2.2",
+  }
+#+END_SRC
+
+** Loading
+
+The loading image that appear before data for a chart is loaded and also before User
+  data is loaded in the User Management page.
+#+BEGIN_SRC json
+{
+  "react-loading": "^2.0.2",
+}
+#+END_SRC
+
+** Excel Export
+
+Excel Exporting is done on the frontend side using the following package:
+#+BEGIN_SRC json
+{
+  "xlsx": "^0.13.2"
+}
+#+END_SRC
+
+* Code Style
+
+For code styling of the frontend code, two tools are used:
+[[https://palantir.github.io/tslint/][tslint]] and
+[[https://github.com/vvakame/typescript-formatter][tsfmt,]] which should
+be installed globally in the developer machine with:
+#+BEGIN_SRC bash
+npm install -g tslint tsfmt
+#+END_SRC
+
+The typescript formatter (tsfmt) just needs to be executed to do its job. From
+=src/WebApp=, one can format all the typescript files with:
+#+BEGIN_SRC bash
+find . -type f -not -path '*/node_modules/*' -not -name 'types.ts' \( -name '*.tsx' -or -name '*.ts' \) -exec tsfmt --useTslint tslint.json -r {} \;
+#+END_SRC
+
+Note that this excludes the =node_modules= folder, as well as the =types.ts=
+file which is generated automatically and then is not formatted.
+
+As for tslint, it is advised to integrate it with the text editor. During
+development of YEAR-AP, a [[https://marketplace.visualstudio.com/items?itemName=eg2.tslint][Visual Studio Code]] plugin was used for that effect.
+One can check the [[https://palantir.github.io/tslint/usage/third-party-tools/][official tslint website]] for info on other text editors.
+
+After having a plugin set up, rules defined in =tslint.json= will be used to
+generate warnings on what pieces of code do not follow the standard. A few
+things can be automatically fixed, but most of them need to be manually fixed,
+so the developer should take heed of the warnings tslint gives while he or she
+is writing the code. On Visual Studio Code, a red warning would be presented on
+dissident lines.
+
+Other than what is mentioned above, the code follows camel case convention for
+variable names and react convention for component names, which requires the
+first letter of the component name to be upper cased.
+
+* Formating the source code
+
+You should use the same formatter that is used to check the code on CI.
+The recommended way of going about that is using the docker image used on CI.
+
+- Download the latest Ci image with:
+
+#+BEGIN_SRC
+docker login registry.gitlab.com
+docker pull registry.gitlab.com/brick-abode-developers/fee/year/year-ap-dev
+#+END_SRC
+
+- Change your directory into the root of this project
+
+- Get a logged in shell into your local copy of the CI image
+
+#+BEGIN_SRC
+docker run --mount src="$(pwd)",target=/test_container,type=bind -it registry.gitlab.com/brick-abode-developers/fee/year/year-ap-dev /bin/bash
+#+END_SRC
+
+- Inside the docker container, cd into WebApp:
+
+#+BEGIN_SRC
+cd test_container/WebApp
+#+END_SRC
+
+- Run the formatter
+
+#+BEGIN_SRC
+npm run format
+#+END_SRC

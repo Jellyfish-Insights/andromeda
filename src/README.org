@@ -1,0 +1,73 @@
+#+OPTIONS: toc:nil ^:nil broken-links:mark
+
+* WebApp Configurations
+
+When developing the WebApp (using ~dotnet run~), the following modes that can
+be used:
+    - ~Debug~ :: this is the default. It requires the database to be setup
+      and to contain data.
+    - ~Mock~ :: this is activated by using the ~-c Mock~ flag. It causes
+      mocked data to be used instead of real one from the database.
+    - ~NoAuth~ :: this is activated by using the ~-c NoAuth~ flag. It causes
+      authentication and authorization to be disabled.
+    - ~MockNoAuth~ :: this means both ~Mock~ and ~NoAuth~.
+
+Finally, when developing, it is recommended to run the system with the
+environment variable ~ASPNETCORE_ENVIRONMENT=Development~, so that
+TypeScript and SCSS are automatically rebuilt on change.
+
+* Using the Online Staging Data Lake
+
+To develop the WebApp using real data, one can use the online staging
+"DataLake" database.
+
+The following procedure will setup a local "BusinessDatabase" which can be
+then used by the WebApp. It assumes you have a clean environment and that you
+are at the ~src/~ directory.
+
+1. Start the ~analytics_platform~ docker service:
+   #+BEGIN_SRC shell
+   docker-compose -f docker-compose.daemons.yml up --build analytics_platform
+   #+END_SRC
+
+2. Apply the ApplicationModels migrations:
+   #+BEGIN_SRC shell
+   cd ConsoleApp
+   dotnet run -- migrate --application
+   cd ..
+   #+END_SRC
+
+3. Modify the ~ConsoleApp/appseettings.json~ file, setting the correct
+   credentials for the online ~DataLakeDatabase~. You'll need to change the
+   host and password.
+
+4. Execute ~ConsoleApp~ once:
+   #+BEGIN_SRC shell
+   cd ConsoleApp
+   dotnet run -- jobs --type Transformation
+   cd ..
+   #+END_SRC
+
+* Jobs
+:PROPERTIES:
+:CUSTOM_ID: jobs
+:END:
+
+Thorough this project, the word job is used to designate the software
+responsible for either fetching data from the external APIs or transforming
+application data.
+
+The ~ConsoleApp~ project provides a CLI to the YEAR-AP database and jobs.
+
+There are two kinds of jobs:
+    - Fetcher :: They are responsible for pulling data from the external APIs.
+    - Transformation :: They are responsible for cooking the data from the
+      data lake to be used in the application database.
+
+There are four job "scopes":
+    - YouTube :: These are jobs related to YouTube data;
+    - AdWords :: These are jobs related to AdWords data;
+    - Facebook :: These are jobs related to Facebook data;
+    - Application :: there are Transformation jobs for post-processing the
+      data from the external sources. It does not access the data lake
+      database.

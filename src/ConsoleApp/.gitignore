@@ -1,0 +1,22 @@
+# Credentials
+## YouTube
+credentials/Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json
+credentials/client_secret.json
+## Facebook
+credentials/adaccount_credentials.json
+credentials/page_credentials.json
+
+# Development Cache
+cache/*
+!cache/.gitkeep
+
+# Build
+bin/
+obj/
+out/
+logs/
+version.txt
+
+# Other artifacts
+*.dot
+*.svg

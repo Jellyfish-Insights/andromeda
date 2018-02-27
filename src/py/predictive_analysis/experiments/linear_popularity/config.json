@@ -1,0 +1,5 @@
+{
+    "ConnectionStrings": {
+        "BusinessDatabase": "host=analytics_platform;dbname=analytics_platform;user=fee;password=dbpassword;port=5432"
+    }
+}

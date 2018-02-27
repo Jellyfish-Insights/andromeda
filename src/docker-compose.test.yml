@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+    test_analytics_platform:
+        image: postgres:10
+        environment:
+            - POSTGRES_USER=fee
+            - POSTGRES_PASSWORD=dbpassword
+            - POSTGRES_DB=analytics_platform
+        command: -p 5435
+        ports:
+            - 5435:5435
+        tmpfs:
+          - /var/lib/postgresql/data:rw,noexec,nosuid,size=400m
+
+    test_data_lake:
+        image: postgres:10
+        environment:
+            - POSTGRES_USER=fee
+            - POSTGRES_PASSWORD=dbpassword
+            - POSTGRES_DB=data_lake
+        command: -p 5436
+        ports:
+            - 5436:5436
+        tmpfs:
+          - /var/lib/postgresql/data:rw,noexec,nosuid,size=400m

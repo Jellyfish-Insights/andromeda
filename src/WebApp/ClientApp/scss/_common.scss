@@ -1,0 +1,60 @@
+@import 'date-range-picker';
+.shadow {
+  box-shadow: 3px 3px 5px 0px #ccc;
+}
+
+.react-tabs {
+  :global {
+    @import "~react-tabs/style/react-tabs.scss";
+  }
+}
+
+.wrap {
+  :global {
+    @import "~react-select/scss/default.scss";
+  }
+}
+
+.fee-button {
+  @include fee-button;
+}
+
+.metric-tooltip {
+  pointer-events: auto !important;
+  z-index: 10000;
+  opacity: 1 !important;
+  max-width: 25%;
+  &:hover {
+    visibility: visible !important;
+  }
+}
+
+/* Spinner Circle Rotation */
+$spCol: #eb4032;
+
+.sp {
+  position: fixed;
+	width: 100px;
+	height: 100px;
+	clear: both;
+  top: 50%;
+  left: 50%;
+  margin-top: -50px;
+  margin-left: -50px;
+}
+
+.sp-circle {
+  border: 10px rgba($spCol,0.25) solid;
+  border-top: 10px rgba($spCol,1) solid;
+  border-radius: 50%;
+  -webkit-animation: spCircRot .6s infinite linear;
+  animation: spCircRot .6s infinite linear;
+}
+@-webkit-keyframes spCircRot {
+  from { -webkit-transform: rotate(0deg); }
+  to { -webkit-transform: rotate(359deg); }
+}
+@keyframes spCircRot {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(359deg); }
+}

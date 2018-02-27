@@ -1,0 +1,106 @@
+{
+    "name": "instagram",
+    "threads": 1,
+    "delay": 20,
+    "page_size": 20,
+    "columns":[
+        ["id", "bigint"]
+    ],
+    "edges": [{
+        "name": "media",
+        "time": [],
+        "columns": [
+            ["caption","text"],
+            ["children","json"],
+            ["comments_count","bigint"],
+            ["id","bigint"],
+            ["ig_id","bigint"],
+            ["like_count","bigint"],
+            ["media_type","text"],
+            ["media_url","text"],
+            ["permalink","text"],
+            ["shortcode","text"],
+            ["thumbnail_url","text"],
+            ["timestamp","timestamp without time zone"]
+        ],
+        "edges": [],
+        "instagram_insights": [{
+            "name": "insights",
+            "instagram_media_type": "video",
+            "columns": [],
+            "bounds": [],
+            "granularity": "lifetime",
+            "time": [],
+            "metrics": [
+                ["engagement", "bigint"],
+                ["impressions", "bigint"],
+                ["reach", "bigint"],
+                ["saved", "bigint"],
+                ["video_views", "bigint"]
+            ]
+        },{
+            "name": "insights",
+            "instagram_media_type": "image",
+            "columns": [],
+            "bounds": [],
+            "granularity": "lifetime",
+            "time": [],
+            "metrics": [
+                ["engagement", "bigint"],
+                ["impressions", "bigint"],
+                ["reach", "bigint"],
+                ["saved", "bigint"]
+            ]
+        },{
+            "name": "insights",
+            "instagram_media_type": "carousel_album",
+            "columns": [],
+            "bounds": [],
+            "granularity": "lifetime",
+            "time": [],
+            "metrics": [
+                ["carousel_album_engagement", "bigint"],
+                ["carousel_album_impressions", "bigint"],
+                ["carousel_album_reach", "bigint"],
+                ["carousel_album_saved", "bigint"]
+            ]
+        } ]
+    }],
+    "insights": [{
+            "name": "insights",
+            "granularity": "lifetime",
+            "columns": [
+                ["values", "json"],
+                ["name", "text"]
+            ],
+            "bounds": [],
+            "time": [],
+            "metrics": [
+                ["audience_city", "jsonb"],
+                ["audience_country", "jsonb"],
+                ["audience_gender_age", "jsonb"],
+                ["audience_locale", "jsonb"],
+                ["online_followers", "jsonb"]
+            ]
+        },{
+            "name": "insights",
+            "granularity": "day",
+            "columns": [
+                ["values", "json"],
+                ["name", "text"],
+                ["date_start", "timestamp without time zone"],
+                ["date_stop", "timestamp without time zone"]
+            ],
+            "time": [],
+            "bounds": [["creation_date"]],
+            "metrics": [
+                ["email_contacts", "bigint"],
+                ["follower_count", "bigint"],
+                ["get_directions_clicks", "bigint"],
+                ["phone_call_clicks", "bigint"],
+                ["profile_views", "bigint"],
+                ["text_message_clicks", "bigint"],
+                ["website_clicks", "bigint"]
+            ]
+        }]
+}

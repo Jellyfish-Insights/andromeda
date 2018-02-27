@@ -1,0 +1,89 @@
+@mixin tag-css {
+  margin: rem-calc(5px 0);
+  .large-4 {
+    padding: rem-calc(5px);
+    .tag {
+      width: 100%;
+      height: inherit;
+      display: inline-flex;
+      border-radius: 30px;
+      font-size: $font-size;
+      padding: rem-calc(2px 6px);
+      @include flex-align(left, middle);
+      padding: rem-calc(5px);
+      input {
+        display: initial;
+        width: 100%;
+        font-size: inherit;
+        border: none;
+        margin: 0px;
+        padding-top: 0;
+        padding-bottom: 0;
+        height: inherit;
+        box-shadow: inherit;
+        border-radius: inherit;
+        font-weight: 500;
+        font-size: $tag-font-size;
+        &:focus {
+          background-color: white;
+        }
+      }
+      a {
+        svg {
+          margin-left: rem-calc(4px);
+          margin-right: rem-calc(4px);
+          font-size: rem-calc(12px);
+        }
+      }
+    }
+  }
+}
+
+.admin-header1 {
+  color: black;
+  font-size: 22px;
+  font-weight: 500;
+  margin-left: 10px;
+  display: flex;
+  place-content: center;
+  flex-direction: column;
+}
+
+.admin-header2 {
+  color: black;
+  font-size: 18px;
+  font-weight: 500;
+  margin-left: 10px;
+  display: flex;
+  place-content: center;
+  flex-direction: column;
+}
+
+.admin-tab {
+  margin-top: rem-calc(14px);
+  padding: rem-calc(9px);
+  background: white;
+  @include box-shadow;
+  .date-picker-container {
+    margin-bottom: 0;
+  }
+  .react-tabs {
+    .react-tabs__tab {
+      padding-top: rem-calc(20px);
+      padding-bottom: rem-calc(20px);
+    }
+  }
+}
+
+.admin-tags {
+  @include tag-css;
+}
+
+.tag-type-selector {
+  @include xy-grid();
+  @include page-component(false);
+  width: 100%;
+  .tag-selector-item {
+    @include xy-cell(2 of 5);
+  }
+}

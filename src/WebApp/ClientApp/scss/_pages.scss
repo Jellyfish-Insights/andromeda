@@ -1,0 +1,45 @@
+.page-container {
+  @include xy-grid-container(100%, rem-calc(160));
+  background: $background-color;
+  padding-bottom: rem-calc(40px);
+  padding-top: rem-calc(14px);
+}
+
+body {
+  min-width: 1400px;
+  width: auto !important;
+}
+
+.vspacing {
+  height: rem-calc(20px);
+}
+
+.loading {
+  @include xy-grid-container(100%, 0);
+  position: relative;
+  margin-bottom: rem-calc(14px);
+  @include xy-grid();
+  @include box-shadow;
+  @include page-component;
+  font-size: $title-font-size;
+  font-family: $title-font;
+}
+
+footer {
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  background-color: #878787;
+  color: white;
+  text-align: center;
+  padding-bottom: 10px;
+  padding-top: 20px;
+  p {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    svg {
+      width: 200px;
+      fill: white;
+    }
+  }
+}
