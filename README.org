@@ -1,4 +1,4 @@
-#+TITLE: FEE YEAR-AP
+#+TITLE: FEE YEAR-AP: A Social Media Analytics Platform
 
 * Introduction
 
@@ -8,7 +8,7 @@ This repo contains the main code of the "FEE YEAR Analytics Platform".
 
 ** What is the FEE YEAR-AP
 
-It is an application that will collect analytics data from YouTube, AdWords
+It is an application that will collect analytics data from YouTube, Google Ads
 and Facebook and generate reports about it, so that FEE can improve their
 reach on the population and spread their ideas on liberty.
 
