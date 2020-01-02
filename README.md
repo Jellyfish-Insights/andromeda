@@ -1,7 +1,7 @@
 # FEE YEAR-AP: A Social Media Analytics Platform
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
-[![license](https://img.shields.io/badge/license-FEE-green)](https://fee.org/)
+[![license](https://img.shields.io/badge/license-Apache%202-blue)](License.txt)
 # Introduction
 
 ## What is this repo?
@@ -169,7 +169,7 @@ The following credential files are needed:
   ```
 
 ### Running the system
-  
+
   To execute the ```WebApp```, got into its directory and use the ```dotnet run```
   command.  When executing the ```WebApp```, the web system will be available
   at http://localhost:5000.
