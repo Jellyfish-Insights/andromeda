@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -45,38 +46,9 @@ namespace Test {
             var expected = new[] {
                 TaskStatus.RanToCompletion,
                 TaskStatus.Faulted,
-                TaskStatus.Canceled,
                 TaskStatus.RanToCompletion,
-                TaskStatus.Canceled,
                 TaskStatus.RanToCompletion,
-            };
-
-            for (var i = 0; i < expected.Count(); i++) {
-                Assert.Equal(expected[i], tasks[jobList[i].Id()].Status);
-            }
-        }
-
-        [Fact]
-        public void FaultyRootJobExecution() {
-            var jobList = new AbstractJob[] {
-                new JobsHelper.JobA(true),
-                new JobsHelper.JobB(),
-                new JobsHelper.JobC(),
-                new JobsHelper.JobD(),
-                new JobsHelper.JobE(),
-                new JobsHelper.JobF(),
-            };
-
-            var jobs = RunJobsCommand.BuildJobsDict(jobList);
-            var tasks = RunJobsCommand.ScheduleJobs(jobs);
-            RunJobsCommand.WaitAll(tasks);
-
-            var expected = new[] {
-                TaskStatus.Faulted,
-                TaskStatus.Canceled,
-                TaskStatus.Canceled,
                 TaskStatus.RanToCompletion,
-                TaskStatus.Canceled,
                 TaskStatus.RanToCompletion,
             };
 
