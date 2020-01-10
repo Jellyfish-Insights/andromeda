@@ -45,4 +45,4 @@ dotnet build ./ap.sln -c Release
 
 # run c# tests
 cd Test
-dotnet test --verbosity normal --no-build --no-restore
+dotnet test --verbosity normal
