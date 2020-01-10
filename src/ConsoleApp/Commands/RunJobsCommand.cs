@@ -42,7 +42,7 @@ namespace ConsoleApp.Commands {
 
                     if (dependencies.Any()) {
                         dependencies.ForEach(x => addToTasks(x));
-                        tasks.Add(jobId, Task.WhenAll(dependencies.Select(x => tasks[x])).ContinueWith(x => jobs[jobId].Execute(debug), TaskContinuationOptions.OnlyOnRanToCompletion));
+                        tasks.Add(jobId, Task.WhenAll(dependencies.Select(x => tasks[x])).ContinueWith(x => jobs[jobId].Execute(debug), TaskContinuationOptions.None));
                     } else {
                         tasks.Add(jobId, Task.Run(() => jobs[jobId].Execute(debug)));
                     }
