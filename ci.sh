@@ -8,7 +8,6 @@ sudo /bin/bash -c 'echo -e "127.0.0.1 analytics_platform" >> /etc/hosts'
 
 # check versions
 dotnet --info
-node --version
 docker --version
 docker-compose --version
 
