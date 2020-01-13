@@ -4,7 +4,7 @@
 
 **Describe the PR**
 
-This PR closes [#ISSUE_NUMBER](ISSUE LINK)
+This PR closes #ISSUE_NUMBER
 
 <!-- Provide a description of the changes proposed in the pull request -->
 
@@ -12,8 +12,6 @@ This PR closes [#ISSUE_NUMBER](ISSUE LINK)
   Thank you very much for contributing to the Jellyfish team by creating an issue! ❤️
   To avoid duplicate PR we ask you to check off the following list.
 -->
-
-
 
 <!-- Short bullet list with the new changes proposed-->
 
