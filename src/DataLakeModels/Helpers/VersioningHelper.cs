@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace ApplicationModels.Helpers {
+namespace DataLakeModels.Helpers {
 
     public static class VersioningHelper {
 

@@ -1,10 +1,5 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using DataLakeModels;
-using DataLakeModels.Models.AdWords;
 using DataLakeModels.Models.AdWords.Reports;
-using Common.Logging;
 
 namespace Test.Helpers {
 

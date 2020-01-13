@@ -10,10 +10,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationModels\ApplicationModels.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\ConsoleApp\ConsoleApp.csproj" />
-    <ProjectReference Include="..\WebApp\WebApp.csproj" />
     <ProjectReference Include="..\Jobs.Fetcher.YouTube\Jobs.Fetcher.YouTube.csproj" />
   </ItemGroup>
 

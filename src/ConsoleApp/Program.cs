@@ -103,9 +103,6 @@ namespace ConsoleApp {
                     if (lake.HasValue()) {
                         MigrateCommand.MigrateDataLake();
                     }
-                    if (analytics.HasValue()) {
-                        MigrateCommand.MigrateApplication();
-                    }
                     return 0;
                 });
             });
@@ -167,52 +164,6 @@ namespace ConsoleApp {
                             Console.WriteLine(t.Key);
                         }
                     }
-                    return 0;
-                });
-            });
-
-            app.Command("check-ap", (command) => {
-                command.Description = "Report on properties of Application Database";
-                command.HelpOption("-?|-h|--help");
-
-                command.OnExecute(() => {
-                    ApplicationConsistencyReport.Report();
-                    return 0;
-                });
-            });
-
-            app.Command("application-reset", (command) => {
-                command.Description = "Reset application database table";
-                command.HelpOption("-?|-h|--help");
-
-                var table = command.Option("-t|--table", "Table to reset.", CommandOptionType.SingleValue);
-
-                command.OnExecute(() => {
-                    var allTables = ApplicationResetCommand.GetResetableTables().ToDictionary(x => x.TableName, x => x.Entity);
-                    var tables = ApplyTableFilter(table, allTables);
-
-                    if (tables.Any()) {
-                        ApplicationResetCommand.ResetTables(tables);
-                    } else {
-                        Console.WriteLine("Available tables:");
-                        foreach (var t in allTables.OrderBy(x => x.Key)) {
-                            Console.WriteLine(t.Key);
-                        }
-                    }
-                    return 0;
-                });
-            });
-
-            app.Command("archive-old-videos", (command) => {
-                command.Description = "Archieves all videos published before a specific date (defaults to 2015-06-01).";
-                command.HelpOption("-?|-h|--help");
-
-                var dateOption = command.Option("-d|--date", "Table to reset.", CommandOptionType.SingleValue);
-
-                command.OnExecute(() => {
-                    var date = dateOption.HasValue() ? DateTime.Parse(dateOption.Value()) : new DateTime(2015, 6, 1);
-
-                    ArchiveVideosCommand.ArchiveVideosPublishedBefore(date);
                     return 0;
                 });
             });

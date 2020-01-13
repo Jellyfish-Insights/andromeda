@@ -20,8 +20,7 @@ namespace Common {
     }
 
     public enum YearDatabase {
-        DataLakeDatabase,
-        BusinessDatabase
+        DataLakeDatabase
     }
 
     public static class DatabaseOperations {
@@ -30,9 +29,6 @@ namespace Common {
 
             string settingsField;
             switch (db) {
-                case Databases.AnalyticsPlatform:
-                    settingsField = "BusinessDatabase";
-                    break;
                 case Databases.LakeYouTubeData:
                 case Databases.LakeYouTubeAnalytics:
                 case Databases.LakeAdWords:

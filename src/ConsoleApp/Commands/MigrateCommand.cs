@@ -1,6 +1,5 @@
 using System;
 using DataLakeModels;
-using ApplicationModels;
 using Common;
 
 namespace ConsoleApp.Commands {
@@ -9,9 +8,6 @@ namespace ConsoleApp.Commands {
 
         public static void Migrate(Databases db) {
             switch (db) {
-                case Databases.AnalyticsPlatform:
-                    DatabaseOperations.Migrate<ApplicationDbContext>();
-                    break;
                 case Databases.LakeYouTubeData:
                     DatabaseOperations.Migrate<DataLakeYouTubeDataContext>();
                     break;
@@ -30,10 +26,6 @@ namespace ConsoleApp.Commands {
                 default:
                     throw new Exception("Invalid database");
             }
-        }
-
-        public static void MigrateApplication() {
-            DatabaseOperations.Migrate<ApplicationDbContext>();
         }
 
         public static void MigrateDataLake() {

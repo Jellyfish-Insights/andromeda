@@ -1,7 +1,7 @@
 using System;
 using Npgsql;
 
-namespace Jobs.Transformation.Facebook {
+namespace DataLakeModels.Helpers {
 
     public static class NpgsqlDataReaderExtensions {
         public static T Prim<T>(this NpgsqlDataReader reader, string name) {
