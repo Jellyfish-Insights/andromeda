@@ -19,7 +19,7 @@ cd src
 docker-compose -f docker-compose.test.yml up -d
 
 # build all projects
-dotnet build ./ap.sln -c Release
+dotnet build ./src.sln -c Release
 
 # run c# tests
 cd Test
