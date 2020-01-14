@@ -1,24 +1,25 @@
-# FEE YEAR-AP: A Social Media Analytics Platform
+# Jellyfish: A Social Media Analytics Platform
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 [![license](https://img.shields.io/badge/license-Apache%202-blue)](License.txt)
+
 # Introduction
 
 ## What is this repo?
 
-This repo contains the main code of the "FEE YEAR Analytics Platform".
+This repo contains the main code of the "Jellyfish Analytics Platform".
 
-## What is the FEE YEAR-AP
+## What is the Jellyfish
 
-It is an application that will collect analytics data from YouTube, Google Ads
-and Facebook and generate reports about it, so that FEE can improve their
-reach on the population and spread their ideas on liberty.
+It is an OS application that will collect analytics data from YouTube, Google Ads
+and Facebook and generate reports about it.
+
+The idea on making Jellyfish possible came by [FEE](https://fee.org/about)
 
 # Building and Running
 
 The AP is composed of the following subsystems:
   - Console App
-  - Web App
 
 The code for all of them is located in the ```src``` directory. The instructions
 below assume you are there.
@@ -26,40 +27,20 @@ below assume you are there.
 ## System Requirements
 
 You need:
-  - .NET Core SDK 2.1.300
-  - PostgreSQL 10
-  - node v9.11.1
-  - npm 5.6.0
+  - [.NET Core SDK 2.1.300](https://dotnet.microsoft.com/download/dotnet-core/2.1)
+  - [PostgreSQL 10](https://www.postgresql.org/)
 
 ## System Bootstrap
 
 You'll need to setup a few things:
-  - Install front-end dependencies;
-  - Create initial migration;
-  - Place the credential files.
+  - [Run the database with docker](#Running-with-Docker)
+  - [Create initial migration](#)
+  - Place the credential files
 
 ### Note for Windows
 
    You need to install [Git for Windows](https://git-scm.com/download/win) All of the commands in this
    manual need to run over "Git Bash", not over "cmd.exe" or "powershell".
-
-   You also need to run the following commands from an admin shell to be able
-   to install the npm dependencies.
-
-   ```shell
-    npm install --global --production windows-build-tools
-    npm install --global node-gyp
-   ```
-
-   This will allow you to do ```npm install```.
-
-### Install front-end dependencies
-
-Do:
-```shell
-  cd WebApp
-  npm install
-```
 
 ### Build back-end
 
@@ -101,25 +82,6 @@ The following credential files are needed:
    ```shell
      docker login registry.gitlab.com
    ```
-
-### WebApp
-
-  Do:
-  ```shell
-    docker-compose -f docker-compose.real.yml up
-  ```
-
-   This will make the web application available at https://localhost/.
-
-### ConsoleApp
-
-  Do:
-  ```shell
-    docker-compose -f docker-compose.daemons.yml up
-  ```
-
-   This will execute all the jobs. For more information on these jobs check
-   [its documentation](./src/README.org#jobs).
 
 ## Running Manually
 
@@ -169,24 +131,30 @@ The following credential files are needed:
   ```
 
 ### Running the system
-
-  To execute the ```WebApp```, got into its directory and use the ```dotnet run```
-  command.  When executing the ```WebApp```, the web system will be available
-  at http://localhost:5000.
-
-  For running the jobs, you'll need to do:
+  
+  For running all the jobs, you'll need to do:
   ```shell
     cd ConsoleApp
     dotnet run -- jobs
   ```
 
-### Creating a user
+  It's also possible to run an specific job with the following command:
 
-  Make sure you set your email as the "DefaultUserEmail" in
-  ```WebApp/appsettings.json```. Restart Web App and you'll become
-  an admin of the system.
+    ```shell
+      dotnet run -- jobs -j Jobs.Fetcher.Facebook.page.posts
+    ```
 
-  To invite new users, navigate to the User Management page.
+  One type of Job:
+
+    ```shell
+      dotnet run -- jobs -t Fetcher -s Facebook
+    ```
+
+  Or see a list of jobs:
+
+  ```shell
+    dotnet run -- jobs -l
+  ```
 
 # Developing
 
