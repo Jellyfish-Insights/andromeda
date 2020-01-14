@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using DataLakeModels.Models;
 using Newtonsoft.Json.Linq;
-using Common.Logging;
 using System.Collections.Immutable;
 using Serilog;
 using Serilog.Core;
@@ -206,65 +205,25 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public IEnumerable<JObject> FetchAllEntitiesOnTable(Table table, Logger jobLogger, int maxEntities, int max_iters = Int32.MaxValue) {
-            /**
-               On this context, an entity is a social media artifact such as page, post, image, video, etc...
-             */
+            JObject entities;
+            int entitiesFetched = 0;
             Logger.Information($"Fetching table {table.TableName}");
 
-            if (table.TableName == "videos") {
-                // This is a improvement to Facebook Fetch.
-                // In this new feature first we fetch the ID for each videos and later we Fetch the information for these videos
-                var entititesId = GetEntitiesId(table, maxEntities, max_iters).ToList();
-
-                int entitiesFetched = 0;
-                foreach (var id in entititesId) {
-                    if (maxEntities > 0 && maxEntities <= entitiesFetched) {
-                        yield break;
-                    }
-                    // Fetch Data for each ID and insert on Database
-                    var o = FetchDataById(id, table, jobLogger);
-
-                    if (o != null) {
-                        yield return o;
-                        entitiesFetched++;
-                    }
-                }
-            } else {
-                // In this way we're Fetching everything at once. The problem here is that if a endpoint has a lot data it will lock the process.
-                // TODO: Implement FetchDataById for others tables such as page, post, image, etc...
-                JObject tip;
-                try {
-                    tip = FetchEndpoint(table, ApiMan.Secret.Id, table.Name, table.Columns.Select(x => x.Value).ToList()).Result;
-                } catch (FacebookApiException) {
+            foreach (var id in GetEntitiesId(table, maxEntities, max_iters).ToList()) {
+                if (maxEntities > 0 && maxEntities <= entitiesFetched) {
                     yield break;
                 }
-                var result = PaginateEndpoint(table, tip, max_iters);
-                int entitiesFetched = 0;
-                foreach (JObject row in result) {
-                    if (maxEntities > 0 && maxEntities <= entitiesFetched) {
-                        yield break;
-                    }
-                    var o = row;
-                    if (table.Required.All(x => o[x] != null)) {
-                        AddSystime(table, ref o);
-                        switch (DatabaseManager.CheckEntityModified(table, o)) {
-                            case Modified.New:
-                                DatabaseManager.InsertRow(table, o);
-                                break;
-                            case Modified.Inconsistent:
-                                jobLogger.Warning("ListAll: Inconsistent value for entity: {TableName}, {Id}, {Value}", table.TableName, o["id"].ToString(), o.ToString());
-                                break;
-                            case Modified.Equal:
-                                break;
-                            case Modified.Updated:
-                                DatabaseManager.VersionEntityModified(table, o, "id", "systime");
-                                DatabaseManager.InsertRow(table, o);
-                                break;
-                        }
-                        Logger.Information($"Fetched ({table.TableName},{o ? ["id"]})");
-                        yield return o;
-                        entitiesFetched++;
-                    }
+
+                try {
+                    entities = FetchDataById(id, table, jobLogger);
+                } catch (Exception) {
+                    Logger.Warning($"Fetching {table.Name} {id} failed.");
+                    continue;
+                }
+
+                if (entities != null) {
+                    yield return entities;
+                    entitiesFetched++;
                 }
             }
         }
@@ -343,7 +302,7 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public (Modified, JObject) ? ListLifetimeInsights(Insights edge, JObject node, int max_iters = Int32.MaxValue) {
-            Logger.Debug("Fetching lifetime insights for ({Id}, {Edge})", node["id"], edge.Name);
+            Logger.Debug($"Fetching lifetime insights for ({node["id"]}, {edge.Name})");
             var now = this.ApiMan.GetUtcTime().Date + new TimeSpan(3, 0, 0, 0);
             var startN = node.IndexPathOrDefault(edge.Start, this.ApiMan.GetUtcTime());
             var last = DatabaseManager.LastLifetimeDate(edge, node);
@@ -448,7 +407,7 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public void ListDailyInsights(Insights lifetime, Insights edge, JObject node, int max_iters = Int32.MaxValue) {
-            Logger.Debug("Fetching daily insights for ({Id}, {Edge})", node["id"], edge.Name);
+            Logger.Debug($"Fetching daily insights for ({node["id"]}, {edge.Name})");
             // Size of days in each request
             const int DayPageSize = 10;
             // limits the number of time partitions replicated per call to this function
