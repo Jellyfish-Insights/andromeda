@@ -1,4 +1,4 @@
-# Jellyfish: A Social Media Analytics Platform
+# Jellyfish: A Social Media data lake
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 [![license](https://img.shields.io/badge/license-Apache%202-blue)](License.txt)
@@ -7,7 +7,7 @@
 
 ## What is this repo?
 
-This repo contains the main code of the "Jellyfish Analytics Platform".
+This repo contains the main code of the "Jellyfish".
 
 ## What is the Jellyfish
 
@@ -18,9 +18,6 @@ The idea on making Jellyfish possible came by [FEE](https://fee.org/about)
 
 # Building and Running
 
-The AP is composed of the following subsystems:
-  - Console App
-
 The code for all of them is located in the ```src``` directory. The instructions
 below assume you are there.
 
@@ -29,13 +26,15 @@ below assume you are there.
 You need:
   - [.NET Core SDK 2.1.300](https://dotnet.microsoft.com/download/dotnet-core/2.1)
   - [PostgreSQL 10](https://www.postgresql.org/)
+  - [Docker](#Running-with-Docker)
+  - [Docker-compose](#Running-with-Docker)
 
 ## System Bootstrap
 
 You'll need to setup a few things:
   - [Run the database with docker](#Running-with-Docker)
-  - [Create initial migration](#)
-  - Place the credential files
+  - [Create initial migration](#Building-the-system)
+  - [Place the credential files](#Place-the-credential-files)
 
 ### Note for Windows
 
@@ -139,16 +138,15 @@ The following credential files are needed:
   ```
 
   It's also possible to run an specific job with the following command:
-
-    ```shell
-      dotnet run -- jobs -j Jobs.Fetcher.Facebook.page.posts
-    ```
+  ```shell
+    dotnet run -- jobs -j Jobs.Fetcher.Facebook.page.posts
+  ```
 
   One type of Job:
 
-    ```shell
-      dotnet run -- jobs -t Fetcher -s Facebook
-    ```
+  ```shell
+    dotnet run -- jobs -t Fetcher -s Facebook
+  ```
 
   Or see a list of jobs:
 
