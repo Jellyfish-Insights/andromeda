@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Common;
-using ApplicationModels.Helpers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using DataLakeModels.Helpers;
@@ -18,14 +17,6 @@ namespace ConsoleApp.Commands {
             var reports = ErrorReportCommand.GetReportData(startDate);
             var status = reports.Select(r => r.ErrorCount).Sum() == 0 &&
                          reports.Select(r => r.LastSuccess).Where(r => r.ToString() == "1/1/01 12:00:00 AM").Count() == 0;
-            return Tuple.Create(reports, status);
-        }
-
-        private static Tuple<List<Report>, bool> GetApHealthInfo() {
-            var reports = new List<Report>(){
-                ApplicationConsistencyReport.CheckForOrphanApplicationVideos()
-            };
-            var status = reports.Where(x => x.Status == ReportStatus.FAILED).Count() == 0;
             return Tuple.Create(reports, status);
         }
 
@@ -124,53 +115,6 @@ namespace ConsoleApp.Commands {
             return String.Join("\n", errorReport);
         }
 
-        private static String GetHtmlCheckApReport(List<Report> reports) {
-            var rowPadding = "style='padding-left:75px;";
-
-            var errorReport = new List<string>() {
-                $@"
-                        <h2 style='text-align:center;'> Check AP Report </h2>
-                        <table>
-                    "
-            };
-
-            foreach (var row in reports) {
-                errorReport.Add($@"
-                            <tr>
-                                <td><b> {row.Title} </b></td>
-                            </tr>
-                            <tr>
-                                <td><b> Status </b></td>
-                                <td> {row.Status}</td>
-                            </tr>
-                             <tr>
-                                <td><b> Description </b></td>
-                                <td> {row.Description}</td>
-                            </tr>
-                            </table><table>
-                            <tr>
-                                <td style='padding-left:75px;'></td>
-                                <td {rowPadding}'><b> {row.Data[0][0]} </b></td>
-                                <td {rowPadding}'><b> {row.Data[0][1]} </b></td>
-                                <td {rowPadding}'><b> {row.Data[0][2]} </b></td>
-                            </tr>
-                        ");
-                for (int i = 1; i < row.Data.Count(); i++) {
-                    var title = row.Data[i][1].Count() > 50 ? $"{row.Data[i][1].Substring(0, 50)}(...)" : row.Data[i][1];
-                    errorReport.Add($@"
-                            <tr>
-                                <td style='padding-left:75px;'></td>
-                                <td {rowPadding}'>{row.Data[i][0]} </td>
-                                <td {rowPadding}'>{title} </td>
-                                <td {rowPadding}'>{row.Data[i][2]} </td>
-                            </tr>
-                            ");
-                }
-            }
-            errorReport.Add("</table>");
-            return String.Join("\n", errorReport);
-        }
-
         private static String GetHtmlCheckDataLakeReport(List<List<string>> reports) {
             var rowPadding = "style='padding-right:50px;";
 
@@ -202,14 +146,12 @@ namespace ConsoleApp.Commands {
 
         private static void SendReportEmail(string[] emails, string mailServiceKey, DateTime startDate,
                                             Tuple<List<ErrorReportCommand.ReportRow>, bool> jobsReportInfo,
-                                            Tuple<List<Report>, bool> apReportInfo,
                                             Tuple<List<List<string>>, bool> dataLakeReportInfo,
                                             bool systemStatus) {
 
             var mailgun = new MailgunEmailService(mailServiceKey);
             var plainText = String.Concat(GetHtmlSummary(startDate, systemStatus)
                                           , GetHtmlJobsReport(startDate, jobsReportInfo.Item1)
-                                          , GetHtmlCheckApReport(apReportInfo.Item1)
                                           , GetHtmlCheckDataLakeReport(dataLakeReportInfo.Item1));
 
             foreach (var email in emails) {
@@ -249,17 +191,16 @@ namespace ConsoleApp.Commands {
         public static void Run(string[] emails, string mailServiceKey, DateTime startDate, bool forcedEmail) {
             // These functions will return {Item1 = reports, Item2 = status}
             var jobsReportInfo = GetJobsHealthInfo(startDate);
-            var apReportInfo = GetApHealthInfo();
             var dataLakeReportInfo = GetDataLakeHealthInfo();
 
-            var systemStatus = jobsReportInfo.Item2 && apReportInfo.Item2 && dataLakeReportInfo.Item2;
+            var systemStatus = jobsReportInfo.Item2  && dataLakeReportInfo.Item2;
 
             if (forcedEmail) {
-                SendReportEmail(emails, mailServiceKey, startDate, jobsReportInfo, apReportInfo, dataLakeReportInfo, systemStatus);
+                SendReportEmail(emails, mailServiceKey, startDate, jobsReportInfo, dataLakeReportInfo, systemStatus);
             } else {
                 var lastExecuted = GetLastExecuted();
                 if (lastExecuted < startDate && !systemStatus) {
-                    SendReportEmail(emails, mailServiceKey, startDate, jobsReportInfo, apReportInfo, dataLakeReportInfo, systemStatus);
+                    SendReportEmail(emails, mailServiceKey, startDate, jobsReportInfo, dataLakeReportInfo, systemStatus);
                     SetLastExecuted(DateTime.Now);
                 } else {
                     Console.WriteLine("Skipping report. To force sending e-mail use '-f'.");

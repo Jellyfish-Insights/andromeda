@@ -2,15 +2,12 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
-using ApplicationModels;
 using Common.Logging.Models;
 using Common.Report;
 using Common.Jobs;
-using DataLakeModels;
 using Microsoft.EntityFrameworkCore;
-using Common;
 using Npgsql;
-using Jobs.Transformation.Facebook;
+using DataLakeModels.Helpers;
 using Microsoft.Extensions.Configuration;
 
 namespace ConsoleApp.Commands {
@@ -27,17 +24,16 @@ namespace ConsoleApp.Commands {
             public string LastException;
         }
 
-        private static Tuple<string, string> GetDatabaseConnectionStrings() {
+        private static string GetDatabaseConnectionStrings() {
             IConfiguration Configuration = new ConfigurationBuilder()
                                                .SetBasePath(Directory.GetCurrentDirectory())
                                                .AddJsonFile("appsettings.json")
                                                .Build();
 
             var ConnectionStringsConfiguration = Configuration.GetSection("ConnectionStrings");
-            var APConnectionString = ConnectionStringsConfiguration.GetValue<string>("BusinessDatabase");
             var DLConnectionString = ConnectionStringsConfiguration.GetValue<string>("DataLakeDatabase");
 
-            return Tuple.Create(APConnectionString, DLConnectionString);
+            return DLConnectionString;
         }
 
         private static List<ReportRow> GetLogs(String schema, DateTime startDate, String connectionString, List<String> jobsList) {
@@ -87,22 +83,16 @@ namespace ConsoleApp.Commands {
         }
 
         public static List<ReportRow> GetReportData(DateTime startDate) {
-            var ConnectionStrings = GetDatabaseConnectionStrings();
-            var APConnectionString = ConnectionStrings.Item1;
-            var DLConnectionString = ConnectionStrings.Item2;
+            var DLConnectionString = GetDatabaseConnectionStrings();
 
             var jobsList = RunJobsCommand.CreateJobList(JobType.All, JobScope.All, new List<string>(), JobConstants.DefaultJobConfiguration);
-            var APJobs = jobsList.Select(x => x.Id()).Where(x => x.Contains("Jobs.Transformation")).ToList();
             var DLJobs = jobsList.Select(x => x.Id()).Where(x => x.Contains("Jobs.Fetcher")).ToList();
 
-            var apLogEntries = GetLogs("application", startDate, APConnectionString, APJobs);
             var dlLogEntries = GetLogs("logging", startDate, DLConnectionString, DLJobs);
-
-            var all = dlLogEntries.Union(apLogEntries).OrderBy(x => x.FullName).ToList();
-            all.ForEach(x => {
+            dlLogEntries.ForEach(x => {
                 (x.FirstName, x.SurName) = RuntimeLog.ParseLogName(x.FullName, '.', 3);
             });
-            return all;
+            return dlLogEntries;
         }
 
         public static void Report(DateTime startDate) {

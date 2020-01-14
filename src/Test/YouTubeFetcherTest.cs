@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using ApplicationModels;
 using DataLakeModels;
 using DataLakeModels.Models.YouTube.Analytics;
 using DataLakeModels.Models.YouTube.Data;
@@ -13,18 +12,13 @@ namespace Test {
 
     public class YouTubeFetcherTest {
 
-        private AnalyticsPlatformSteps APS;
-
         private YouTubeDataSteps YDS;
 
         public YouTubeFetcherTest() {
-            DatabaseReset.Drop(Databases.AnalyticsPlatform);
             DatabaseReset.Drop(Databases.LakeYouTubeAnalytics);
-            DatabaseReset.Migrate(Databases.AnalyticsPlatform);
             DatabaseReset.Migrate(Databases.LakeYouTubeAnalytics);
             DatabaseReset.Migrate(Databases.LakeYouTubeData);
 
-            APS = new AnalyticsPlatformSteps();
             YDS = new YouTubeDataSteps();
         }
 
@@ -35,8 +29,6 @@ namespace Test {
                 new Video() { VideoId = "xyz", Title = "The Population Boom", Duration = "PT5M11S" },
             };
             YDS.SomeVideosWereFound(someLakeVideos, "fee");
-
-            APS.YouTubeVideoSyncJobHasRun();
 
             var someMetrics = new (string videoId, DateTime date, IEnumerable<ViewerPercentage> viewerPercentages)[] {
                 (
@@ -87,17 +79,6 @@ namespace Test {
             using (var context = new DataLakeYouTubeAnalyticsContext()) {
                 var now = new DateTime(2018, 2, 6);
                 var currentMetrics = context.ViewerPercentageMetric.Where(x => x.ValidityStart <= now && now < x.ValidityEnd);
-                Assert.Equal(9, currentMetrics.Count());
-                Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 1)).Count());
-                Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 3)).Count());
-                Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 5)).Count());
-            }
-
-            APS.YouTubeVideoDemographicMetricSyncHasRun();
-
-            using (var context = new ApplicationDbContext()) {
-                var now = new DateTime(2018, 2, 6);
-                var currentMetrics = context.SourceVideoDemographicMetrics;
                 Assert.Equal(9, currentMetrics.Count());
                 Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 1)).Count());
                 Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 3)).Count());
@@ -168,18 +149,6 @@ namespace Test {
                 Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 7)).Count());
             }
 
-            APS.YouTubeVideoDemographicMetricSyncHasRun();
-
-            using (var context = new ApplicationDbContext()) {
-                var now = new DateTime(2018, 2, 8);
-                var currentMetrics = context.SourceVideoDemographicMetrics;
-                Assert.Equal(12, currentMetrics.Count());
-                Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 1)).Count());
-                Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 3)).Count());
-                Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 4)).Count());
-                Assert.Equal(3, currentMetrics.Where(x => x.StartDate == new DateTime(2018, 2, 7)).Count());
-            }
-
             var someNewerMetrics = new (string videoId, DateTime date, IEnumerable<ViewerPercentage> viewerPercentages)[] {
                 (
                     "xyz",
@@ -209,8 +178,6 @@ namespace Test {
             };
 
             YDS.SomeVierPercentageMetricsWereFound(someNewerMetrics, new DateTime(2018, 2, 8));
-
-            APS.YouTubeVideoDemographicMetricSyncHasRun();
         }
     }
 }
