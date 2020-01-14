@@ -8,12 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApplicationModels\ApplicationModels.csproj" />
     <ProjectReference Include="..\DataLakeModels\DataLakeModels.csproj" />
     <ProjectReference Include="..\Jobs.Fetcher.AdWords\Jobs.Fetcher.AdWords.csproj" />
     <ProjectReference Include="..\Jobs.Fetcher.YouTube\Jobs.Fetcher.YouTube.csproj" />
     <ProjectReference Include="..\Jobs.Fetcher.Facebook\Jobs.Fetcher.Facebook.csproj" />
-    <ProjectReference Include="..\Jobs.Transformation\Jobs.Transformation.csproj" />
   </ItemGroup>
 
   <ItemGroup>

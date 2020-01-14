@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common.Jobs;
-using Jobs.Transformation;
 using Jobs.Fetcher.AdWords;
 using Jobs.Fetcher.YouTube;
 using Jobs.Fetcher.Facebook;
@@ -16,10 +15,6 @@ namespace ConsoleApp.Commands {
             new YouTubeFetchers(),
             new AdWordsFetchers(),
             new FacebookFetchers(),
-            new YouTubeTransformations(),
-            new AdWordsTransformations(),
-            new FacebookTransformations(),
-            new ApplicationTransformations(),
         };
 
         public static Dictionary<string, AbstractJob> BuildJobsDict(IEnumerable<AbstractJob> jobList) {
