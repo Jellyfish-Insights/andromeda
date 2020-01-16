@@ -23,7 +23,7 @@ namespace Jobs.Fetcher.Facebook {
             // Instagram.media problem is related to issue 182
 
             // return new List<string> { "page", "adaccount", "instagram" };
-            return new List<string> { "page", "adaccount" };
+            return new List<string> { "page", "adaccount", "instagram" };
         }
 
         public static T ParseCredentials<T>(string schema_name) {
