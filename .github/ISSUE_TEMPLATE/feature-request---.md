@@ -6,11 +6,9 @@ labels: ''
 assignees: ''
 
 ---
-
-<!-- Many thanks to Material-UI (https://github.com/mui-org/material-ui) that we got this template -->
-
 <!-- Provide a general summary of the feature in the Title above -->
 
+<!-- Many thanks to Material-UI (https://github.com/mui-org/material-ui) that we got this template -->
 <!--
   Thank you very much for contributing to the Jellyfish team by creating an issue! ❤️
   To avoid duplicate issues we ask you to check off the following list.
@@ -27,8 +25,7 @@ assignees: ''
 ## Examples 🌈
 
 <!--
-  Provide a link to the Material design specification, other implementations,
-  or screenshots of the expected behavior.
+  Provide a examples of implementations, or screenshots of the expected behavior.
 -->
 
 ## Motivation 🔦
