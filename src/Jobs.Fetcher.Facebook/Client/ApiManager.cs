@@ -112,7 +112,7 @@ namespace Jobs.Fetcher.Facebook {
             System.Threading.Thread.Sleep(RequestDelay * 1000);
             var stream = await response.Content.ReadAsStreamAsync();
             var result = DecodeEndpoint(stream);
-            // Store the time we fetched the fileed for reproducibility
+            // Store the time we fetched the file for reproducibility
             result["fetch_time"] = before;
             result["retries"] = retries;
             // Overwrite the file if it already exist

@@ -374,7 +374,7 @@ namespace Jobs.Fetcher.Facebook {
                 if (mediaSchema != null) {
                     ListLifetimeInsights(mediaSchema, row);
                 } else {
-                    Logger.Warning($"Missing chema for media type {mediaTypeOfRow}");
+                    Logger.Warning($"Missing schema for media type {mediaTypeOfRow}");
                 }
             }
 
