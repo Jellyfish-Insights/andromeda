@@ -29,7 +29,7 @@ namespace ConsoleApp.Commands {
 
             var tasks = new Dictionary<string, Task>();
 
-            // Declaring before initializing allows it to be called recursivelly.
+            // Declaring before initializing allows it to be called recursively.
             Action<string> addToTasks = null;
             addToTasks = (jobId) => {
                 if (!tasks.ContainsKey(jobId)) {
