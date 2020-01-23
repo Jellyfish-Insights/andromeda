@@ -89,7 +89,11 @@
     }, {
         "name": "posts",
         "edges": [],
+<<<<<<< HEAD
         "required": ["object_id"],
+=======
+        "required": ["attachments"],
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
         "time": ["created_time", "updated_time"],
         "columns": [
             ["id", "text"],

@@ -103,9 +103,12 @@ namespace ConsoleApp {
                     if (lake.HasValue()) {
                         MigrateCommand.MigrateDataLake();
                     }
+<<<<<<< HEAD
                     if (analytics.HasValue()) {
                         MigrateCommand.MigrateApplication();
                     }
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                     return 0;
                 });
             });
@@ -171,6 +174,7 @@ namespace ConsoleApp {
                 });
             });
 
+<<<<<<< HEAD
             app.Command("check-ap", (command) => {
                 command.Description = "Report on properties of Application Database";
                 command.HelpOption("-?|-h|--help");
@@ -217,6 +221,8 @@ namespace ConsoleApp {
                 });
             });
 
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
             app.Command("check-health-and-send-email", (command) => {
                 command.Description = "Check error in system and send a email if find some";
                 command.HelpOption("-?|-h|--help");

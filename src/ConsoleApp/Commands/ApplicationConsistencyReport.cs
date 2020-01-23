@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+<<<<<<< HEAD
 using System.Linq;
 using ApplicationModels;
 using Common;
 using Common.Report;
 using Microsoft.EntityFrameworkCore;
+=======
+using Common.Report;
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
 
 namespace ConsoleApp.Commands {
 
@@ -20,6 +24,7 @@ namespace ConsoleApp.Commands {
         public string Description;
         public string Title;
     }
+<<<<<<< HEAD
 
     public class ApplicationConsistencyReport {
         public static Report CheckForOrphanApplicationVideos() {
@@ -71,3 +76,6 @@ namespace ConsoleApp.Commands {
         }
     }
 }
+=======
+}
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021

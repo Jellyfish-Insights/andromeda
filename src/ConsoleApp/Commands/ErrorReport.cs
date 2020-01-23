@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
+<<<<<<< HEAD
 using ApplicationModels;
 using Common.Logging.Models;
 using Common.Report;
@@ -11,6 +12,14 @@ using Microsoft.EntityFrameworkCore;
 using Common;
 using Npgsql;
 using Jobs.Transformation.Facebook;
+=======
+using Common.Logging.Models;
+using Common.Report;
+using Common.Jobs;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using DataLakeModels.Helpers;
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
 using Microsoft.Extensions.Configuration;
 
 namespace ConsoleApp.Commands {
@@ -27,17 +36,27 @@ namespace ConsoleApp.Commands {
             public string LastException;
         }
 
+<<<<<<< HEAD
         private static Tuple<string, string> GetDatabaseConnectionStrings() {
+=======
+        private static string GetDatabaseConnectionStrings() {
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
             IConfiguration Configuration = new ConfigurationBuilder()
                                                .SetBasePath(Directory.GetCurrentDirectory())
                                                .AddJsonFile("appsettings.json")
                                                .Build();
 
             var ConnectionStringsConfiguration = Configuration.GetSection("ConnectionStrings");
+<<<<<<< HEAD
             var APConnectionString = ConnectionStringsConfiguration.GetValue<string>("BusinessDatabase");
             var DLConnectionString = ConnectionStringsConfiguration.GetValue<string>("DataLakeDatabase");
 
             return Tuple.Create(APConnectionString, DLConnectionString);
+=======
+            var DLConnectionString = ConnectionStringsConfiguration.GetValue<string>("DataLakeDatabase");
+
+            return DLConnectionString;
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
         }
 
         private static List<ReportRow> GetLogs(String schema, DateTime startDate, String connectionString, List<String> jobsList) {
@@ -87,6 +106,7 @@ namespace ConsoleApp.Commands {
         }
 
         public static List<ReportRow> GetReportData(DateTime startDate) {
+<<<<<<< HEAD
             var ConnectionStrings = GetDatabaseConnectionStrings();
             var APConnectionString = ConnectionStrings.Item1;
             var DLConnectionString = ConnectionStrings.Item2;
@@ -103,6 +123,18 @@ namespace ConsoleApp.Commands {
                 (x.FirstName, x.SurName) = RuntimeLog.ParseLogName(x.FullName, '.', 3);
             });
             return all;
+=======
+            var DLConnectionString = GetDatabaseConnectionStrings();
+
+            var jobsList = RunJobsCommand.CreateJobList(JobType.All, JobScope.All, new List<string>(), JobConstants.DefaultJobConfiguration);
+            var DLJobs = jobsList.Select(x => x.Id()).Where(x => x.Contains("Jobs.Fetcher")).ToList();
+
+            var dlLogEntries = GetLogs("logging", startDate, DLConnectionString, DLJobs);
+            dlLogEntries.ForEach(x => {
+                (x.FirstName, x.SurName) = RuntimeLog.ParseLogName(x.FullName, '.', 3);
+            });
+            return dlLogEntries;
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
         }
 
         public static void Report(DateTime startDate) {

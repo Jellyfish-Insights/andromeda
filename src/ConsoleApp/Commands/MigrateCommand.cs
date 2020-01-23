@@ -1,6 +1,9 @@
 using System;
 using DataLakeModels;
+<<<<<<< HEAD
 using ApplicationModels;
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
 using Common;
 
 namespace ConsoleApp.Commands {
@@ -9,9 +12,12 @@ namespace ConsoleApp.Commands {
 
         public static void Migrate(Databases db) {
             switch (db) {
+<<<<<<< HEAD
                 case Databases.AnalyticsPlatform:
                     DatabaseOperations.Migrate<ApplicationDbContext>();
                     break;
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                 case Databases.LakeYouTubeData:
                     DatabaseOperations.Migrate<DataLakeYouTubeDataContext>();
                     break;
@@ -32,10 +38,13 @@ namespace ConsoleApp.Commands {
             }
         }
 
+<<<<<<< HEAD
         public static void MigrateApplication() {
             DatabaseOperations.Migrate<ApplicationDbContext>();
         }
 
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
         public static void MigrateDataLake() {
             DatabaseOperations.Migrate<DataLakeYouTubeDataContext>();
             DatabaseOperations.Migrate<DataLakeYouTubeAnalyticsContext>();

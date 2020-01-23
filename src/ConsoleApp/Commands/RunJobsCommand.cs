@@ -3,7 +3,10 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Common.Jobs;
+<<<<<<< HEAD
 using Jobs.Transformation;
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
 using Jobs.Fetcher.AdWords;
 using Jobs.Fetcher.YouTube;
 using Jobs.Fetcher.Facebook;
@@ -16,10 +19,13 @@ namespace ConsoleApp.Commands {
             new YouTubeFetchers(),
             new AdWordsFetchers(),
             new FacebookFetchers(),
+<<<<<<< HEAD
             new YouTubeTransformations(),
             new AdWordsTransformations(),
             new FacebookTransformations(),
             new ApplicationTransformations(),
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
         };
 
         public static Dictionary<string, AbstractJob> BuildJobsDict(IEnumerable<AbstractJob> jobList) {
@@ -34,7 +40,11 @@ namespace ConsoleApp.Commands {
 
             var tasks = new Dictionary<string, Task>();
 
+<<<<<<< HEAD
             // Declaring before initializing allows it to be called recursivelly.
+=======
+            // Declaring before initializing allows it to be called recursively.
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
             Action<string> addToTasks = null;
             addToTasks = (jobId) => {
                 if (!tasks.ContainsKey(jobId)) {
@@ -42,7 +52,11 @@ namespace ConsoleApp.Commands {
 
                     if (dependencies.Any()) {
                         dependencies.ForEach(x => addToTasks(x));
+<<<<<<< HEAD
                         tasks.Add(jobId, Task.WhenAll(dependencies.Select(x => tasks[x])).ContinueWith(x => jobs[jobId].Execute(debug), TaskContinuationOptions.OnlyOnRanToCompletion));
+=======
+                        tasks.Add(jobId, Task.WhenAll(dependencies.Select(x => tasks[x])).ContinueWith(x => jobs[jobId].Execute(debug), TaskContinuationOptions.None));
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                     } else {
                         tasks.Add(jobId, Task.Run(() => jobs[jobId].Execute(debug)));
                     }

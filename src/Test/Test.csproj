@@ -10,10 +10,15 @@
   </ItemGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
     <ProjectReference Include="..\ApplicationModels\ApplicationModels.csproj" />
     <ProjectReference Include="..\Common\Common.csproj" />
     <ProjectReference Include="..\ConsoleApp\ConsoleApp.csproj" />
     <ProjectReference Include="..\WebApp\WebApp.csproj" />
+=======
+    <ProjectReference Include="..\Common\Common.csproj" />
+    <ProjectReference Include="..\ConsoleApp\ConsoleApp.csproj" />
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
     <ProjectReference Include="..\Jobs.Fetcher.YouTube\Jobs.Fetcher.YouTube.csproj" />
   </ItemGroup>
 

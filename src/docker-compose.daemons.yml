@@ -1,6 +1,7 @@
 version: '3'
 
 services:
+<<<<<<< HEAD
     analytics_platform:
         image: postgres:10
         environment:
@@ -12,6 +13,8 @@ services:
         volumes:
             - analytics_platform_data:/var/lib/postgresql/data
 
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
     data_lake:
         image: postgres:10
         environment:
@@ -31,15 +34,23 @@ services:
             args:
                 docker_user: "${DOCKER_USER}"
         depends_on:
+<<<<<<< HEAD
             - analytics_platform
             - data_lake
         links:
             - analytics_platform:analytics_platform
+=======
+            - data_lake
+        links:
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
             - data_lake:data_lake
         volumes:
             - ../:/home/app/app
         user: $DOCKER_USER
 
 volumes:
+<<<<<<< HEAD
     analytics_platform_data:
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
     data_lake_data:

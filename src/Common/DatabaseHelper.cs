@@ -20,8 +20,12 @@ namespace Common {
     }
 
     public enum YearDatabase {
+<<<<<<< HEAD
         DataLakeDatabase,
         BusinessDatabase
+=======
+        DataLakeDatabase
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
     }
 
     public static class DatabaseOperations {
@@ -30,9 +34,12 @@ namespace Common {
 
             string settingsField;
             switch (db) {
+<<<<<<< HEAD
                 case Databases.AnalyticsPlatform:
                     settingsField = "BusinessDatabase";
                     break;
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                 case Databases.LakeYouTubeData:
                 case Databases.LakeYouTubeAnalytics:
                 case Databases.LakeAdWords:

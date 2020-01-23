@@ -1,6 +1,7 @@
 version: '3'
 
 services:
+<<<<<<< HEAD
     test_analytics_platform:
         image: postgres:10
         environment:
@@ -13,6 +14,8 @@ services:
         tmpfs:
           - /var/lib/postgresql/data:rw,noexec,nosuid,size=400m
 
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
     test_data_lake:
         image: postgres:10
         environment:

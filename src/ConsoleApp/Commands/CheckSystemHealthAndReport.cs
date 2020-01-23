@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Common;
+<<<<<<< HEAD
 using ApplicationModels.Helpers;
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using DataLakeModels.Helpers;
@@ -21,6 +24,7 @@ namespace ConsoleApp.Commands {
             return Tuple.Create(reports, status);
         }
 
+<<<<<<< HEAD
         private static Tuple<List<Report>, bool> GetApHealthInfo() {
             var reports = new List<Report>(){
                 ApplicationConsistencyReport.CheckForOrphanApplicationVideos()
@@ -29,6 +33,8 @@ namespace ConsoleApp.Commands {
             return Tuple.Create(reports, status);
         }
 
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
         private static Tuple<List<List<string>>, bool> GetDataLakeHealthInfo() {
             var allTables = DataLakeIntrospection.GetIValidityRangeEntities().ToDictionary(x => x.Relational().TableName, x => x);
             var tables = new List<(string schema, string table, List<string> keys)>();
@@ -124,6 +130,7 @@ namespace ConsoleApp.Commands {
             return String.Join("\n", errorReport);
         }
 
+<<<<<<< HEAD
         private static String GetHtmlCheckApReport(List<Report> reports) {
             var rowPadding = "style='padding-left:75px;";
 
@@ -171,6 +178,8 @@ namespace ConsoleApp.Commands {
             return String.Join("\n", errorReport);
         }
 
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
         private static String GetHtmlCheckDataLakeReport(List<List<string>> reports) {
             var rowPadding = "style='padding-right:50px;";
 
@@ -202,14 +211,20 @@ namespace ConsoleApp.Commands {
 
         private static void SendReportEmail(string[] emails, string mailServiceKey, DateTime startDate,
                                             Tuple<List<ErrorReportCommand.ReportRow>, bool> jobsReportInfo,
+<<<<<<< HEAD
                                             Tuple<List<Report>, bool> apReportInfo,
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                                             Tuple<List<List<string>>, bool> dataLakeReportInfo,
                                             bool systemStatus) {
 
             var mailgun = new MailgunEmailService(mailServiceKey);
             var plainText = String.Concat(GetHtmlSummary(startDate, systemStatus)
                                           , GetHtmlJobsReport(startDate, jobsReportInfo.Item1)
+<<<<<<< HEAD
                                           , GetHtmlCheckApReport(apReportInfo.Item1)
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                                           , GetHtmlCheckDataLakeReport(dataLakeReportInfo.Item1));
 
             foreach (var email in emails) {
@@ -249,6 +264,7 @@ namespace ConsoleApp.Commands {
         public static void Run(string[] emails, string mailServiceKey, DateTime startDate, bool forcedEmail) {
             // These functions will return {Item1 = reports, Item2 = status}
             var jobsReportInfo = GetJobsHealthInfo(startDate);
+<<<<<<< HEAD
             var apReportInfo = GetApHealthInfo();
             var dataLakeReportInfo = GetDataLakeHealthInfo();
 
@@ -260,6 +276,18 @@ namespace ConsoleApp.Commands {
                 var lastExecuted = GetLastExecuted();
                 if (lastExecuted < startDate && !systemStatus) {
                     SendReportEmail(emails, mailServiceKey, startDate, jobsReportInfo, apReportInfo, dataLakeReportInfo, systemStatus);
+=======
+            var dataLakeReportInfo = GetDataLakeHealthInfo();
+
+            var systemStatus = jobsReportInfo.Item2  && dataLakeReportInfo.Item2;
+
+            if (forcedEmail) {
+                SendReportEmail(emails, mailServiceKey, startDate, jobsReportInfo, dataLakeReportInfo, systemStatus);
+            } else {
+                var lastExecuted = GetLastExecuted();
+                if (lastExecuted < startDate && !systemStatus) {
+                    SendReportEmail(emails, mailServiceKey, startDate, jobsReportInfo, dataLakeReportInfo, systemStatus);
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                     SetLastExecuted(DateTime.Now);
                 } else {
                     Console.WriteLine("Skipping report. To force sending e-mail use '-f'.");

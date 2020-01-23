@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+using System;
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -45,6 +49,7 @@ namespace Test {
             var expected = new[] {
                 TaskStatus.RanToCompletion,
                 TaskStatus.Faulted,
+<<<<<<< HEAD
                 TaskStatus.Canceled,
                 TaskStatus.RanToCompletion,
                 TaskStatus.Canceled,
@@ -77,6 +82,11 @@ namespace Test {
                 TaskStatus.Canceled,
                 TaskStatus.RanToCompletion,
                 TaskStatus.Canceled,
+=======
+                TaskStatus.RanToCompletion,
+                TaskStatus.RanToCompletion,
+                TaskStatus.RanToCompletion,
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                 TaskStatus.RanToCompletion,
             };
 

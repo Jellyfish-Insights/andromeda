@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -5,6 +6,10 @@ using DataLakeModels;
 using DataLakeModels.Models.AdWords;
 using DataLakeModels.Models.AdWords.Reports;
 using Common.Logging;
+=======
+using DataLakeModels;
+using DataLakeModels.Models.AdWords.Reports;
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
 
 namespace Test.Helpers {
 

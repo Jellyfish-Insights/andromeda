@@ -2,47 +2,25 @@
 
 set -ex
 
+# link the hostnames data_lake and analytics_platform to the localhost address
+sudo /bin/bash -c 'echo -e "127.0.0.1 data_lake" >> /etc/hosts'
+sudo /bin/bash -c 'echo -e "127.0.0.1 analytics_platform" >> /etc/hosts'
+
 # check versions
 dotnet --info
-node --version
-npm --version
-tsfmt --version
-uncrustify --version
-
-# check for commited password
-test $(grep 'Password=' $(find . -name 'appsettings.json') | grep -v 'Password=dbpassword' | wc -l) -eq 0
+docker --version
+docker-compose --version
 
 # enter source directory
 cd src
 
-# check C# style
-uncrustify -c ../uncrustify.cfg --check $(find . -name '*.cs' | grep -v "Migrations")
 
-# enter WebApp directory
-cd WebApp
-
-# check TS(X) style
-tsfmt --verify $(find . -name '*.ts' -o -name '*.tsx' | grep -v 'types.*\.ts$')
-
-# install front-end dependencies
-npm install
-
-# run front-end tests
-npm test
-
-# go back to source directory
-cd ..
+# up databases
+docker-compose -f docker-compose.test.yml up -d
 
 # build all projects
-dotnet build
+dotnet build ./src.sln -c Release
 
-# fix connection strings
-./use-ci-conn-string
-
-# apply migrations
-cd ConsoleApp
-./migrate.sh
-
-# run C# tests
-cd ../Test
-dotnet test --verbosity normal --no-restore --no-build
+# run c# tests
+cd Test
+dotnet test --verbosity normal

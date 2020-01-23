@@ -4,7 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using DataLakeModels.Models;
 using Newtonsoft.Json.Linq;
+<<<<<<< HEAD
 using Common.Logging;
+=======
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
 using System.Collections.Immutable;
 using Serilog;
 using Serilog.Core;
@@ -206,6 +209,7 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public IEnumerable<JObject> FetchAllEntitiesOnTable(Table table, Logger jobLogger, int maxEntities, int max_iters = Int32.MaxValue) {
+<<<<<<< HEAD
             /**
                On this context, an entity is a social media artifact such as page, post, image, video, etc...
              */
@@ -265,6 +269,27 @@ namespace Jobs.Fetcher.Facebook {
                         yield return o;
                         entitiesFetched++;
                     }
+=======
+            JObject entities;
+            int entitiesFetched = 0;
+            Logger.Information($"Fetching table {table.TableName}");
+
+            foreach (var id in GetEntitiesId(table, maxEntities, max_iters).ToList()) {
+                if (maxEntities > 0 && maxEntities <= entitiesFetched) {
+                    yield break;
+                }
+
+                try {
+                    entities = FetchDataById(id, table, jobLogger);
+                } catch (Exception) {
+                    Logger.Warning($"Fetching {table.Name} {id} failed.");
+                    continue;
+                }
+
+                if (entities != null) {
+                    yield return entities;
+                    entitiesFetched++;
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                 }
             }
         }
@@ -343,7 +368,11 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public (Modified, JObject) ? ListLifetimeInsights(Insights edge, JObject node, int max_iters = Int32.MaxValue) {
+<<<<<<< HEAD
             Logger.Debug("Fetching lifetime insights for ({Id}, {Edge})", node["id"], edge.Name);
+=======
+            Logger.Debug($"Fetching lifetime insights for ({node["id"]}, {edge.Name})");
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
             var now = this.ApiMan.GetUtcTime().Date + new TimeSpan(3, 0, 0, 0);
             var startN = node.IndexPathOrDefault(edge.Start, this.ApiMan.GetUtcTime());
             var last = DatabaseManager.LastLifetimeDate(edge, node);
@@ -415,7 +444,11 @@ namespace Jobs.Fetcher.Facebook {
                 if (mediaSchema != null) {
                     ListLifetimeInsights(mediaSchema, row);
                 } else {
+<<<<<<< HEAD
                     Logger.Warning($"Missing chema for media type {mediaTypeOfRow}");
+=======
+                    Logger.Warning($"Missing schema for media type {mediaTypeOfRow}");
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
                 }
             }
 
@@ -448,7 +481,11 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public void ListDailyInsights(Insights lifetime, Insights edge, JObject node, int max_iters = Int32.MaxValue) {
+<<<<<<< HEAD
             Logger.Debug("Fetching daily insights for ({Id}, {Edge})", node["id"], edge.Name);
+=======
+            Logger.Debug($"Fetching daily insights for ({node["id"]}, {edge.Name})");
+>>>>>>> 4dc2fdf6b22fa256af8c3fca1fbf198adf722021
             // Size of days in each request
             const int DayPageSize = 10;
             // limits the number of time partitions replicated per call to this function
