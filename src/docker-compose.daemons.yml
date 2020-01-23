@@ -13,19 +13,5 @@ services:
         volumes:
             - data_lake_data:/var/lib/postgresql/data
 
-    daemons:
-        build:
-            context: ./
-            dockerfile: Dockerfile.daemon
-            args:
-                docker_user: "${DOCKER_USER}"
-        depends_on:
-            - data_lake
-        links:
-            - data_lake:data_lake
-        volumes:
-            - ../:/home/app/app
-        user: $DOCKER_USER
-
 volumes:
     data_lake_data:

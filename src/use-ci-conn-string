@@ -1,6 +1,0 @@
-#!/bin/bash
-
-sed -i -e 's/Host=\(analytics_platform\|data_lake\);/Host=postgres;/' \
-    -e 's/Database=\(analytics_platform\|data_lake\);/Database=db;/' \
-    -e 's/;Port=[0-9]\+//' \
-    `find . -name 'appsettings.json'`
