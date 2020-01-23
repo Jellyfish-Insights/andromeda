@@ -409,3 +409,9 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
 src/WebApp/Properties/launchSettings.json
+
+# Ignoring credetial files
+src/ConsoleApp/credentials/Adwords
+src/ConsoleApp/credentials/Facebook
+src/ConsoleApp/credentials/YouTube
+src/ConsoleApp/credentials/Instagram
