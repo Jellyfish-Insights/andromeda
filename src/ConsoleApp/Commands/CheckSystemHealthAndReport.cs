@@ -193,7 +193,7 @@ namespace ConsoleApp.Commands {
             var jobsReportInfo = GetJobsHealthInfo(startDate);
             var dataLakeReportInfo = GetDataLakeHealthInfo();
 
-            var systemStatus = jobsReportInfo.Item2  && dataLakeReportInfo.Item2;
+            var systemStatus = jobsReportInfo.Item2 && dataLakeReportInfo.Item2;
 
             if (forcedEmail) {
                 SendReportEmail(emails, mailServiceKey, startDate, jobsReportInfo, dataLakeReportInfo, systemStatus);
