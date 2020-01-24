@@ -11,7 +11,7 @@ sudo apt-get install build-essential
 git clone https://github.com/uncrustify/uncrustify.git \
     && cd uncrustify && git checkout "uncrustify-0.67" \
     && mkdir build && cd build \
-    && cmake .. && make && make install \
+    && cmake .. && make && sudo make install \
     && cd ../../ && rm -rf uncrustify
 
 # check versions
