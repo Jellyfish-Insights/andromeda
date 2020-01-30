@@ -1,5 +1,9 @@
 # Andromeda: A Social Media data lake
 
+
+
+![Andromeda Logo](./assets/andromeda_logo.png)
+
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 [![license](https://img.shields.io/badge/license-Apache%202-blue)](License.txt)
 
@@ -9,12 +13,18 @@
 
 This repo contains the main code of the "Andromeda".
 
-## What is the Andromeda
+## What is the Andromeda?
 
-It is an OS application that will collect analytics data from YouTube, Google Ads
+It is an OSS application that will collect analytics data from YouTube, Google Ads
 and Facebook and generate reports about it.
 
-The idea on making Andromeda possible came by [FEE](https://fee.org/about)
+Andromeda allow:
+
+  * [X] Connect to any relational database
+  * [X] Pull data from all social platforms into PostgreSQL database
+  * [X] Store a lifetime of insights and data across all channels
+
+The idea on making Andromeda possible came by [Jellyfish Insights](http://jellyfishinsights.com/)
 
 # Building and Running
 
@@ -130,7 +140,7 @@ The following credential files are needed:
   ```
 
 ### Running the system
-  
+
   For running all the jobs, you'll need to do:
   ```shell
     cd ConsoleApp
