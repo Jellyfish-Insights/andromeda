@@ -80,7 +80,7 @@ namespace ConsoleApp {
                     if (printDependencyTreeFlag.HasValue()) {
                         RunJobsCommand.PrintDependencyTree(jobType, jobScope, jobNames);
                     } else if (listAvailableJobsFlag.HasValue()) {
-                        RunJobsCommand.ListAvalableJobs(jobType, jobScope, jobNames);
+                        RunJobsCommand.ListAvailableJobs(jobType, jobScope, jobNames);
                     } else {
                         return RunJobsCommand.RunJobs(jobType, jobScope, jobNames, configuration, debugFlag.HasValue());
                     }

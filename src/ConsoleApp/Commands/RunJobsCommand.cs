@@ -116,7 +116,7 @@ namespace ConsoleApp.Commands {
             Console.WriteLine("}");
         }
 
-        public static void ListAvalableJobs(JobType jobType, JobScope jobScope, IEnumerable<string> jobNames) {
+        public static void ListAvailableJobs(JobType jobType, JobScope jobScope, IEnumerable<string> jobNames) {
             var jobsList = CreateJobList(jobType, jobScope, jobNames, JobConstants.DefaultJobConfiguration);
             foreach (var job in jobsList) {
                 Console.WriteLine(job.Id());
