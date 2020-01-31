@@ -11,7 +11,7 @@
 
 This repo contains the main code of the "Andromeda".
 
-## #What is the Andromeda?
+### What is the Andromeda?
 
 It is an OSS application that will collect analytics data from YouTube, Google Ads
 and Facebook and generate reports about it.
