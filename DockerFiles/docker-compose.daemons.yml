@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+    data_lake:
+        image: postgres:10
+        environment:
+            - POSTGRES_USER=fee
+            - POSTGRES_PASSWORD=dbpassword
+            - POSTGRES_DB=data_lake
+        ports:
+            - 5433:5433
+        command: -p 5433
+        volumes:
+            - data_lake_data:/var/lib/postgresql/data
+
+volumes:
+    data_lake_data:

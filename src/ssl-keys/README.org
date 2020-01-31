@@ -1,7 +1,0 @@
-This directory used to contain:
-
-- dhparam.pem
-- nginx-selfsigned.crt
-- nginx-selfsigned.key
-
-These files were removed when open sourcing the project

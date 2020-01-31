@@ -411,7 +411,8 @@ ASALocalRun/
 src/WebApp/Properties/launchSettings.json
 
 # Ignoring credetial files
-src/ConsoleApp/credentials/Adwords
-src/ConsoleApp/credentials/Facebook
-src/ConsoleApp/credentials/YouTube
-src/ConsoleApp/credentials/Instagram
+Andromeda.ConsoleApp/credentils/
+Andromeda.ConsoleApp/credentials/Adwords
+Andromeda.ConsoleApp/credentials/Facebook
+Andromeda.ConsoleApp/credentials/YouTube
+Andromeda.ConsoleApp/credentials/Instagram
