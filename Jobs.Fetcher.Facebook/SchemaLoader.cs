@@ -27,7 +27,7 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public static T ParseCredentials<T>(string schema_name) {
-            string contents = File.ReadAllText("credentials/" + schema_name + "_credentials.json");
+            string contents = File.ReadAllText("credentials/facebook/" + schema_name + "_credentials.json");
             return JsonConvert.DeserializeObject<T>(contents);
         }
 
