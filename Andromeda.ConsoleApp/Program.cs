@@ -83,11 +83,9 @@ namespace Andromeda.ConsoleApp {
                 command.OnExecute(() => {
                     if (lake.HasValue()) {
                         MigrateCommand.MigrateDataLake();
-                    }
-                    else if (facebook.HasValue()) {
+                    } else if (facebook.HasValue()) {
                         MigrateCommand.MigrateFacebook();
-                    }
-                    else {
+                    } else {
                         MigrateCommand.MigrateDataLake();
                         MigrateCommand.MigrateFacebook();
                     }
