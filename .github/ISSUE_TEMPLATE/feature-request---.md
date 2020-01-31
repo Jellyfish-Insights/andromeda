@@ -10,7 +10,7 @@ assignees: ''
 
 <!-- Many thanks to Material-UI (https://github.com/mui-org/material-ui) that we got this template -->
 <!--
-  Thank you very much for contributing to the Jellyfish team by creating an issue! ❤️
+  Thank you very much for contributing to the Andromeda team by creating an issue! ❤️
   To avoid duplicate issues we ask you to check off the following list.
 -->
 

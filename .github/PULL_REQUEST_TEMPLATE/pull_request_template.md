@@ -1,5 +1,5 @@
  <!--
-  Thank you very much for contributing to the Jellyfish team by creating an PR! ❤️
+  Thank you very much for contributing to the Andromeda team by creating an PR! ❤️
   To avoid duplicate PR we ask you to check off the following list.
 -->
 

@@ -20,19 +20,12 @@ docker --version
 docker-compose --version
 uncrustify --version
 
-# enter source directory
-cd src
-
-#Uncrustify verification
-uncrustify -c ../uncrustify.cfg --check $(find . -name '*.cs' | grep -v "Migrations")
-
-#If check is failing run this command locally
-#uncrustify -c ../uncrustify.cfg --no-backup $(find . -name '*.cs' | grep -v "Migrations")
-
 # up databases
+cd DockerFiles
 docker-compose -f docker-compose.test.yml up -d
 
 # build all projects
+cd ..
 dotnet build ./src.sln -c Release
 
 # run c# tests

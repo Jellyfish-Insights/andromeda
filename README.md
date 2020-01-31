@@ -1,4 +1,4 @@
-# Jellyfish: A Social Media data lake
+# Andromeda: A Social Media data lake
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 [![license](https://img.shields.io/badge/license-Apache%202-blue)](License.txt)
@@ -7,14 +7,14 @@
 
 ## What is this repo?
 
-This repo contains the main code of the "Jellyfish".
+This repo contains the main code of the "Andromeda".
 
-## What is the Jellyfish
+## What is the Andromeda
 
 It is an OS application that will collect analytics data from YouTube, Google Ads
 and Facebook and generate reports about it.
 
-The idea on making Jellyfish possible came by [FEE](https://fee.org/about)
+The idea on making Andromeda possible came by [FEE](https://fee.org/about)
 
 # Building and Running
 
