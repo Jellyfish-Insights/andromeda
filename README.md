@@ -166,5 +166,3 @@ The following credential files are needed:
 
 When developing, make sure you install the git pre-commit hook. For more
 details, see the ```hooks/``` directory.
-
-<p>Some Markdown text with <span style="color:blue">some <em>blue</em> text</span>.</p>
