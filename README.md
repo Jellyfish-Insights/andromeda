@@ -1,27 +1,39 @@
-# Andromeda: A Social Media data lake
+<div align="center">
+
+![Andromeda Logo](./assets/andromeda_logo.png)
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 [![license](https://img.shields.io/badge/license-Apache%202-blue)](License.txt)
 
-# Introduction
+</div>
 
-## What is this repo?
+# Andromeda: A Social Media data lake
+
+## Introduction
+
+### What is this repo?
 
 This repo contains the main code of the "Andromeda".
 
-## What is the Andromeda
+### What is the Andromeda?
 
-It is an OS application that will collect analytics data from YouTube, Google Ads
+It is an OSS application that will collect analytics data from YouTube, Google Ads
 and Facebook and generate reports about it.
 
-The idea on making Andromeda possible came by [FEE](https://fee.org/about)
+Andromeda allow:
 
-# Building and Running
+  * [X] Connect to any relational database
+  * [X] Pull data from all social platforms into PostgreSQL database
+  * [X] Store a lifetime of insights and data across all channels
+
+The idea on making Andromeda possible came by [Jellyfish Insights](http://jellyfishinsights.com/)
+
+## Building and Running
 
 The code for all of them is located in the ```src``` directory. The instructions
 below assume you are there.
 
-## System Requirements
+### System Requirements
 
 You need:
   - [.NET Core SDK 2.1.300](https://dotnet.microsoft.com/download/dotnet-core/2.1)
@@ -29,19 +41,19 @@ You need:
   - [Docker](#Running-with-Docker)
   - [Docker-compose](#Running-with-Docker)
 
-## System Bootstrap
+### System Bootstrap
 
 You'll need to setup a few things:
   - [Run the database with docker](#Running-with-Docker)
   - [Create initial migration](#Building-the-system)
   - [Place the credential files](#Place-the-credential-files)
 
-### Note for Windows
+#### Note for Windows
 
    You need to install [Git for Windows](https://git-scm.com/download/win) All of the commands in this
    manual need to run over "Git Bash", not over "cmd.exe" or "powershell".
 
-### Build back-end
+#### Build back-end
 
 Do:
 ```shell
@@ -49,7 +61,7 @@ Do:
   dotnet build
 ```
 
-### Place the credential files
+#### Place the credential files
 
 The following credential files are needed:
   - By the AdWords library:
@@ -63,7 +75,7 @@ The following credential files are needed:
       - ```./ConsoleApp/credentials/addaccount_credentials.json```
       - ```./ConsoleApp/credentials/page_credentials.json```
 
-## Running with Docker
+### Running with Docker
 
    See [this](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [this](https://github.com/docker/compose/releases) for instructions on how to install Docker and
    Docker-compose.
@@ -82,9 +94,9 @@ The following credential files are needed:
      docker login registry.gitlab.com
    ```
 
-## Running Manually
+### Running Manually
 
-### Setup PostgreSQL (Linux)
+#### Setup PostgreSQL (Linux)
 
   We'll need two database servers, so we recommend to just use the
   docker container in the docker compose file:
@@ -101,7 +113,7 @@ The following credential files are needed:
     127.0.0.1 analytics_platform
   ```
 
-### Setup PostgreSQL (Windows)
+#### Setup PostgreSQL (Windows)
 
   Install [PostegresSQL](https://www.postgresql.org/download/windows/), and set the password of user ```postgres``` to ```dbpassword```.
 
@@ -115,12 +127,12 @@ The following credential files are needed:
   Finally, modify all ```appsettings.json``` files, removing the ```Port=5433```
   entry from the connection strings, and changing the user to ```postgres```.
 
-### Adding data to the development databases
+#### Adding data to the development databases
 
   Since the system is already running in production, we suggest loading
   a dump of the production databases.
 
-### Building the system
+#### Building the system
 
   Assuming that you just did the [System Bootstrap](#system-bootstrap),
   you'll need to apply the migrations:
@@ -129,8 +141,8 @@ The following credential files are needed:
     ./migrate.sh
   ```
 
-### Running the system
-  
+#### Running the system
+
   For running all the jobs, you'll need to do:
   ```shell
     cd ConsoleApp
@@ -154,7 +166,7 @@ The following credential files are needed:
     dotnet run -- jobs -l
   ```
 
-# Developing
+## Developing
 
 When developing, make sure you install the git pre-commit hook. For more
 details, see the ```hooks/``` directory.
