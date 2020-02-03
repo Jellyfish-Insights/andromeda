@@ -1,7 +1,11 @@
+<div align="center">
+
 ![Andromeda Logo](./assets/andromeda_logo.png)
 
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.0%20adopted-ff69b4.svg)](code_of_conduct.md)
 [![license](https://img.shields.io/badge/license-Apache%202-blue)](License.txt)
+
+</div>
 
 # Andromeda: A Social Media data lake
 
