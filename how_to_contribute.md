@@ -14,7 +14,7 @@ Keep in mind that Andromeda is a community project.
 Pull Requests are always welcome, but, before working on a large change, it is best to open an issue first to discuss it with the maintainers.
 This video series is recommended to understand [How to contribute to an open source project on github](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github)
 
-Thanks to MaterialUI to its incredible docs
+Thanks to [MaterialUI](https://material-ui.com/) to its incredible docs, we followed they tips on this section
 
 When in doubt, keep your Pull Requests small. To give a Pull Request the best chance of getting accepted, don't bundle more than one feature or bug fix per Pull Request. It's often best to create two smaller Pull Requests than one big one.
 
