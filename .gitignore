@@ -410,9 +410,15 @@ ASALocalRun/
 .mfractor/
 src/WebApp/Properties/launchSettings.json
 
-# Ignoring credetial files
-Andromeda.ConsoleApp/credentils/
-Andromeda.ConsoleApp/credentials/Adwords
-Andromeda.ConsoleApp/credentials/Facebook
-Andromeda.ConsoleApp/credentials/YouTube
-Andromeda.ConsoleApp/credentials/Instagram
+# Ignoring credential files
+**/credentials
+**/App.config
+**/page_credentials.json
+**/adaccount_credentials.json
+**/instagram_credentials.json
+**/client_secret.json
+**/Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json
+**/credentials/adwords
+**/credentials/facebook
+**/credentials/youtube
+**/credentials/instagram
