@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Google.Api.Ads.AdWords.Lib;
 using Google.Api.Ads.Common.Lib;
 using Andromeda.Common.Jobs;
+using System.IO;
 
 namespace Jobs.Fetcher.AdWords {
 
@@ -17,7 +18,8 @@ namespace Jobs.Fetcher.AdWords {
 
             var config = new AdWordsAppConfig();
             if (config.OAuth2Mode != OAuth2Flow.APPLICATION || string.IsNullOrEmpty(config.OAuth2RefreshToken)) {
-                Console.WriteLine("AdWords: missing or invalid App.config.");
+                Console.WriteLine("Missing or invalid AdWords credentials.");
+                Console.WriteLine("Could not find file \'{0}/credentials/adwords/App.config\'", Directory.GetCurrentDirectory());
                 Environment.Exit(1);
             }
             var user = new AdWordsUser(config);

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -22,18 +23,29 @@ namespace Jobs.Fetcher.YouTube {
             if (CheckTypeAndScope(type, scope)) {
                 return NoJobs;
             }
+            var jobs = new List<AbstractJob>();
+            try {
+                var credential = GetUserCredential(SecretsFile, CredentialsDir);
+                var dataService = GetDataService(credential);
+                var analyticsService = GetAnalyticsService(credential);
 
-            var credential = GetUserCredential(SecretsFile, CredentialsDir);
-            var dataService = GetDataService(credential);
-            var analyticsService = GetAnalyticsService(credential);
-
-            var jobs = new List<AbstractJob>() {
-                new VideosQuery(dataService),
-                new PlaylistsQuery(dataService),
-                new DailyVideoMetricsQuery(dataService, analyticsService),
-                new ViewerPercentageMetricsQuery(dataService, analyticsService),
-                new StatisticsQuery(dataService),
-                new ReprocessDailyVideoMetricsQuery(dataService, analyticsService),
+                jobs = new List<AbstractJob>() {
+                    new VideosQuery(dataService),
+                    new PlaylistsQuery(dataService),
+                    new DailyVideoMetricsQuery(dataService, analyticsService),
+                    new ViewerPercentageMetricsQuery(dataService, analyticsService),
+                    new StatisticsQuery(dataService),
+                    new ReprocessDailyVideoMetricsQuery(dataService, analyticsService),
+                };
+            }
+            catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
+            {
+                string message = String.Format("\nMissing or invalid YouTube credentials!\n{0}", e.Message);
+                if (e is DirectoryNotFoundException) {
+                    message = String.Format("{0}\nCheck if the path above exists!", message);
+                }
+                System.Console.WriteLine(message);
+                Environment.Exit(1);
             };
 
             return FilterByName(jobs, names);
@@ -60,14 +72,14 @@ namespace Jobs.Fetcher.YouTube {
         public static YouTubeService GetDataService(IConfigurableHttpClientInitializer credential) {
             return new YouTubeService(new BaseClientService.Initializer() {
                 HttpClientInitializer = credential,
-                ApplicationName = "FEE YouTube Daemon"
+                ApplicationName = "YouTube Daemon"
             });
         }
 
         public static YouTubeAnalyticsService GetAnalyticsService(IConfigurableHttpClientInitializer credential) {
             return new YouTubeAnalyticsService(new BaseClientService.Initializer() {
                 HttpClientInitializer = credential,
-                ApplicationName = "FEE YouTube Daemon"
+                ApplicationName = "YouTube Daemon"
             });
         }
     }
