@@ -113,7 +113,7 @@ namespace Jobs.Fetcher.Facebook {
                 System.Console.WriteLine(message);
                 Environment.Exit(1);
             };
-            
+
             return FilterByName(jobs, names);
         }
     }
