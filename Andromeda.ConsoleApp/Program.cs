@@ -145,6 +145,29 @@ namespace Andromeda.ConsoleApp {
                 });
             });
 
+            app.Command("export", (command) =>
+            {
+                command.Description = "Export Data Lake tables into a file.";
+                command.HelpOption("-?|-h|--help");
+
+                var selectedFileType = command.Option("-t|--type", "Select file type: 'csv' or 'json'.", CommandOptionType.SingleValue);
+                var selectedPlatform = command.Option("-p|--platform", "Select platform to export: 'Facebook', 'YouTube' or 'AdWords'.", CommandOptionType.SingleValue);
+                var since = command.Option("-s|--since", "Start date from which to export data.", CommandOptionType.SingleValue);
+                var until = command.Option("-u|--until", "End date from which to export data.", CommandOptionType.SingleValue);
+                var sourceId = command.Option("-i|--id", "Source page Id.", CommandOptionType.SingleValue);
+                var limit = command.Option("-l|--limit", "Select a limit of rows", CommandOptionType.SingleValue);
+                var table = command.Option("-tb|--table", "Select a database table", CommandOptionType.SingleValue);
+
+                command.OnExecute(() =>
+                {
+                    if (limit.HasValue())
+                        ExportData.QueryMetrics(System.Convert.ToInt32(limit.Value()), selectedPlatform.Value());
+                    else
+                        ExportData.QueryMetrics(10, selectedPlatform.Value());
+                    return 0;
+                });
+            });
+
             Log.Logger = LoggerFactory.GetFacebookLogger();
             app.Execute(args);
             Log.CloseAndFlush();
