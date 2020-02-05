@@ -13,7 +13,7 @@
 
 ### What is this repo?
 
-This repo contains the main code of the "Andromeda".
+This repo contains the main code of "Andromeda".
 
 ### What is the Andromeda?
 
