@@ -35,8 +35,3 @@ The instructions to setup this project can be seen [here](./how_to_setup.md)
 ## Contribute to Andromeda
 
 The instruction on how to become a Andromeda contributor can be seen [here](./how_to_contribute.md)
-
-## Developing
-
-When developing, make sure you install the git pre-commit hook. For more
-details, see the ```hooks/``` directory.
