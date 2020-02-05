@@ -29,7 +29,7 @@ Tips to increase the chance of being accepted:
 
 ```
 git clone git@github.com:<yourname>/andromeda.git
-cd material-ui
+cd andromeda
 git remote add upstream git@github.com:mui-org/andromeda.git
 ```
 
