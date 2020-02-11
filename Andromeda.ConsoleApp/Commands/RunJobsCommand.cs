@@ -96,8 +96,7 @@ namespace Andromeda.ConsoleApp.Commands {
                 var tasks = RunJobsCommand.ScheduleJobs(jobs, debug);
                 return RunJobsCommand.WaitAll(tasks);
             } else {
-                Console.WriteLine("No job selected. Possible jobs are:");
-                Console.WriteLine("TODO");
+                Console.WriteLine("Couldn't find any valid credential or No job was selected!");
                 return 1;
             }
         }

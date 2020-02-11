@@ -105,7 +105,7 @@ namespace Andromeda.ConsoleApp {
                         return 1;
                     }
                     ZipFacebooCacheCommand.ZipCache(zipDir.Value, zipName.Value);
-                    Console.WriteLine("Successful zip facebook cache.");
+                    Console.WriteLine("Successfully zipped Facebook cache.");
                     return 0;
                 });
             });

@@ -33,12 +33,12 @@ namespace Andromeda.ConsoleApp.Commands {
             DatabaseOperations.Migrate<DataLakeYouTubeAnalyticsContext>();
             DatabaseOperations.Migrate<DataLakeAdWordsContext>();
             DatabaseOperations.Migrate<DataLakeLoggingContext>();
-            Console.WriteLine("Successful migrate data-lake.");
+            Console.WriteLine("Successfully migrated data-lake.");
         }
 
         public static void MigrateFacebook() {
             Migrate(Databases.LakeFacebook);
-            Console.WriteLine("Successful migrate facebook-lake.");
+            Console.WriteLine("Successfully migrated Facebook-lake.");
         }
     }
 }
