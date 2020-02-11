@@ -20,7 +20,7 @@ namespace Jobs.Fetcher.AdWords {
             if (config.OAuth2Mode != OAuth2Flow.APPLICATION || string.IsNullOrEmpty(config.OAuth2RefreshToken)) {
                 Console.WriteLine("Missing or invalid AdWords credentials.");
                 Console.WriteLine("Could not find file \'{0}/credentials/adwords/App.config\'", Directory.GetCurrentDirectory());
-                Environment.Exit(1);
+                return NoJobs;
             }
             var user = new AdWordsUser(config);
 

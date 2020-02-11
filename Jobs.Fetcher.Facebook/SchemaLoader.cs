@@ -19,11 +19,14 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public static List<string> SchemaList() {
-            // Instagram schema was removed because "Instagram.media" is failing and we need to collect new data to Unit Test.
-            // Instagram.media problem is related to issue 182
-
-            // return new List<string> { "page", "adaccount", "instagram" };
-            return new List<string> { "page", "adaccount" };
+            var all_schemas = new List<string> { "page", "adaccount", "instagram" };
+            var valid_schemas = new List<string>();
+            foreach(var schema_name in all_schemas){
+                if(File.Exists($"credentials/facebook/" + schema_name + "_credentials.json")) {
+                    valid_schemas.Add(schema_name);
+                }
+            }
+            return valid_schemas;
         }
 
         public static T ParseCredentials<T>(string schema_name) {

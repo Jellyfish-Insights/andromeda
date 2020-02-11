@@ -111,7 +111,7 @@ namespace Jobs.Fetcher.Facebook {
                     message = String.Format("{0}\nCheck if the path above exists!", message);
                 }
                 System.Console.WriteLine(message);
-                Environment.Exit(1);
+                return NoJobs;
             };
 
             return FilterByName(jobs, names);
