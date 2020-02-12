@@ -32,7 +32,7 @@ namespace Jobs.Fetcher.Facebook {
                     DatabaseManager.InsertRow(videos, o);
                     break;
                 case Modified.Inconsistent:
-                    jobLogger.Warning("GetRoot: Inconsistent value for entity: {TableName}, {Id}, {Value}", videos.TableName, o["id"].ToString(), o.ToString());
+                    jobLogger.Information("GetRoot: Inconsistent value for entity: {TableName}, {Id}", videos.TableName, o["id"].ToString());
                     break;
                 case Modified.Equal:
                     break;
@@ -189,7 +189,7 @@ namespace Jobs.Fetcher.Facebook {
                         DatabaseManager.InsertRow(table, data);
                         break;
                     case Modified.Inconsistent:
-                        jobLogger.Warning("ListAll: Inconsistent value for entity: {TableName}, {Id}, {Value}", table.TableName, data["id"].ToString(), data.ToString());
+                        jobLogger.Information("ListAll: Inconsistent value for entity: {TableName}, {Id}", table.TableName, data["id"].ToString());
                         break;
                     case Modified.Equal:
                         break;
