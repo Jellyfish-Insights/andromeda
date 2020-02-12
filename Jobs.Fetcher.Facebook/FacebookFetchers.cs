@@ -106,7 +106,7 @@ namespace Jobs.Fetcher.Facebook {
             }
             catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
             {
-                string message = String.Format("\nMissing or invalid Facebook credentials!\n{0}", e.Message);
+                string message = String.Format("Missing or invalid Facebook credentials!\n{0}", e.Message);
                 if (e is DirectoryNotFoundException) {
                     message = String.Format("{0}\nCheck if the path above exists!", message);
                 }
