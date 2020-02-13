@@ -161,8 +161,6 @@
             ["description", "text"],
             ["title", "text"],
             ["videos_count", "integer"],
-            ["published", "bool"],
-            ["scheduled_publish_time", "timestamp without time zone"],
             ["creation_time", "timestamp without time zone"],
             ["last_modified", "timestamp without time zone"]
         ]

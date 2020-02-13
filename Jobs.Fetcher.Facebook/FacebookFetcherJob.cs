@@ -93,30 +93,12 @@ namespace Jobs.Fetcher.Facebook {
 
             GetLogger().Information($"Fetching details of ({table.Name},{row ? ["id"]})");
             try {
-                if (SubEdgeKey != null) {
-                    // DEPRECATED: case in which the user informed a single edge to be executed
-                    if (SubEdgeKey == "insights") {
-                        Fetcher.FetchInsights(table, row);
+                if (EdgeKey != null) {
+                    foreach (var subEdge in table.Edges) {
+                        Fetcher.FetchChildrenOnEdge(subEdge.Value, row);
                     }
-                    var edge = table.Edges.GetValueOrDefault(SubEdgeKey, null);
-                    var key = (SchemaName : Schema.Name, TableName : table.Name, CustomEdgeName : SubEdgeKey);
-                    if (CustomEdge.ContainsKey(key)) {
-                        CustomEdge[key](Logger, row);
-                    }
-                    if (edge != null) {
-                        Fetcher.FetchChildrenOnEdge(edge, row);
-                    }
-                } else {
-                    if (EdgeKey != null) {
-                        foreach (var subEdge in table.Edges) {
-                            Fetcher.FetchChildrenOnEdge(subEdge.Value, row);
-                        }
-                        foreach (var edge in CustomEdge.Where(x => x.Key.SchemaName == Schema.Name && x.Key.TableName == table.Name)) {
-                            edge.Value(Logger, row);
-                        }
-                    }
-                    Fetcher.FetchInsights(table, row);
                 }
+                Fetcher.FetchInsights(table, row);
             } catch (AggregateException e) {
                 foreach (var ie in e.InnerExceptions) {
                     if (ie is FacebookApiUnreachable) {

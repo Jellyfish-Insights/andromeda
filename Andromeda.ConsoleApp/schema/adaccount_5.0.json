@@ -20,7 +20,7 @@
             ["campaign", "jsonb", "", "{start_time,stop_time}"],
             ["campaign_id", "bigint"],
             ["status", "text"],
-            ["creative", "jsonb", "", "{id,video_id,object_story_spec,body,object_story_id}"],
+            ["adcreatives", "jsonb", "", "{id,video_id,object_story_spec,body,object_story_id}"],
             ["created_time", "timestamp without time zone"],
             ["updated_time", "timestamp without time zone"]
         ],
@@ -41,8 +41,6 @@
                 ["cpp", "double precision"],
                 ["ctr", "double precision"],
                 ["frequency", "double precision"],
-                ["video_10_sec_watched_actions", "jsonb"],
-                ["cost_per_10_sec_video_view", "jsonb"],
                 ["video_30_sec_watched_actions", "jsonb"],
                 ["spend", "double precision"],
                 ["unique_actions", "jsonb"],
@@ -68,8 +66,6 @@
                 ["cpp", "double precision"],
                 ["ctr", "double precision"],
                 ["frequency", "double precision"],
-                ["video_10_sec_watched_actions", "jsonb"],
-                ["cost_per_10_sec_video_view", "jsonb"],
                 ["video_30_sec_watched_actions", "jsonb"],
                 ["spend", "double precision"],
                 ["unique_actions", "jsonb"],
@@ -97,7 +93,7 @@
             ["campaign", "jsonb", "", "{start_time,stop_time}"],
             ["campaign_id", "bigint"],
             ["status", "text"],
-            ["creative", "jsonb", "", "{id,video_id,body}"],
+            ["adcreatives", "jsonb", "", "{id,video_id,body}"],
             ["created_time", "timestamp without time zone"],
             ["updated_time", "timestamp without time zone"]
         ]
