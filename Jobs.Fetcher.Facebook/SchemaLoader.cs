@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.IO;
-using System;
 using DataLakeModels;
 using Newtonsoft.Json;
 
@@ -19,21 +18,22 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public static List<string> SchemaList() {
-            var all_schemas = new List<string> { "page", "adaccount", "instagram" };
-            var valid_schemas = new List<string>();
-            foreach(var schema_name in all_schemas){
-                if(File.Exists(GetSchemaPath(schema_name))) {
-                    valid_schemas.Add(schema_name);
+            var allSchemas = new List<string> { "page", "adaccount", "instagram" };
+            var validSchemas = new List<string>();
+            var version = FacebookDatabaseManager.ApiVersion;
+            foreach(var schemaName in allSchemas){
+                if(File.Exists(GetCredentialPath(schemaName)) && File.Exists($"schema/{schemaName}_{version}.json")) {
+                    validSchemas.Add(schemaName);
                 } else { 
-                    System.Console.WriteLine("Failed to get " + GetServiceName(schema_name) + " data!");
-                    System.Console.WriteLine("Couldn't find file \'" + GetSchemaPath(schema_name) + "\'");
+                    System.Console.WriteLine($"Failed to get {GetServiceName(schemaName)} data!");
+                    System.Console.WriteLine($"Couldn't find file '{GetCredentialPath(schemaName)}' or 'schema/{schemaName}_{version}.json'");
                 }
             }
-            return valid_schemas;
+            return validSchemas;
         }
 
-        private static string GetServiceName(string schema_name) {
-            switch (schema_name) {
+        private static string GetServiceName(string schemaName) {
+            switch (schemaName) {
                 case "page":
                     return "Facebook";
                 case "adaccount":
@@ -45,19 +45,18 @@ namespace Jobs.Fetcher.Facebook {
             }
         }
 
-        private static string GetSchemaPath(string schema_name) {
-            var pre_path = schema_name == "instagram" ? "credentials/instagram/" : "credentials/facebook/";
-            return pre_path + schema_name + "_credentials.json";
+        private static string GetCredentialPath(string schemaName) {
+            var prePath = schemaName == "instagram" ? "credentials/instagram/" : "credentials/facebook/";
+            return prePath + schemaName + "_credentials.json";
         }
 
-
-        public static T ParseCredentials<T>(string schema_name) {
-            string contents = File.ReadAllText(GetSchemaPath(schema_name));
+        public static T ParseCredentials<T>(string schemaName) {
+            string contents = File.ReadAllText(GetCredentialPath(schemaName));
             return JsonConvert.DeserializeObject<T>(contents);
         }
 
-        public static Credentials GetCredentials(string schema_name) {
-            return ParseCredentials<Credentials>(schema_name);
+        public static Credentials GetCredentials(string schemaName) {
+            return ParseCredentials<Credentials>(schemaName);
         }
     }
 }
