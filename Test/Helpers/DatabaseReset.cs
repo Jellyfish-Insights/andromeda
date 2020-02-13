@@ -1,5 +1,5 @@
 using Andromeda.Common;
-using Andromeda.ConsoleApp.Commands;
+using Andromeda.Commands;
 
 namespace Test.Helpers {
 

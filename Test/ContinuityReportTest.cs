@@ -3,7 +3,7 @@ using Xunit;
 using DataLakeModels.Models.YouTube.Data;
 using DataLakeModels;
 using Test.Helpers;
-using Andromeda.ConsoleApp.Commands;
+using Andromeda.Commands;
 using Andromeda.Common;
 using System.Collections.Generic;
 using System.Linq;

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 using Andromeda.Common.Jobs;
-using Andromeda.ConsoleApp.Commands;
+using Andromeda.Commands;
 
 namespace Test {
 

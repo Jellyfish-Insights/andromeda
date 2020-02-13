@@ -5,7 +5,7 @@ using System.Text;
 using Andromeda.Common;
 using Npgsql;
 
-namespace Andromeda.ConsoleApp.Commands {
+namespace Andromeda.Commands {
     public static class ExportData {
 
         private static string GetTableHeader(NpgsqlDataReader reader) {

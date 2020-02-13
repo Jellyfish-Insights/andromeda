@@ -10,7 +10,7 @@ using Npgsql;
 using DataLakeModels.Helpers;
 using Microsoft.Extensions.Configuration;
 
-namespace Andromeda.ConsoleApp.Commands {
+namespace Andromeda.Commands {
 
     public static class ErrorReportCommand {
 

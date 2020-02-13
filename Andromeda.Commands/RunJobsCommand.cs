@@ -7,7 +7,7 @@ using Jobs.Fetcher.AdWords;
 using Jobs.Fetcher.YouTube;
 using Jobs.Fetcher.Facebook;
 
-namespace Andromeda.ConsoleApp.Commands {
+namespace Andromeda.Commands {
 
     public static class RunJobsCommand {
 
