@@ -20,10 +20,10 @@ namespace Jobs.Fetcher.Facebook {
         public static List<string> SchemaList() {
             var allSchemas = new List<string> { "page", "adaccount", "instagram" };
             var validSchemas = new List<string>();
-            foreach(var schemaName in allSchemas){
-                if(File.Exists(GetCredentialPath(schemaName))) {
+            foreach (var schemaName in allSchemas) {
+                if (File.Exists(GetCredentialPath(schemaName))) {
                     validSchemas.Add(schemaName);
-                } else { 
+                } else {
                     System.Console.WriteLine($"Failed to get {GetServiceName(schemaName)} data!");
                     System.Console.WriteLine($"Couldn't find file '{GetCredentialPath(schemaName)}'.");
                 }
