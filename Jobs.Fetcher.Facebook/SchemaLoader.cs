@@ -18,7 +18,7 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public static List<string> SchemaList() {
-            var allSchemas = new List<string> { "page", "adaccount", "instagram" };
+            var allSchemas = new List<string> { "page", "adaccount" };
             var validSchemas = new List<string>();
             foreach (var schemaName in allSchemas) {
                 if (File.Exists(GetCredentialPath(schemaName))) {
