@@ -104,8 +104,8 @@ namespace Jobs.Fetcher.Facebook {
             HttpResponseMessage response;
             try {
                 response = await client.GetAsync(url, HttpCompletionOption.ResponseContentRead);
-            } catch (Exception e) {
-                throw new FacebookApiException($"Error fetching url: {url}", e);
+            } catch (Exception) {
+                throw new FacebookApiException($"Error fetching Facebook url!");
             }
             Logger.Verbose("Api returned");
             Logger.Verbose("Sleeping for {SLEEP_TIME}s", RequestDelay);
@@ -170,7 +170,7 @@ namespace Jobs.Fetcher.Facebook {
                         var errorCode = (int) result["error"]["code"];
                         var errorMessage = (string) result["error"]["message"];
                         if (errorMessage != null) {
-                            LoggerFactory.GetFacebookLogger().Warning(errorMessage);
+                            LoggerFactory.GetFacebookLogger().Error(errorMessage);
                         }
                         var elapsed = this.GetUtcTime().Subtract(result["fetch_time"].ToObject<DateTime>()).TotalSeconds;
                         if (errorCode == ACCOUNT_LEVEL_THROTTLING) {
@@ -203,7 +203,7 @@ namespace Jobs.Fetcher.Facebook {
                             if (result["error"] == null) {
                                 return result;
                             }
-                            throw new FacebookApiException("Unexpected API error when calling url: " + url, (JObject) result["error"]);
+                            throw new FacebookApiException("Unexpected API error when calling facebook url");
                         }
                     }
                 }

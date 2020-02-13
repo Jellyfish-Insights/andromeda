@@ -20,7 +20,7 @@ namespace Andromeda.Common.Logging {
             return new LoggerConfiguration()
                        .MinimumLevel.Verbose()
                        .Enrich.WithProperty(LoggerNamePropertyName, name)
-                       .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Verbose, outputTemplate: OutputTemplateConsole, theme: ConsoleTheme.None)
+                       .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Warning, outputTemplate: OutputTemplateConsole, theme: ConsoleTheme.None)
                        .WriteTo.File(LogFileName(name), restrictedToMinimumLevel: LogEventLevel.Debug, outputTemplate: OutputTemplateFile, fileSizeLimitBytes: 5000000, rollOnFileSizeLimit: true, retainedFileCountLimit: 2)
                        .WriteTo.Database<T>(name, restrictedToMinimumLevel: LogEventLevel.Information)
                        .CreateLogger();
@@ -38,7 +38,7 @@ namespace Andromeda.Common.Logging {
             return new LoggerConfiguration()
                        .MinimumLevel.Verbose()
                        .Enrich.WithProperty(LoggerNamePropertyName, "FacebookFetcher")
-                       .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Debug, outputTemplate: OutputTemplateConsole, theme: ConsoleTheme.None)
+                       .WriteTo.Console(restrictedToMinimumLevel: LogEventLevel.Warning, outputTemplate: OutputTemplateConsole, theme: ConsoleTheme.None)
                        .WriteTo.File(LogFileName("FacebookFetcher"), restrictedToMinimumLevel: LogEventLevel.Debug, outputTemplate: OutputTemplateFile, shared: true, fileSizeLimitBytes: 5000000, rollOnFileSizeLimit: true, retainedFileCountLimit: 2)
                        .CreateLogger();
         }
