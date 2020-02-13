@@ -5,7 +5,7 @@ using System.Linq;
 using Andromeda.Common;
 using Andromeda.Common.Jobs;
 
-namespace Andromeda.ConsoleApp.Commands {
+namespace Andromeda.Commands {
     public class ZipFacebooCacheCommand {
 
         public static void RemoveTokenFromCredentials(string filename) {

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.CommandLineUtils;
-using Andromeda.ConsoleApp.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using DataLakeModels.Helpers;
 using Andromeda.Common.Jobs;
-using Serilog;
 using Andromeda.Common.Logging;
+using Andromeda.Commands;
+using Serilog;
 
 namespace Andromeda.ConsoleApp {
 
@@ -24,7 +24,7 @@ namespace Andromeda.ConsoleApp {
                 return 0;
             });
 
-            app.Command("fetch", (command) => {
+            app.Command("fetcher", (command) => {
                 command.Description = "Execute selected Fetcher jobs. All by default.";
                 command.HelpOption("-?|-h|--help");
 

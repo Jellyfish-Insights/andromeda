@@ -2,7 +2,7 @@ using System;
 using DataLakeModels;
 using Andromeda.Common;
 
-namespace Andromeda.ConsoleApp.Commands {
+namespace Andromeda.Commands {
 
     public static class MigrateCommand {
 

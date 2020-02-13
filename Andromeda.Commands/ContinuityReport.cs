@@ -3,7 +3,7 @@ using System.Linq;
 using Andromeda.Common;
 using Andromeda.Common.Report;
 
-namespace Andromeda.ConsoleApp.Commands {
+namespace Andromeda.Commands {
 
     public enum ContinuityProperty {
         NotEmpty,
