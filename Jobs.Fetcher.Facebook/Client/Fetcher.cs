@@ -198,7 +198,7 @@ namespace Jobs.Fetcher.Facebook {
                         DatabaseManager.InsertRow(table, data);
                         break;
                 }
-                Logger.Information($"Fetched ({table.TableName},{data ? ["id"]})");
+                Logger.Debug($"Fetched ({table.TableName},{data ? ["id"]})");
                 return data;
             }
             return null;
@@ -213,7 +213,6 @@ namespace Jobs.Fetcher.Facebook {
                 if (maxEntities > 0 && maxEntities <= entitiesFetched) {
                     yield break;
                 }
-
                 try {
                     entities = FetchDataById(id, table, jobLogger);
                 } catch (Exception) {
@@ -385,6 +384,7 @@ namespace Jobs.Fetcher.Facebook {
                     ListDailyInsights(lifetime, daily, row);
                 }
             }
+            Logger.Information($"Finished to fetch table {table.TableName}");
         }
 
         public DateTime Partition(int days, DateTime start, DateTime current) {
