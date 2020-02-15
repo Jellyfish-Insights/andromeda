@@ -422,3 +422,4 @@ src/WebApp/Properties/launchSettings.json
 **/credentials/facebook
 **/credentials/youtube
 **/credentials/instagram
+**/appsettings.json
