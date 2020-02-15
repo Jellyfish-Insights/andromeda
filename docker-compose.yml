@@ -1,0 +1,55 @@
+version: "3.2"
+
+services:
+  # DATALAKE: Postgres database that stores the data pulled from
+  # the social media platforms.
+  data_lake:
+    image: postgres:10
+    container_name: data_lake
+    environment:
+      # Information used to create the Postgres database
+      # We recommend to change the password to a more secure one
+      # IF YOU CHANGE ANY OF THESE FIELDS DON'T FORGET TO CHANGE
+      # THE CORRESPONDENT FIELDS ON appsetting.json.
+      - POSTGRES_USER=fee
+      - POSTGRES_PASSWORD=dbpassword
+      - POSTGRES_DB=data_lake
+    ports:
+      - 5433:5433
+    command: -p 5433
+    volumes:
+      - data_lake_data:/var/lib/postgresql/data
+
+  andromeda:
+    build:
+      context: .
+      #========================================================================
+      # Build the image pulling the files from the remote directory:
+      # https://github.com/Jellyfish-Insights/andromeda
+      #========================================================================
+      dockerfile: ./Dockerfile
+
+      #========================================================================
+      # If you are developing Aurelia's code is useful to build the docker image
+      # from your local copy of files instead of getting them from the remote
+      # directory. If you want to build using your LOCAL COPY, comment the line:
+      # dockerfile: "./src/WebApp/Dockerfile" above and
+      # uncomment the line bellow.
+      #========================================================================
+      #dockerfile: ./local.Dockerfile
+    container_name: andromeda
+    depends_on:
+      - data_lake
+    volumes:
+      # Bind a directory on the host with all the configuration files.
+      # Replace '.${PWD}/andromeda' with the path to the folder with your
+      # configuration file: appsettings.json and the social media credentials
+      - ${PWD}/andromeda:/app/release/credentials
+    environment:
+      # Fetchers run every "X" seconds.
+      # This variable controls how much time the fetchers will wait to
+      # run again.
+      - FETCH_SLEEP_TIME=120 #seconds
+
+volumes:
+  data_lake_data:
