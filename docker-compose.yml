@@ -30,7 +30,7 @@ services:
       dockerfile: ./Dockerfile
 
       #========================================================================
-      # If you are developing Aurelia's code is useful to build the docker image
+      # If you are developing Andromeda's code is useful to build the docker image
       # from your local copy of files instead of getting them from the remote
       # directory. If you want to build using your LOCAL COPY, comment the line:
       # dockerfile: "./src/WebApp/Dockerfile" above and
@@ -44,7 +44,7 @@ services:
       # Bind a directory on the host with all the configuration files.
       # Replace '.${PWD}/andromeda' with the path to the folder with your
       # configuration file: appsettings.json and the social media credentials
-      - ${PWD}/andromeda:/app/release/credentials
+      - ./andromeda:/app/release/credentials
     environment:
       # Fetchers run every "X" seconds.
       # This variable controls how much time the fetchers will wait to
