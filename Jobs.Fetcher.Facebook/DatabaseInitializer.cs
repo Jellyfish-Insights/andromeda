@@ -8,7 +8,13 @@ namespace Jobs.Fetcher.Facebook {
         public static void Init() {
             foreach (var schemaName in SchemaLoader.SchemaList()) {
                 var schema = SchemaLoader.LoadSchema(schemaName);
+                Init(schema, null, null);
+            }
+        }
 
+        public static void Init(List<string> schemaList) {
+            foreach (var schemaName in schemaList) {
+                var schema = SchemaLoader.LoadSchema(schemaName);
                 Init(schema, null, null);
             }
         }
