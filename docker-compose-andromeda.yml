@@ -44,7 +44,7 @@ services:
       # Bind a directory on the host with all the configuration files.
       # Replace '.${PWD}/andromeda' with the path to the folder with your
       # configuration file: appsettings.json and the social media credentials
-      - ./andromeda:/app/release/credentials
+      - ./andromeda-config:/app/release/credentials
     environment:
       # Fetchers run every "X" seconds.
       # This variable controls how much time the fetchers will wait to
