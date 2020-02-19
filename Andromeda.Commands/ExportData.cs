@@ -33,7 +33,7 @@ namespace Andromeda.Commands {
             return ListOfContent;
         }
 
-        public static bool SaveOnCSV(NpgsqlDataReader reader, string schema, string table) {
+        public static bool SaveOnCSV(NpgsqlDataReader reader, string schema, string table, string path) {
             try
             {
                 var sb = new StringBuilder();
@@ -44,7 +44,7 @@ namespace Andromeda.Commands {
                     sb.AppendLine(line);
                 }
                 sb.AppendLine("\n\n");
-                TextWriter sw = new StreamWriter($"./metrics/{schema}.csv", true);
+                TextWriter sw = new StreamWriter($"./metrics/{path}/{schema}.csv", true);
                 sw.Write(sb.ToString());
                 sw.Close();
                 Console.WriteLine($"Success to export {schema}.{table} to CSV");
@@ -52,13 +52,13 @@ namespace Andromeda.Commands {
             }
             catch (Exception)
             {
-                Console.WriteLine($"Failing to export {schema}.{table} to CSV");
+                Console.WriteLine($"**Failing** to export {schema}.{table} to CSV");
                 return false;
             }
         }
 
-        public static bool SaveOnJSON(NpgsqlDataReader reader, string schema, string table) {
-            Console.WriteLine("Failing to export to JSON");
+        public static bool SaveOnJSON(NpgsqlDataReader reader, string schema, string table, string path) {
+            Console.WriteLine("**Failing** to export to JSON");
             return false;
         }
 
@@ -95,13 +95,29 @@ namespace Andromeda.Commands {
             return schemaAndTable;
         }
 
-        public static void QueryMetrics(int limit, string selectedPlatform = "", string fileType = "csv") {
-            Console.WriteLine($"Exporting into {fileType} limited by {limit}");
+        private static void CreateDirectory(string path) {
+            try {
+                if (!Directory.Exists("./metrics")){
+                    Directory.CreateDirectory("./metrics");
+                }
+                if (!Directory.Exists($"./metrics/{path}")){
+                    Directory.CreateDirectory($"./metrics/{path}");
+                }
+                Console.WriteLine($"Created folder '{path}'");
+            } catch {
+                Console.WriteLine("Failed to create directory.");
+                Environment.Exit(1);
+            }
+        }
 
-            foreach (var(schema, table) in GetTablesNameAndSchemas(selectedPlatform))
-            {
-                using (var connection = ConnectionStringHelper.GetDbConnection("DataLakeDatabase"))
-                {
+        public static void QueryMetrics(string fileType, string selectedPlatform, int limit) {
+            var path = $"export_data_{DateTime.Now.ToString("MMddyyyyHHmmss")}";
+            CreateDirectory(path);
+            Console.WriteLine($"Exporting into {fileType} limited by {limit}\n");
+            var exportStatus = true;
+
+            foreach (var(schema, table) in GetTablesNameAndSchemas(selectedPlatform)) {
+                using (var connection = ConnectionStringHelper.GetDbConnection("DataLakeDatabase")) {
                     connection.Open();
                     var cmd = connection.CreateCommand();
                     cmd.CommandText = $@"
@@ -115,13 +131,13 @@ namespace Andromeda.Commands {
                     using (var reader = cmd.ExecuteReader())
                     {
                         if (fileType == "csv")
-                            SaveOnCSV(reader, schema, table);
+                            exportStatus &= SaveOnCSV(reader, schema, table, path);
                         else
-                            SaveOnJSON(reader, schema, table);
+                            exportStatus &= SaveOnJSON(reader, schema, table, path);
                     }
                 }
             }
-            Console.WriteLine("Exporting done!");
+            Console.WriteLine(exportStatus ? "\nExporting done!" : "\nExporting **failed**!");
         }
     }
 }
