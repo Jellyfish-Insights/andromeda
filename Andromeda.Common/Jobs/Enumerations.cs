@@ -11,5 +11,6 @@ namespace Andromeda.Common.Jobs {
         AdWords,
         Facebook,
         Application,
+        Instagram,
     }
 }
