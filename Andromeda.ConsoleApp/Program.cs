@@ -150,20 +150,26 @@ namespace Andromeda.ConsoleApp {
                 command.Description = "Export Data Lake tables into a file.";
                 command.HelpOption("-?|-h|--help");
 
-                var selectedFileType = command.Option("-t|--type", "Select file type: 'csv' or 'json'.", CommandOptionType.SingleValue);
-                var selectedPlatform = command.Option("-p|--platform", "Select platform to export: 'Facebook', 'YouTube' or 'AdWords'.", CommandOptionType.SingleValue);
-                var since = command.Option("-s|--since", "Start date from which to export data.", CommandOptionType.SingleValue);
-                var until = command.Option("-u|--until", "End date from which to export data.", CommandOptionType.SingleValue);
-                var sourceId = command.Option("-i|--id", "Source page Id.", CommandOptionType.SingleValue);
-                var limit = command.Option("-l|--limit", "Select a limit of rows", CommandOptionType.SingleValue);
-                var table = command.Option("-tb|--table", "Select a database table", CommandOptionType.SingleValue);
+                var fileType = command.Option("-t|--type", "Select file type: 'csv' or 'json'.", CommandOptionType.SingleValue);
+                var source = command.Option("-s|--source", "Select platform to export: 'facebook', 'youtube' or 'adwords'. All by default", CommandOptionType.SingleValue);
+                var limit = command.Option("-l|--limit", "Select a limit of rows. 10 by default.", CommandOptionType.SingleValue);
 
-                command.OnExecute(() =>
-                {
-                    if (limit.HasValue())
-                        ExportData.QueryMetrics(System.Convert.ToInt32(limit.Value()), selectedPlatform.Value());
-                    else
-                        ExportData.QueryMetrics(10, selectedPlatform.Value());
+                var platforms = new List<string> {"facebook", "youtube", "adwords", ""};
+
+                command.OnExecute(() => {
+                    var selectedFileType = fileType.HasValue() ? fileType.Value() : "json";
+                    var selectedPlatform = source.HasValue() ? source.Value() : "";
+                    var queryLimit = limit.HasValue() ? Convert.ToInt32(limit.Value()) : 100;
+
+                    if(!platforms.Contains(selectedPlatform)){
+                        Console.WriteLine("Invalid source!\n\nList sources:");
+                        foreach(var s in platforms) {
+                            Console.WriteLine($"\t{s}");
+                        }
+                        Environment.Exit(1);
+                    }
+
+                    ExportData.QueryMetrics(selectedFileType, selectedPlatform, queryLimit);
                     return 0;
                 });
             });
