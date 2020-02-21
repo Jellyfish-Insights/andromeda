@@ -27,8 +27,13 @@ namespace Jobs.Fetcher.YouTube {
             var youtubeServices = new List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)>();
             try {
                 foreach(var directory in Directory.GetDirectories(CredentialsDir)) {
-                    var credential = GetUserCredential(SecretsFile, directory);
-                    youtubeServices.Add((GetDataService(credential), GetAnalyticsService(credential)));
+                    youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
+                }
+
+                if (youtubeServices.Count == 0) {
+                    var path = $"{CredentialsDir}/channel_1";
+                    Directory.CreateDirectory(path);
+                    youtubeServices.Add(GetServicesCredential(SecretsFile, path));
                 }
 
                 jobs = new List<AbstractJob>() {
@@ -51,6 +56,11 @@ namespace Jobs.Fetcher.YouTube {
             };
 
             return FilterByName(jobs, names);
+        }
+
+        public static (YouTubeService dataService, YouTubeAnalyticsService analyticsService) GetServicesCredential(string clientSecretFileName, string dataStoreFolder) {
+            var credential = GetUserCredential(clientSecretFileName, dataStoreFolder);
+            return ((GetDataService(credential), GetAnalyticsService(credential)));
         }
 
         public static UserCredential GetUserCredential(string clientSecretFileName, string dataStoreFolder) {
