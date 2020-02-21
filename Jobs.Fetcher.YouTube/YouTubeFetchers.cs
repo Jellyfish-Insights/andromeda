@@ -24,18 +24,20 @@ namespace Jobs.Fetcher.YouTube {
                 return NoJobs;
             }
             var jobs = new List<AbstractJob>();
+            var youtubeServices = new List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)>();
             try {
-                var credential = GetUserCredential(SecretsFile, CredentialsDir);
-                var dataService = GetDataService(credential);
-                var analyticsService = GetAnalyticsService(credential);
+                foreach(var directory in Directory.GetDirectories(CredentialsDir)) {
+                    var credential = GetUserCredential(SecretsFile, directory);
+                    youtubeServices.Add((GetDataService(credential), GetAnalyticsService(credential)));
+                }
 
                 jobs = new List<AbstractJob>() {
-                    new VideosQuery(dataService),
-                    new PlaylistsQuery(dataService),
-                    new DailyVideoMetricsQuery(dataService, analyticsService),
-                    new ViewerPercentageMetricsQuery(dataService, analyticsService),
-                    new StatisticsQuery(dataService),
-                    new ReprocessDailyVideoMetricsQuery(dataService, analyticsService),
+                    new VideosQuery(youtubeServices),
+                    new PlaylistsQuery(youtubeServices),
+                    new DailyVideoMetricsQuery(youtubeServices),
+                    new ViewerPercentageMetricsQuery(youtubeServices),
+                    new StatisticsQuery(youtubeServices),
+                    new ReprocessDailyVideoMetricsQuery(youtubeServices),
                 };
             }
             catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)

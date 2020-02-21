@@ -8,18 +8,12 @@ using Jobs.Fetcher.YouTube.Helpers;
 namespace Jobs.Fetcher.YouTube {
 
     public class VideosQuery : YoutubeFetcher {
-
-        public YouTubeService DataService;
-
-        public VideosQuery(YouTubeService dataService) {
-            DataService = dataService;
-        }
-
+        public VideosQuery(List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos): base(accountInfos) {}
         public override List<string> Dependencies() {
             return new List<string>() {};
         }
 
-        override public void Run() {
+        override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
             var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId).ToList();
             var videoProperties = ApiDataFetcher.FetchVideoProperties(DataService, videoIds);
@@ -28,18 +22,13 @@ namespace Jobs.Fetcher.YouTube {
     }
 
     public class PlaylistsQuery : YoutubeFetcher {
-
-        public YouTubeService DataService;
-
-        public PlaylistsQuery(YouTubeService dataService) {
-            DataService = dataService;
-        }
+        public PlaylistsQuery(List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos): base(accountInfos) {}
 
         public override List<string> Dependencies() {
             return new List<string>() { IdOf<VideosQuery>() };
         }
 
-        override public void Run() {
+        override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
             var playlists = ApiDataFetcher.FetchPlaylists(DataService, channelId);
             var playlistsVideoIds = ApiDataFetcher.FetchVideoIdsInPlaylists(DataService, playlists);
@@ -49,14 +38,7 @@ namespace Jobs.Fetcher.YouTube {
     }
 
     public class DailyVideoMetricsQuery : YoutubeFetcher {
-
-        public YouTubeService DataService;
-        public YouTubeAnalyticsService AnalyticsService;
-
-        public DailyVideoMetricsQuery(YouTubeService dataService, YouTubeAnalyticsService analyticsService) {
-            DataService = dataService;
-            AnalyticsService = analyticsService;
-        }
+        public DailyVideoMetricsQuery(List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos): base(accountInfos) {}
 
         public override List<string> Dependencies() {
             return new List<string>() { IdOf<VideosQuery>() };
@@ -64,7 +46,7 @@ namespace Jobs.Fetcher.YouTube {
 
         private const int DegreeOfParallelism = 1;
 
-        override public void Run() {
+        override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
             var videos = DbReader.GetVideos();
             videos.AsParallel()
@@ -74,12 +56,7 @@ namespace Jobs.Fetcher.YouTube {
     }
 
     public class ReprocessDailyVideoMetricsQuery : YoutubeFetcher {
-        public YouTubeService DataService;
-        public YouTubeAnalyticsService AnalyticsService;
-        public ReprocessDailyVideoMetricsQuery(YouTubeService dataService, YouTubeAnalyticsService analyticsService) {
-            DataService = dataService;
-            AnalyticsService = analyticsService;
-        }
+        public ReprocessDailyVideoMetricsQuery(List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos): base(accountInfos) {}
 
         public override List<string> Dependencies() {
             return new List<string>() { IdOf<DailyVideoMetricsQuery>(), IdOf<StatisticsQuery>() };
@@ -87,7 +64,7 @@ namespace Jobs.Fetcher.YouTube {
 
         private const int DegreeOfParallelism = 1;
 
-        override public void Run() {
+        override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
             var comparison = DbReader.CompareVideoLifetimeDailyTotal();
             long comparisonMinLimit = 500;
@@ -106,14 +83,7 @@ namespace Jobs.Fetcher.YouTube {
     }
 
     public class ViewerPercentageMetricsQuery : YoutubeFetcher {
-
-        public YouTubeService DataService;
-        public YouTubeAnalyticsService AnalyticsService;
-
-        public ViewerPercentageMetricsQuery(YouTubeService dataService, YouTubeAnalyticsService analyticsService) {
-            DataService = dataService;
-            AnalyticsService = analyticsService;
-        }
+        public ViewerPercentageMetricsQuery(List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos): base(accountInfos) {}
 
         public override List<string> Dependencies() {
             return new List<string>() { IdOf<VideosQuery>(), IdOf<DailyVideoMetricsQuery>() };
@@ -121,7 +91,7 @@ namespace Jobs.Fetcher.YouTube {
 
         private const int DegreeOfParallelism = 1;
 
-        override public void Run() {
+        override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
             var videos = DbReader.GetVideos();
             videos.AsParallel()
@@ -131,18 +101,12 @@ namespace Jobs.Fetcher.YouTube {
     }
 
     public class StatisticsQuery : YoutubeFetcher {
-
-        public YouTubeService DataService;
-
-        public StatisticsQuery(YouTubeService dataService) {
-            DataService = dataService;
-        }
-
+        public StatisticsQuery(List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos): base(accountInfos) {}
         public override List<string> Dependencies() {
             return new List<string>() {};
         }
 
-        override public void Run() {
+        override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
             var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId).ToList();
             var videoProperties = ApiDataFetcher.FetchVideoStatistics(DataService, videoIds).Where(x => x.Statistics != null);
