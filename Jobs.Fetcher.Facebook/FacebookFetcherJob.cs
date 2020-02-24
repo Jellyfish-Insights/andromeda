@@ -33,13 +33,15 @@ namespace Jobs.Fetcher.Facebook {
         protected string SubEdgeKey = null;
         protected Fetcher Fetcher;
         protected CustomEdge CustomEdge;
+        protected string PageId;
 
-        public FacebookFetcher(Schema schema, string edgeKey, string subEdgeKey, Fetcher fetcher, CustomEdge customEdge) {
+        public FacebookFetcher(Schema schema, string edgeKey, string subEdgeKey, Fetcher fetcher, CustomEdge customEdge, string pageId = "") {
             Schema = schema;
             EdgeKey = edgeKey;
             SubEdgeKey = subEdgeKey;
             Fetcher = fetcher;
             CustomEdge = customEdge;
+            PageId = pageId;
         }
 
         public override List<string> Dependencies() {
@@ -47,7 +49,7 @@ namespace Jobs.Fetcher.Facebook {
             if (Schema.Name == "adaccount") {
                 var dep = AdAccountDependencies[EdgeKey];
                 if (dep != null) {
-                    deps.Add(IdOf(Schema.Name, dep));
+                    deps.Add(IdOf(Schema.Name, dep, PageId));
                 }
             }
             return deps;
@@ -58,14 +60,14 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public override string Id() {
-            return IdOf(Schema.Name, EdgeKey);
+            return IdOf(Schema.Name, EdgeKey, PageId);
         }
 
-        public static string IdOf(string schema, string table) {
+        public static string IdOf(string schema, string table, string pageId) {
             if (table == null) {
-                return $"{typeof(FacebookFetcher).Namespace}.{schema}";
+                return $"{typeof(FacebookFetcher).Namespace}.{schema}.{pageId}";
             } else {
-                return $"{typeof(FacebookFetcher).Namespace}.{schema}.{table}";
+                return $"{typeof(FacebookFetcher).Namespace}.{schema}.{table}.{pageId}";
             }
         }
 

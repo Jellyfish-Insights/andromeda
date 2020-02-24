@@ -37,28 +37,14 @@ namespace Jobs.Fetcher.Facebook {
             try
             {
                 foreach (var schemaName in Schemas) {
-
-                    var schema = SchemaLoader.LoadSchema(schemaName);
-                    var apiMan = new ApiManager(
-                        SchemaLoader.GetCredentials(schemaName),
-                        IgnoreCache,
-                        jobConfiguration.IgnoreAPI,
-                        jobConfiguration.IgnoreTTL,
-                        jobConfiguration.Paginate,
-                        schema.Delay,
-                        CacheDirectory,
-                        jobConfiguration.DefaultNowDate
-                        );
-                    var fetcher = new Fetcher(apiMan, schema.PageSize);
-                    var customEdge = new CustomEdge();
-
-                    if (schemaName == "adaccount") {
-
-                        var pageSchema = SchemaLoader.LoadSchema("page");
-                        var pageCredentials = SchemaLoader.GetCredentials("page");
-
-                        var pageApiMan = new ApiManager(
-                            SchemaLoader.GetCredentials("page"),
+                    foreach(var file in Directory.GetFiles(SchemaLoader.GetCredentialPath(schemaName))) {
+                        if (!file.Contains("_credentials.json")) {
+                            continue;
+                        }
+                        SchemaLoader.credentialFileName = file;
+                        var schema = SchemaLoader.LoadSchema(schemaName);
+                        var apiMan = new ApiManager(
+                            SchemaLoader.GetCredentials(schemaName),
                             IgnoreCache,
                             jobConfiguration.IgnoreAPI,
                             jobConfiguration.IgnoreTTL,
@@ -67,44 +53,63 @@ namespace Jobs.Fetcher.Facebook {
                             CacheDirectory,
                             jobConfiguration.DefaultNowDate
                             );
-                        var pageFetcher = new Fetcher(pageApiMan, pageSchema.PageSize);
+                        var fetcher = new Fetcher(apiMan, schema.PageSize);
+                        var customEdge = new CustomEdge();
 
-                        var key = (SchemaName : "adaccount", TableName : "ads", CustomEdgeName : "custom_videos");
-                        if (!customEdge.ContainsKey(key)) {
+                        if (schemaName == "adaccount") {
 
-                            Action<Logger, JObject> callback = (logger, parent) => {
-                                var creative = parent["creative"];
+                            var pageSchema = SchemaLoader.LoadSchema("page");
+                            var pageCredentials = SchemaLoader.GetCredentials("page");
 
-                                var video = creative ? ["video_id"];
-                                if (video != null) {
-                                    pageFetcher.GetRoot(pageSchema, "videos", video, logger);
-                                }
+                            var pageApiMan = new ApiManager(
+                                SchemaLoader.GetCredentials("page"),
+                                IgnoreCache,
+                                jobConfiguration.IgnoreAPI,
+                                jobConfiguration.IgnoreTTL,
+                                jobConfiguration.Paginate,
+                                schema.Delay,
+                                CacheDirectory,
+                                jobConfiguration.DefaultNowDate
+                                );
+                            var pageFetcher = new Fetcher(pageApiMan, pageSchema.PageSize);
 
-                                var sourceFileVideoId = creative.IndexPathOrDefault<string>("object_story_spec.video_data.video_id", null);
+                            var key = (SchemaName : "adaccount", TableName : "ads", CustomEdgeName : "custom_videos");
+                            if (!customEdge.ContainsKey(key)) {
 
-                                if (sourceFileVideoId != null) {
-                                    pageFetcher.GetRoot(pageSchema, "videos", sourceFileVideoId, logger);
-                                }
+                                Action<Logger, JObject> callback = (logger, parent) => {
+                                    var creative = parent["creative"];
 
-                                var post = creative ? ["object_story_id"];
-                                if (post != null) {
-                                    pageFetcher.GetRoot(pageSchema, "posts", post, logger);
-                                }
-                            };
+                                    var video = creative ? ["video_id"];
+                                    if (video != null) {
+                                        pageFetcher.GetRoot(pageSchema, "videos", video, logger);
+                                    }
 
-                            customEdge.Add(key, callback);
+                                    var sourceFileVideoId = creative.IndexPathOrDefault<string>("object_story_spec.video_data.video_id", null);
+
+                                    if (sourceFileVideoId != null) {
+                                        pageFetcher.GetRoot(pageSchema, "videos", sourceFileVideoId, logger);
+                                    }
+
+                                    var post = creative ? ["object_story_id"];
+                                    if (post != null) {
+                                        pageFetcher.GetRoot(pageSchema, "posts", post, logger);
+                                    }
+                                };
+
+                                customEdge.Add(key, callback);
+                            }
                         }
-                    }
 
-                    if (Schemas.Count == 1 && TableKey != null) {
-                        // DEPRECATED: case in which the user specified a single edge to be executed
-                        jobs.Add(new FacebookFetcher(schema, TableKey, EdgeKey, fetcher, customEdge));
-                    } else {
-                        foreach (var edge in schema.Edges) {
-                            jobs.Add(new FacebookFetcher(schema, edge.Key, null, fetcher, customEdge));
-                        }
-                        if (schemaName == "instagram") {
-                            jobs.Add(new FacebookFetcher(schema, null, null, fetcher, customEdge));
+                        if (Schemas.Count == 1 && TableKey != null) {
+                            // DEPRECATED: case in which the user specified a single edge to be executed
+                            jobs.Add(new FacebookFetcher(schema, TableKey, EdgeKey, fetcher, customEdge));
+                        } else {
+                            foreach (var edge in schema.Edges) {
+                                jobs.Add(new FacebookFetcher(schema, edge.Key, null, fetcher, customEdge, apiMan.Secret.Id));
+                            }
+                            if (schemaName == "instagram") {
+                                jobs.Add(new FacebookFetcher(schema, null, null, fetcher, customEdge, apiMan.Secret.Id));
+                            }
                         }
                     }
                 }

@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 namespace Jobs.Fetcher.Facebook {
 
     public static class SchemaLoader {
-
+        public static string credentialFileName;
         public static Schema LoadSchema(string name) {
             var version = FacebookDatabaseManager.ApiVersion;
 
@@ -29,11 +29,12 @@ namespace Jobs.Fetcher.Facebook {
         private static List<string> CheckCredentialStatus(List<string> allSchemas) {
             var validSchemas = new List<string>();
             foreach (var schemaName in allSchemas) {
-                if (File.Exists(GetCredentialPath(schemaName))) {
+                var credentialPath = GetCredentialPath(schemaName);
+                if (Directory.Exists(credentialPath) && Directory.GetFiles(credentialPath).Length > 0) {
                     validSchemas.Add(schemaName);
                 } else {
                     System.Console.WriteLine($"Failed to get {GetServiceName(schemaName)} data!");
-                    System.Console.WriteLine($"Couldn't find file '{GetCredentialPath(schemaName)}'.");
+                    System.Console.WriteLine($"Couldn't find credential on folder '{credentialPath}'.");
                 }
             }
             return validSchemas;
@@ -52,13 +53,13 @@ namespace Jobs.Fetcher.Facebook {
             }
         }
 
-        private static string GetCredentialPath(string schemaName) {
-            var prePath = schemaName == "instagram" ? "credentials/instagram/" : "credentials/facebook/";
-            return prePath + schemaName + "_credentials.json";
+        public static string GetCredentialPath(string schemaName) {
+            var prePath = schemaName == "instagram" ? "credentials" : "credentials/facebook";
+            return $"{prePath}/{schemaName}";            
         }
 
         public static T ParseCredentials<T>(string schemaName) {
-            string contents = File.ReadAllText(GetCredentialPath(schemaName));
+            string contents = File.ReadAllText(credentialFileName);
             return JsonConvert.DeserializeObject<T>(contents);
         }
 
