@@ -5,7 +5,6 @@
 '''
 import requests, json, os
 
-# Import secret data
 FB_URL = 'https://graph.facebook.com'
 VERSION = 'v5.0'
 
@@ -14,6 +13,19 @@ with open('fb_client_secret.json') as json_file:
     APP_ID = data["APP_ID"]
     APP_SECRET = data["APP_SECRET"]
     USER_ACCESS_TOKEN = data["USER_ACCESS_TOKEN"] 
+
+def create_credential_folders():
+    try:
+        os.mkdir('./credentials/')
+        os.mkdir('./credentials/adwords')
+        os.mkdir('./credentials/facebook')
+        os.mkdir('./credentials/facebook/adaccount')
+        os.mkdir('./credentials/facebook/page')
+        os.mkdir('./credentials/instagram')
+        os.mkdir('./credentials/youtube')
+    except:
+        pass
+    print('Created credential structure.')
 
 def request_data(url):
     response = requests.get(url)
@@ -24,7 +36,11 @@ def request_data(url):
 
     return json.loads(response._content.decode('utf8').replace("'", '"'))
 
-# Get long lived tokens
+def save_on_json(path, data, platform, name):
+    with open(path, 'w') as outfile:
+        print(f'Saving long-time credentials for {platform} - {name}.')
+        json.dump(data, outfile)
+
 def long_lived_user_token():
     path = './credentials/facebook/user_credentials.json'
     if os.path.isfile(path):
@@ -47,56 +63,35 @@ def long_lived_user_token():
     return access_token
 
 def long_lived_page_token(access_token):
-    url = f'{FB_URL}/{VERSION}/me/accounts?access_token={access_token}'
-    response = requests.get(url)
-    return json.loads(response._content.decode('utf8').replace("'", '"'))
+    return request_data(f'{FB_URL}/{VERSION}/me/accounts?access_token={access_token}')
 
-def long_lived_instagram_token(pages_access_token):
-    for page in pages_access_token:
-        url = f'{FB_URL}/{VERSION}/{page["id"]}?fields=instagram_business_account&access_token={page["access_token"]}'
-        response = requests.get(url)
-        instagram_info = json.loads(response._content.decode('utf8').replace("'", '"'))
-        if "instagram_business_account" in instagram_info:
-            save_instagram_token(instagram_info["instagram_business_account"]["id"], page["name"], page["access_token"])
+def change_token(page):
+    # On Andromeda we use "token" but Facebook API return "access_token"
+    page["token"] = page["access_token"]
+    return page
 
-# Save tokens on JSON files
-def save_pages_token(pages_access_token):
-    for page in pages_access_token:
-        with open(f'./credentials/facebook/page/{page["id"]}_credentials.json', 'w') as outfile:
-            print(f'Saving long-time credentials for the page {page["name"]}.')
-            json.dump(page, outfile)
-
-def save_instagram_token(instagram_id, page, access_token):
-    with open(f'./credentials/instagram/{instagram_id}_credentials.json', 'w') as outfile:
-        print(f'Saving long-time credentials for the instagram business account related to {page}.')
-        instagram_info = {
-            "access_token" : access_token,
-            "id" : instagram_id,
-            "Source Page" : page
+def long_lived_instagram_token(page):
+    url = f'{FB_URL}/{VERSION}/{page["id"]}?fields=instagram_business_account&access_token={page["access_token"]}'
+    instagram = request_data(url)
+    if "instagram_business_account" in instagram:
+        instagram_data = {
+            "token" : page["access_token"],
+            "id" : instagram["instagram_business_account"]["id"],
+            "source_page" : page["name"]
         }
-        json.dump(instagram_info, outfile)
-
-# Create folders structure
-def create_credential_folders():
-    try:
-        os.mkdir('./credentials/')
-        os.mkdir('./credentials/adwords')
-        os.mkdir('./credentials/facebook')
-        os.mkdir('./credentials/facebook/adaccount')
-        os.mkdir('./credentials/facebook/page')
-        os.mkdir('./credentials/instagram')
-        os.mkdir('./credentials/youtube')
-    except:
-        pass
-    print('Created credential structure.')
+        save_on_json(f'./credentials/instagram/{instagram_data["id"]}_credentials.json', instagram_data, 'instagram', instagram_data["source_page"])
 
 def main():
     create_credential_folders()
     user_access_token = long_lived_user_token()
     pages_access_token = long_lived_page_token(user_access_token["access_token"])
-    save_pages_token(pages_access_token["data"])
-    long_lived_instagram_token(pages_access_token["data"])
+
+    for page in pages_access_token["data"]:
+        page = change_token(page)
+        save_on_json(f'./credentials/facebook/page/{page["id"]}_credentials.json', page, "page", page["name"])
+        long_lived_instagram_token(page)
+        
     print('Done.')
 
 if __name__ == '__main__': 
-    main() 
+    main()
