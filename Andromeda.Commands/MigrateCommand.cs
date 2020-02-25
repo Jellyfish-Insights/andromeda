@@ -1,6 +1,7 @@
 using System;
 using DataLakeModels;
 using Andromeda.Common;
+using System.Collections.Generic;
 
 namespace Andromeda.Commands {
 
@@ -22,6 +23,7 @@ namespace Andromeda.Commands {
                     break;
                 case Databases.LakeFacebook:
                     Jobs.Fetcher.Facebook.DatabaseInitializer.Init();
+                    Jobs.Fetcher.Facebook.DatabaseInitializer.Init(new List<string> {"instagram"});
                     break;
                 default:
                     throw new Exception("Invalid database");
