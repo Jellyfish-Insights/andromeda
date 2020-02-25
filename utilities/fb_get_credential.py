@@ -7,6 +7,7 @@ import requests, json, os
 
 FB_URL = 'https://graph.facebook.com'
 VERSION = 'v5.0'
+MARKETING_VERSION = 'v6.0'
 
 with open('fb_client_secret.json') as json_file:
     data = json.load(json_file)
@@ -30,7 +31,7 @@ def create_credential_folders():
 def request_data(url):
     response = requests.get(url)
     if response.status_code != 200:
-        print('Request failed')
+        print('Request failed.')
         print(json.loads(response._content.decode('utf8').replace("'", '"')))
         exit(1)
 
@@ -81,16 +82,51 @@ def long_lived_instagram_token(page):
         }
         save_on_json(f'./credentials/instagram/{instagram_data["id"]}_credentials.json', instagram_data, 'instagram', instagram_data["source_page"])
 
+def long_lived_adaccount_token(access_token):
+    return request_data(f'{FB_URL}/{MARKETING_VERSION}/me/adaccounts?access_token={access_token}')
+
+def test_credentials():
+    path = './credentials/facebook/page'
+    for page in os.listdir(path):
+        with open(f'{path}/{page}') as json_file:
+            data = json.load(json_file)
+            print(f'Testing Page {data["name"]} token.')
+            request_data(f'{FB_URL}/{VERSION}/{data["id"]}/posts?access_token={data["token"]}')
+    
+    path = './credentials/instagram'
+    for instagram in os.listdir(path):
+            with open(f'{path}/{instagram}') as json_file:
+                data = json.load(json_file)
+                print(f'Testing Instagram {data["source_page"]} token.')
+                request_data(f'{FB_URL}/{VERSION}/{data["id"]}/media?access_token={data["token"]}')
+    
+    path = './credentials/facebook/adaccount'
+    for adaccount in os.listdir(path):
+            with open(f'{path}/{adaccount}') as json_file:
+                data = json.load(json_file)
+                print(f'Testing Adaccount {data["id"]} token.')
+                request_data(f'{FB_URL}/{MARKETING_VERSION}/{data["id"]}/ads?access_token={data["token"]}')
+
 def main():
     create_credential_folders()
     user_access_token = long_lived_user_token()
-    pages_access_token = long_lived_page_token(user_access_token["access_token"])
 
+    pages_access_token = long_lived_page_token(user_access_token["access_token"])
     for page in pages_access_token["data"]:
         page = change_token(page)
         save_on_json(f'./credentials/facebook/page/{page["id"]}_credentials.json', page, "page", page["name"])
         long_lived_instagram_token(page)
-        
+
+    adaccounts_access_token = long_lived_adaccount_token(user_access_token["access_token"])
+    for adaccount in adaccounts_access_token["data"]:
+        adaccount_data = {
+            "token" : user_access_token["access_token"],
+            "id" : adaccount["id"],
+            "account_id" : adaccount["account_id"]
+        }
+        save_on_json(f'./credentials/facebook/adaccount/{adaccount_data["id"]}_credentials.json', adaccount_data, "adaccount", adaccount_data["id"])
+
+    test_credentials()
     print('Done.')
 
 if __name__ == '__main__': 
