@@ -19,7 +19,11 @@ In order to run Andromeda in the docker container, first, we need to set up Andr
 
 ## Getting the credentials
 
-The first step to run Andromeda is to get the credentials for each social media that you want to pull out data from. The credential files are used to allow Andromeda to pull your data from the Social Media APIs. You can get more information about how to get and configure the credentials for each social media on this [link]().
+The first step to run Andromeda is to get the credentials for each social media
+that you want to pull out data from. The credential files are used to allow
+Andromeda to pull your data from the Social Media APIs. You can get more
+information about how to get and configure the credentials for each social media
+[here](how_to_get_credentials.md ).
 
 ## Creating the folder structure
 
@@ -30,7 +34,7 @@ To create all the folders needed by Andromeda, open a terminal window and run th
 mkdir andromeda-config && cd andromeda-config && mkdir adwords facebook facebook/adaccount facebook/page instagram youtube && cd ..
 ```
 
-In sequence, copy the credential files from each social media to their respective directories inside the `andromeda-config' folder. For instance, if you have all the credentials from the social media that Andromeda supports and you are not using multi-accounts, your folder structure should be the following:
+In sequence, copy the credential files from each social media to their respective directories inside the `andromeda-config` folder. For instance, if you have all the credentials from the social media that Andromeda supports and you are not using multi-accounts, your folder structure should be the following:
 
 ```
 andromeda-config
@@ -57,7 +61,9 @@ andromeda-config
     user1-instagram_credentials.json
 ```
 
-With Andromeda you can pull data from multiple facebook, instagram and YouTube channel and store in the same data lake. You can see more details about how to set up multiple accounts here [link].
+With Andromeda you can pull data from multiple facebook, instagram and YouTube
+channel and store in the same data lake. You can see more details about how to
+set up multiple accounts [here](adding_multiple_accounts.md).
 
 ## Configuring the appsettings.json
 
