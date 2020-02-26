@@ -35,25 +35,25 @@ In sequence, copy the credential files from each social media to their respectiv
 ```
 andromeda-config
 │ appsettings.json
-│  
-└───facebook
-| | user_credentials.json
-| |  
-│ └───adaccount
-| | user1-adaccount_credentials.json
-│ └───page
-│ user1-page_credentials.json
-|  
-└───youtube
-│ | client_secret.json
-| |  
-| └───channel1_name
-│ Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json
-│  
-└───adwords
-| App.config
-|  
-└───instagram
+│
+└─facebook
+| |  user_credentials.json
+| |
+│ └──adaccount
+| |    user1-adaccount_credentials.json
+│ └──page
+│      user1-page_credentials.json
+|
+└─youtube
+│ |  client_secret.json
+| |
+| └──channel1_name
+│      Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json
+│
+└─adwords
+|   App.config
+|
+└─instagram
     user1-instagram_credentials.json
 ```
 
@@ -84,15 +84,15 @@ Copy the following snippet in the newly created file:
 
 ```json
 {
-"ConnectionStrings": {
-"DataLakeDatabase": "Host=data_lake;Database=data_lake;Username=fee;Password=dbpassword;Port=5433"
+    "ConnectionStrings": {
+        "DataLakeDatabase": "Host=data_lake;Database=data_lake;Username=fee;Password=dbpassword;Port=5433"
     }
 }
 ```
 
 Save and close the file.
 
-## Running the docker container
+## The docker container
 Once you have the folders andromeda-config with all the necessary files, we need to clone Andromeda repository. The repository contains all the docker files necessary to build the Andromeda container.
 To clone Andromeda repository run the following command on a terminal:
 
@@ -102,7 +102,7 @@ git clone https://github.com/Jellyfish-Insights/andromeda
 
 After we have cloned Andromeda repository, the next step will be configuring docker-compose files.
 
-Editing the `andromeda/docker-compose-andromeda.yml`
+### Editing the `andromeda/docker-compose-andromeda.yml`
 
 By default, the Andromeda container will search for a folder called andromeda-config with the credentials and the appsettings.json on the directory where the docker-compose-andromeda.yml is located. We don't recommend to put the folder with the credentials inside the git repository folder.
 
@@ -130,7 +130,7 @@ Locate the line under the Andromeda service:
   Close and save the file.
   You can edit the docker-compose-andromeda.yml as you need it, this file has descriptions for all important fields necessary to run the application. If you change the database information (recommended on production) don't forget to update the appsettings.json with the corresponding changes.
 
-## Running the container
+### Running the container
 Before running the Andromeda container, we need to kill any postgres process running on your computer. You can do this by executing the following command on terminal:
 
 ```bash
@@ -146,7 +146,7 @@ Then execute the following command:
 ```bash
 sudo docker-compose -f docker-compose-andromeda.yml up andromeda
 ```
-  
+
 Now we have Andromeda container running, you should see something like this:
 
 ![docker output](../assets/docker_output.jpeg)
@@ -180,6 +180,6 @@ sudo docker-compose -f docker-compose-andromeda.yml up --build --force-recreate 
 Explanation:
 --build: build images before starting containers.
 --force-recreate: Recreate containers even if their configuration and image haven't changed.
---build is straightforward and it will create the docker images before starting the containers. 
+--build is straightforward and it will create the docker images before starting the containers.
 
 The --force-recreate flag will stop the currently running containers forcefully and spin up all the containers again even if you do not have changed anything into its configuration. So, if there are any changes, those will be picked-up into the newly created containers while preserving the state of volumes.
