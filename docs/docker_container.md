@@ -3,6 +3,22 @@
 This documentation shows how to configure and run Andromeda container.
 All the steps on this document were tested on ubuntu 18. If you plan to run this tutorial on a Windows machine, you will need to adapt the steps that use terminal commands.
 
+# Summary
+
+* [Prerequisites](#Prerequisites)
+* [Configuration files](#Configuration-files)
+* [Andromeda](#Andromeda)
+  * [Getting the credentials](#Getting-the-credentials)
+  * [Creating the folder structure](#Creating-the-folder-structure)
+  * [Configuring the appsettings.json](#Configuring-the-appsettings.json)
+  * [The docker container](#The-docker-container)
+    * [Editing the `andromeda/docker-compose-andromeda.yml`](#Editing-the-`andromeda/docker-compose-andromeda.yml`)
+    * [Running the container](#Running-the-container)
+  * [Development tips](#Development-tips)
+    * [Prune unused local volumes](#Prune-unused-local-volumes)
+    * [Build from a local copy of the repositories](#Build-from-a-local-copy-of-the-repositories)
+    * [Forcing docker-compose up to rebuild](#Forcing-docker-compose-up-to-rebuild)
+
 # Prerequisites
   - Docker
   - Docker compose
