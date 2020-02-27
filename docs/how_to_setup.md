@@ -6,7 +6,7 @@ This document has the intention on explaining how to setup the environment to ru
 
 * [Building and Running](#Building-and-Running)
 * [System Requirements](#System-Requirements)
-* [System Requirements](#System-Bootstrap)
+* [System Bootstrap](#System-Bootstrap)
   + [Note for Windows](#Note-for-Windows)
   + [Build back-end](#Build-back-end)
   + [Place the credential files](#Place-the-credential-files)
