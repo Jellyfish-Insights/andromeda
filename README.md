@@ -13,32 +13,34 @@
 
 ### What is this repo?
 
-This repo contains the main code of "Andromeda".
+This repository contains the main code of "Andromeda".
 
 ### What is the Andromeda?
 
-It is an OSS application that will collect analytics data from YouTube, Google Ads
-and Facebook and generate reports about it.
+Andromeda is an open-source software (OSS) that collects analytics data from YouTube, Google Ads
+and Facebook and stores into a single data lake database.
 
 Andromeda allow:
 
-  * [X] Connect to any relational database
-  * [X] Pull data from all social platforms into PostgreSQL database
-  * [X] Store a lifetime of insights and data across all channels
+* [X] Connect to any relational database
+* [X] Pull data from all social platforms into PostgreSQL database
+* [X] Store a lifetime of insights and data across all channels
 
-The idea on making Andromeda possible came by [Jellyfish Insights](http://jellyfishinsights.com/)
+Andromeda was developed as part of the [Jellyfish Insights](http://jellyfishinsights.com/) and supported by the Foundation for Economic Education (FEE).
 
 # Documentation
 
 * [Getting started](./docs/how_to_setup.md)
-  * [System Requirements](./docs/how_to_setup.md#System-Requirements)
-  * [System Bootstrap](./docs/how_to_setup.md#System-Bootstrap)
+  + [System Requirements](./docs/how_to_setup.md#System-Requirements)
+  + [System Bootstrap](./docs/how_to_setup.md#System-Bootstrap)
 * [Running via Docker container](./docs/how_to_run_docker_container.md)
-  * [Prerequisites](./docs/how_to_run_docker_container.md#Prerequisites)
-  * [Configuring the appsettings.json](./docs/how_to_run_docker_container.md#Configuring-the-appsettings.json)
-  * [Running the container](./docs/how_to_run_docker_container.md#Running-the-container)
-* [Exporting database into files](./docs/export_csv_json.md)
-* [Contribute to Andromeda](./docs/how_to_contribute.md)
-  * [Code of conduct](./docs/how_to_contribute.md#Code-of-conduct)
-  * [Your First Pull Request](./docs/how_to_contribute.md#You-First-Pull-Request)
-  * [How to send a Pull Request](./docs/how_to_contribute.md#How-to-send-a-Pull-Request)
+  + [Prerequisites](./docs/how_to_run_docker_container.md#Prerequisites)
+  + [Configuring the appsettings.json](./docs/how_to_run_docker_container.md#Configuring-the-appsettings.json)
+  + [Running the container](./docs/how_to_run_docker_container.md#Running-the-container)
+* [Adding multiple accounts](./docs/adding_multiple_accounts.md)
+* [Exporting data lake data into files](./docs/export_csv_json.md)
+
+# Contribute to Andromeda
+
+We would love to have you contributing to the Andromeda project. You can see the instruction on how to become an Andromeda contributor [here](./docs/how_to_contribute.md).
+

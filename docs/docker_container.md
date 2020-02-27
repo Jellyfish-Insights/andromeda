@@ -12,7 +12,7 @@ All the steps on this document were tested on ubuntu 18. If you plan to run this
   + [Creating the folder structure](#Creating-the-folder-structure)
   + [Configuring the appsettings.json](#Configuring-the-appsettings.json)
   + [The docker container](#The-docker-container)
-    - [Editing the `andromeda/docker-compose-andromeda.yml` ](#Editing-the- `andromeda/docker-compose-andromeda.yml` )
+    - [Editing the `andromeda/docker-compose-andromeda.yml` ](#Editing-the-`andromeda/docker-compose-andromeda.yml` )
     - [Running the container](#Running-the-container)
   + [Development tips](#Development-tips)
     - [Prune unused local volumes](#Prune-unused-local-volumes)
