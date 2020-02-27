@@ -6,12 +6,12 @@ This document has the intention on explaining how to setup the environment to ru
 
 * [Building and Running](#Building-and-Running)
 * [System Requirements](#System-Requirements)
+* [System Requirements](#System-Bootstrap)
   + [Note for Windows](#Note-for-Windows)
   + [Build back-end](#Build-back-end)
   + [Place the credential files](#Place-the-credential-files)
 * [Running with Docker](#Running-with-Docker)
 * [Running Manually](#Running-Manually)
-
  * [Setup PostgreSQL (Linux)](#Setup-PostgreSQL-(Linux))
  * [Setup PostgreSQL (Windows)](#Setup-PostgreSQL-(Windows))
  * [Adding data to the development databases](#Adding-data-to-the-development-databases)
@@ -62,22 +62,22 @@ The following credential files are needed:
 
     - ```./Jobs. Fetcher. AdWords/App.config
 
-``` 
+```
 
   + By the ConsoleApp project:
     - The "YouTube" credentials
-      - ` `  ` ./ConsoleApp/credentials/client_secret.json `  ` ` 
+      - ` `  ` ./ConsoleApp/credentials/client_secret.json `  ` `
 
       - ```./ConsoleApp/credentials/Google. Apis. Auth. OAuth2. Responses. TokenResponse-Credentials.json
 
 ```
 
     - The "Facebook" credentials
-      - ` `  ` ./ConsoleApp/credentials/addaccount_credentials.json `  ` ` 
+      - ` `  ` ./ConsoleApp/credentials/addaccount_credentials.json `  ` `
 
       - ```./ConsoleApp/credentials/page_credentials.json
 
-``` 
+```
 
 ## Running with Docker
 
@@ -113,7 +113,7 @@ The following credential files are needed:
   After that you need to add an entry to ` `  ` /etc/hosts `  ` ` as the
   following:
 
-``` 
+```
     127.0.0.1 data_lake
     127.0.0.1 analytics_platform
   ```
@@ -125,12 +125,12 @@ The following credential files are needed:
   After that you need to add an entry to
 ` `  ` C:\Windows\System32\Drivers\etc\hosts `  ` ` as the following:
 
-``` 
+```
     127.0.0.1 data_lake
     127.0.0.1 analytics_platform
   ```
 
-  Finally, modify all ` `  ` appsettings.json `  `  ` files, removing the `  `  ` Port=5433 `  ` ` 
+  Finally, modify all ` `  ` appsettings.json `  `  ` files, removing the `  `  ` Port=5433 `  ` `
   entry from the connection strings, and changing the user to ` `  ` postgres `  ` ` .
 
 ### Adding data to the development databases
@@ -140,7 +140,7 @@ The following credential files are needed:
 
 ### Building the system
 
-  Assuming that you just did the [System Bootstrap](#system-bootstrap), 
+  Assuming that you just did the [System Bootstrap](#system-bootstrap),
   you'll need to apply the migrations:
 
 ``` shell
