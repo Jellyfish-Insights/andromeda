@@ -21,8 +21,8 @@ All the steps on this document were tested on ubuntu 18. If you plan to run this
 
 # Prerequisites
 
-  + Docker
-  + Docker compose
+* Docker
+* Docker compose
 
 [Instructions of how to install Docker on ubuntu](https://docs.docker.com/install/linux/docker-ce/ubuntu/)
 
@@ -53,7 +53,7 @@ mkdir andromeda-config && cd andromeda-config && mkdir adwords facebook facebook
 
 In sequence, copy the credential files from each social media to their respective directories inside the `andromeda-config` folder. For instance, if you have all the credentials from the social media that Andromeda supports and you are not using multi-accounts, your folder structure should be the following:
 
-``` 
+```
 andromeda-config
 │ appsettings.json
 │
@@ -127,7 +127,7 @@ git clone https://github.com/Jellyfish-Insights/andromeda
 
 After we have cloned Andromeda repository, the next step will be configuring docker-compose files.
 
-### Editing the `andromeda/docker-compose-andromeda.yml` 
+### Editing the `andromeda/docker-compose-andromeda.yml`
 
 By default, the Andromeda container will search for a folder called andromeda-config with the credentials and the appsettings.json on the directory where the docker-compose-andromeda.yml is located. We don't recommend to put the folder with the credentials inside the git repository folder.
 
