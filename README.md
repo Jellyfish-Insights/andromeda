@@ -28,14 +28,17 @@ Andromeda allow:
 
 The idea on making Andromeda possible came by [Jellyfish Insights](http://jellyfishinsights.com/)
 
-## Building and running
+# Documentation
 
-The instructions to setup this project can be seen [here](./docs/how_to_setup.md)
-
-## Running via docker container
-
-The instructions to setup this project via docker container can be seen [here](./docs/how_to_run_docker_container.md)
-
-## Contribute to Andromeda
-
-The instruction on how to become a Andromeda contributor can be seen [here](./docs/how_to_contribute.md)
+* [Getting started](./docs/how_to_setup.md)
+  * [System Requirements](./docs/how_to_setup.md#System-Requirements)
+  * [System Bootstrap](./docs/how_to_setup.md#System-Bootstrap)
+* [Running via Docker container](./docs/how_to_run_docker_container.md)
+  * [Prerequisites](./docs/how_to_run_docker_container.md#Prerequisites)
+  * [Configuring the appsettings.json](./docs/how_to_run_docker_container.md#Configuring-the-appsettings.json)
+  * [Running the container](./docs/how_to_run_docker_container.md#Running-the-container)
+* [Exporting database into files](./docs/export_csv_json.md)
+* [Contribute to Andromeda](./docs/how_to_contribute.md)
+  * [Code of conduct](./docs/how_to_contribute.md#Code-of-conduct)
+  * [Your First Pull Request](./docs/how_to_contribute.md#You-First-Pull-Request)
+  * [How to send a Pull Request](./docs/how_to_contribute.md#How-to-send-a-Pull-Request)

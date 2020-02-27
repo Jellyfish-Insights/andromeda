@@ -2,6 +2,22 @@
 
 This document has the intention on explaining how to setup the environment to run and test Andromeda
 
+# Summary
+
+* [Building and Running](#Building-and-Running)
+* [System Requirements](#System-Requirements)
+  * [Note for Windows](#Note-for-Windows)
+  * [Build back-end](#Build-back-end)
+  * [Place the credential files](#Place-the-credential-files)
+* [Running with Docker](#Running-with-Docker)
+* [Running Manually](#Running-Manually)
+ * [Setup PostgreSQL (Linux)](#Setup-PostgreSQL-(Linux))
+ * [Setup PostgreSQL (Windows)](#Setup-PostgreSQL-(Windows))
+ * [Adding data to the development databases](#Adding-data-to-the-development-databases)
+ * [Building the system](#Building-the-system)
+ * [Running the system](#Running-the-System)
+
+
 # Building and Running
 
 The code for all of them is located in the ```src``` directory. The instructions
