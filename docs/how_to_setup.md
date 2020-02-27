@@ -20,7 +20,7 @@ This document has the intention on explaining how to setup the environment to ru
 
 # Building and Running
 
-The code for all of them is located in the ` `  ` src `  ` ` directory. The instructions
+The code for all of them is located in the `src` directory. The instructions
 below assume you are there.
 
 ## System Requirements
@@ -58,42 +58,30 @@ Do:
 
 The following credential files are needed:
 
-  + By the AdWords library:
+* By the AdWords library:
+  + `./Jobs. Fetcher. AdWords/App.config`
 
-    - ```./Jobs. Fetcher. AdWords/App.config
-
-```
-
-  + By the ConsoleApp project:
-    - The "YouTube" credentials
-      - ` `  ` ./ConsoleApp/credentials/client_secret.json `  ` `
-
-      - ```./ConsoleApp/credentials/Google. Apis. Auth. OAuth2. Responses. TokenResponse-Credentials.json
-
-```
-
-    - The "Facebook" credentials
-      - ` `  ` ./ConsoleApp/credentials/addaccount_credentials.json `  ` `
-
-      - ```./ConsoleApp/credentials/page_credentials.json
-
-```
+* By the ConsoleApp project:
+  + The "YouTube" credentials
+    - `./ConsoleApp/credentials/client_secret.json `
+    - `./ConsoleApp/credentials/Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json`
+  + The "Facebook" credentials
+    - ` ./ConsoleApp/credentials/addaccount_credentials.json `
+    - `./ConsoleApp/credentials/page_credentials.json`
 
 ## Running with Docker
 
-   See [this](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [this](https://github.com/docker/compose/releases) for instructions on how to install Docker and
-   Docker-compose.
+See [this](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [this](https://github.com/docker/compose/releases) for instructions on how to install Docker and Docker-compose.
 
-   For Windows, the installation instructions are [here](https://docs.docker.com/docker-for-windows/install/). Docker for Windows includes docker-compose.
+For Windows, the installation instructions are [here](https://docs.docker.com/docker-for-windows/install/). Docker for Windows includes docker-compose.
 
-   Export the ` `  ` DOCKER_USER `  ` ` variable to ensure docker uses the same
-   user as the host. In Windows, ` `  ` $USER `  ` ` isn't defined, so you'll need
-   to substitute it by your username:
-   ```shell
-     export DOCKER_USER=$(id -u $USER)
-   ```
-
-   Now, you need to log in as your GitLab user in the GitLab registry:
+Export the `DOCKER_USER` variable to ensure docker uses the same
+user as the host. In Windows, `$USER` isn't defined, so you'll need
+to substitute it by your username:
+```shell
+  export DOCKER_USER=$(id -u $USER)
+```
+Now, you need to log in as your GitLab user in the GitLab registry:
 
 ``` shell
      docker login registry.gitlab.com
@@ -103,45 +91,40 @@ The following credential files are needed:
 
 ### Setup PostgreSQL (Linux)
 
-  We'll need two database servers, so we recommend to just use the
-  docker container in the docker compose file:
+We'll need two database servers, so we recommend to just use the docker container in the docker compose file:
 
 ``` shell
     docker-compose -f docker-compose.daemons.yml up -d data_lake analytics_platform
   ```
 
-  After that you need to add an entry to ` `  ` /etc/hosts `  ` ` as the
-  following:
+After that you need to add an entry to `/etc/hosts` as the following:
 
-```
+```shell
     127.0.0.1 data_lake
     127.0.0.1 analytics_platform
   ```
 
 ### Setup PostgreSQL (Windows)
 
-  Install [PostegresSQL](https://www.postgresql.org/download/windows/), and set the password of user ` `  ` postgres `  `  ` to `  `  ` dbpassword `  ` ` .
+Install [PostegresSQL](https://www.postgresql.org/download/windows/), and set the password of user `postgres` to `dbpassword` .
 
-  After that you need to add an entry to
-` `  ` C:\Windows\System32\Drivers\etc\hosts `  ` ` as the following:
+After that you need to add an entry to `C:\Windows\System32\Drivers\etc\hosts` as the following:
 
-```
+```shell
     127.0.0.1 data_lake
     127.0.0.1 analytics_platform
   ```
 
-  Finally, modify all ` `  ` appsettings.json `  `  ` files, removing the `  `  ` Port=5433 `  ` `
-  entry from the connection strings, and changing the user to ` `  ` postgres `  ` ` .
+Finally, modify all `appsettings.json` files, removing the `Port=5433` entry from the connection strings, and changing the user to `postgres`.
 
 ### Adding data to the development databases
 
-  Since the system is already running in production, we suggest loading
-  a dump of the production databases.
+Since the system is already running in production, we suggest loading a dump of the production databases.
 
 ### Building the system
 
-  Assuming that you just did the [System Bootstrap](#system-bootstrap),
-  you'll need to apply the migrations:
+Assuming that you just did the [System Bootstrap](#system-bootstrap),
+you'll need to apply the migrations:
 
 ``` shell
     cd ConsoleApp
@@ -150,26 +133,26 @@ The following credential files are needed:
 
 ### Running the system
 
-  For running all the jobs, you'll need to do:
+For running all the jobs, you'll need to do:
 
 ``` shell
     cd ConsoleApp
     dotnet run -- jobs
   ```
 
-  It's also possible to run an specific job with the following command:
+It's also possible to run an specific job with the following command:
 
 ``` shell
     dotnet run -- jobs -j Jobs.Fetcher.Facebook.page.posts
   ```
 
-  One type of Job:
+One type of Job:
 
 ``` shell
     dotnet run -- jobs -t Fetcher -s Facebook
   ```
 
-  Or see a list of jobs:
+Or see a list of jobs:
 
 ``` shell
     dotnet run -- jobs -l
