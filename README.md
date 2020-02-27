@@ -11,7 +11,7 @@
 
 ## Introduction
 
-### What is this repo?
+### What is this repository?
 
 This repository contains the main code of "Andromeda".
 
