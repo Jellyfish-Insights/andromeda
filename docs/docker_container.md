@@ -40,7 +40,7 @@ The first step to run Andromeda is to get the credentials for each social media
 that you want to pull out data from. The credential files are used to allow
 Andromeda to pull your data from the Social Media APIs. You can get more
 information about how to get and configure the credentials for each social media
-[here](.docs/how_to_get_credentials.mdhow_to_get_credentials.md).
+[here](./how_to_get_credentials.md).
 
 ## Creating the folder structure
 
@@ -79,7 +79,7 @@ andromeda-config
 ```
 
 With Andromeda you can pull data from multiple facebook, instagram and YouTube
-channel and store in the same data lake. You can see more details about how to
+channels and store in the same data lake. You can see more details about how to
 set up multiple accounts [here](adding_multiple_accounts.md).
 
 ## Configuring the appsettings.json
