@@ -74,7 +74,7 @@ Keep in mind that just one credential is already enough to make the project run.
 
 ## YouTube API
 
-Here we will explain how to the YouTube token for your Andromeda application. The YouTube token is needed to access your data from the YouTube platform.
+Here we will explain how to get the YouTube token for your Andromeda application. The YouTube token is needed to access your data from the YouTube platform.
 
    ### Getting client_id and client_secret
 
@@ -100,8 +100,13 @@ Here we will explain how to the YouTube token for your Andromeda application. Th
    - Video explaining how to get this credential: https://www.youtube.com/watch?v=sGLEcsRg0IM, keep in mind that this video uses `web application` instead of `other` when creating OAuth token(at the 1:11);
 
 ## Adwords API
-   - https://www.youtube.com/watch?v=yaDlZMfYWkg
-   - https://developers.google.com/adwords/api/docs/guides/first-api-call#set_up_oauth2_authentication
+
+Here we will explain how to get the AdWords token for your Andromeda application. The AdWords token is needed to access your data from the AdWords platform. The following video tutorial explain how to get the credentials using Java and the documentation guides you to get it using .NET, the concept is the same so we high recommend to follow this video with the documentation. 
+
+   - Video: https://www.youtube.com/watch?v=yaDlZMfYWkg
+   - Documentation: https://developers.google.com/adwords/api/docs/guides/first-api-call#set_up_oauth2_authentication
+
+Once you have your `App.config` ready (the documentation will explain to you how to do it), copy and paste the file into the credentials folder.
 
 ## Google Login API
    - Good resource -> https://github.com/googleapis/google-api-python-client/blob/master/docs/oauth-web.md
