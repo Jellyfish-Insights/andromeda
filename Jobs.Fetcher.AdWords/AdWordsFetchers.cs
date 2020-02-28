@@ -12,14 +12,14 @@ namespace Jobs.Fetcher.AdWords {
         public override JobScope Scope { get; } = JobScope.AdWords;
 
         public override IEnumerable<AbstractJob> GetJobs(JobType type, JobScope scope, IEnumerable<string> names, JobConfiguration jobConfiguration) {
-            if (CheckTypeAndScope(type, scope)) {
+            if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
                 return NoJobs;
             }
 
             var config = new AdWordsAppConfig();
             if (config.OAuth2Mode != OAuth2Flow.APPLICATION || string.IsNullOrEmpty(config.OAuth2RefreshToken)) {
                 Console.WriteLine("Missing or invalid AdWords credentials.");
-                Console.WriteLine("Could not find file \'{0}/credentials/adwords/App.config\'", Directory.GetCurrentDirectory());
+                Console.WriteLine("Could not find file \'{0}/credentials/adwords/App.config\'\n", Directory.GetCurrentDirectory());
                 return NoJobs;
             }
             var user = new AdWordsUser(config);

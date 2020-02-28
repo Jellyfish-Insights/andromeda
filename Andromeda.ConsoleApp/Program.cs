@@ -65,6 +65,7 @@ namespace Andromeda.ConsoleApp {
                     if (printDependencyTreeFlag.HasValue()) {
                         RunJobsCommand.PrintDependencyTree(jobType, jobScope, jobNames);
                     } else if (listAvailableJobsFlag.HasValue()) {
+                        jobNames.Add("All");
                         RunJobsCommand.ListAvailableJobs(jobType, jobScope, jobNames);
                     } else {
                         return RunJobsCommand.RunJobs(jobType, jobScope, jobNames, configuration, debugFlag.HasValue());
