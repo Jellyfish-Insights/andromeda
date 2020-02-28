@@ -3,7 +3,7 @@
 ## Introduction
 
 This document will guide you on how to get your social media credentials by
-running 2 python scripts that comes in the Andromeda repository.
+running the Andromeda python scripts.
 
 By running the python script **facebook_credentials.py** you can get your
 Facebook Page, Facebook Marketing and Instagram credentials.
