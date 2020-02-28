@@ -44,7 +44,7 @@ information about how to get and configure the credentials for each social media
 
 ## Creating the folder structure
 
-The instruction to see how to create the right folder structure that this document will use can be seen [here](./credential_folder_structure.md)
+In order to run the Andromeda container you need to place the Credentials in a folder structure that can be seen [here](./credential_folder_structure.md).
 
 ## Configuring the appsettings.json
 
