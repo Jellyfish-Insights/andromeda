@@ -35,7 +35,7 @@ Andromeda was developed by [Brick Abode](https://www.brickabode.com/) as part of
 * [Credential folder structure](./docs/credential_folder_structure.md)
 * [Adding multiple accounts](./docs/adding_multiple_accounts.md)
 * [Getting the social media credentials](./docs/how_to_get_credentials.md)
-* [Running the python scripts to get the social media credentials](./docs/how_to_get_credentials.md)
+* [Running the python scripts to get the social media credentials](./docs/run_credentials_script.md)
 * [Exporting data lake data into files](./docs/export_csv_json.md)
 
 # Contribute to Andromeda
