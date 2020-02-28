@@ -1,160 +1,154 @@
 # Introduction
 
-This document has the intention on explaining how to setup the environment to run and test Andromeda
+This document has the intention of explaining how to set up the environment to
+run and test Andromeda. Besides this document, you can consult the Medium article
+on [Getting started with
+Andromeda](https://medium.com/@insightsjellyfish/andromeda-storing-your-social-media-data-in-one-place-b91a6ab3d022)
+for more details.
 
-# Summary
+## Note for Windows
 
-* [Building and Running](#Building-and-Running)
-* [System Requirements](#System-Requirements)
-* [System Bootstrap](#System-Bootstrap)
-  + [Note for Windows](#Note-for-Windows)
-  + [Build back-end](#Build-back-end)
-  + [Place the credential files](#Place-the-credential-files)
-* [Running with Docker](#Running-with-Docker)
-* [Running Manually](#Running-Manually)
- * [Setup PostgreSQL (Linux)](#Setup-PostgreSQL-(Linux))
- * [Setup PostgreSQL (Windows)](#Setup-PostgreSQL-(Windows))
- * [Adding data to the development databases](#Adding-data-to-the-development-databases)
- * [Building the system](#Building-the-system)
- * [Running the system](#Running-the-System)
-
-# Building and Running
-
-The code for all of them is located in the `src` directory. The instructions
-below assume you are there.
+  You need to install [Git for Windows](https://git-scm.com/download/win). All of the commands in this
+  manual need to run over "Git Bash", not over "cmd.exe" or "powershell".
 
 ## System Requirements
 
 You need:
-
-* [. NET Core SDK 2.1.300](https://dotnet.microsoft.com/download/dotnet-core/2.1)
-* [PostgreSQL 10](https://www.postgresql.org/)
-* [Docker](#Running-with-Docker)
-* [Docker-compose](#Running-with-Docker)
+  - [.NET Core SDK 2.1.300](https://dotnet.microsoft.com/download/dotnet-core/2.1)
+  - [PostgreSQL 10](https://www.postgresql.org/)
+  - [Docker](#Running-with-Docker)
+  - [Docker-compose](#Running-with-Docker)
 
 ## System Bootstrap
 
-You'll need to setup a few things:
+You'll need to setup a few things before running Andromeda:
 
-  + [Run the database with docker](#Running-with-Docker)
-  + [Create initial migration](#Building-the-system)
-  + [Place the credential files](#Place-the-credential-files)
+  - [Run the Postgres database](#Running-with-Docker)
+  - [Create initial migration](#Building-the-system)
+  - [Place the credential files](#Place-the-credential-files)
 
-### Note for Windows
+## Place the credential files
 
-   You need to install [Git for Windows](https://git-scm.com/download/win) All of the commands in this
-   manual need to run over "Git Bash", not over "cmd.exe" or "powershell".
+If you want to fetch data from all the social media that Andromeda supports the
+following credential files are needed:
 
-### Build back-end
+  - By the Andromeda.ConsoleApp project:
+    - The "AdWords" credentials:
+      - ```./Andromeda.ConsoleApp/credentials/adwords/App.config```
+    - The "YouTube" credentials
+      - ```./Andromeda.ConsoleApp/credentials/youtube/client_secret.json```
+      - ```./Andromeda.ConsoleApp/credentials/youtube/channel_1/Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json```
+    - The "Facebook" credentials
+      - ```./Andromeda.ConsoleApp/credentials/facebook/adaacount/user1_credentials.json```
+      - ```./Andromeda.ConsoleApp/credentials/facebook/page/user1_credentials.json```
+    - The "Instagram" credentials
+      - ```./Andromeda.ConsoleApp/credentials/instagram/user1_credentials.json```
 
+Check how to get these credentials on [How to get credentials
+documentation](./how_to_get_credentials.md).
+
+Andromeda also supports fetching data from multiple Facebook and YouTube
+accounts, see the [Adding multiple accounts
+documentation](./adding_multiple_accounts.md) for more details.
+
+## Running Andromeda with Docker
+
+You can see how to run Andromeda using the docker container on [How to build and
+run the Andromeda container](./docker_container) document.
+
+## Compiling and Running Andromeda
+
+The following instructions will explain how to compile and run Andromeda and
+are assuming you are in the ```andromeda``` directory that you cloned.
+
+### Building Andromeda
+
+To build Andromeda code
 Do:
-
-``` shell
+```shell
   dotnet clean
   dotnet build
 ```
 
-### Place the credential files
+### Setup PostgreSQL database (Linux)
 
-The following credential files are needed:
+  We'll need one database server, so we recommend to just use the
+  docker container in the docker-compose-andromeda.yml file.
 
-* By the AdWords library:
-  + `./Jobs. Fetcher. AdWords/App.config`
+  On the root directory run:
 
-* By the ConsoleApp project:
-  + The "YouTube" credentials
-    - `./ConsoleApp/credentials/client_secret.json `
-    - `./ConsoleApp/credentials/Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json`
-  + The "Facebook" credentials
-    - ` ./ConsoleApp/credentials/addaccount_credentials.json `
-    - `./ConsoleApp/credentials/page_credentials.json`
-
-## Running with Docker
-
-See [this](https://docs.docker.com/install/linux/docker-ce/ubuntu/) and [this](https://github.com/docker/compose/releases) for instructions on how to install Docker and Docker-compose.
-
-For Windows, the installation instructions are [here](https://docs.docker.com/docker-for-windows/install/). Docker for Windows includes docker-compose.
-
-Export the `DOCKER_USER` variable to ensure docker uses the same
-user as the host. In Windows, `$USER` isn't defined, so you'll need
-to substitute it by your username:
-```shell
-  export DOCKER_USER=$(id -u $USER)
-```
-Now, you need to log in as your GitLab user in the GitLab registry:
-
-``` shell
-     docker login registry.gitlab.com
-   ```
-
-## Running Manually
-
-### Setup PostgreSQL (Linux)
-
-We'll need two database servers, so we recommend to just use the docker container in the docker compose file:
-
-``` shell
-    docker-compose -f docker-compose.daemons.yml up -d data_lake analytics_platform
+  ```shell
+    docker-compose -f docker-compose-andromeda.yml up -d data_lake
   ```
 
-After that you need to add an entry to `/etc/hosts` as the following:
+  After that you need to add an entry to ```/etc/hosts``` as the
+  following:
 
-```shell
+  ```shell
     127.0.0.1 data_lake
-    127.0.0.1 analytics_platform
   ```
 
 ### Setup PostgreSQL (Windows)
 
-Install [PostegresSQL](https://www.postgresql.org/download/windows/), and set the password of user `postgres` to `dbpassword` .
+  Install [PostegresSQL](https://www.postgresql.org/download/windows/), and set the password of user ```postgres``` to ```dbpassword```.
 
-After that you need to add an entry to `C:\Windows\System32\Drivers\etc\hosts` as the following:
-
-```shell
+  After that you need to add an entry to
+  ```C:\Windows\System32\Drivers\etc\hosts``` as the following:
+  ```
     127.0.0.1 data_lake
-    127.0.0.1 analytics_platform
   ```
 
-Finally, modify all `appsettings.json` files, removing the `Port=5433` entry from the connection strings, and changing the user to `postgres`.
+Finally, modify the ```appsettings.json``` file located on the folder
+Andromeda.ConsoleApp by removing the ```Port=5433``` entry from the connection strings, and changing the user to ```postgres```.
 
-### Adding data to the development databases
+**You can see more details of what are the ```appsettings.json``` files and how to
+edit them on [Configuring the appsettings.json](./docker_container.md#configuring-the-appsettingsjson).**
 
-Since the system is already running in production, we suggest loading a dump of the production databases.
+### Initial Migration
 
-### Building the system
+  Assuming that you just did the [System Bootstrap](#system-bootstrap),
+  you'll need to apply the migrations:
 
-Assuming that you just did the [System Bootstrap](#system-bootstrap),
-you'll need to apply the migrations:
-
-``` shell
-    cd ConsoleApp
-    ./migrate.sh
+  ```shell
+    cd Andromeda.ConsoleApp
+    dotnet run migrate --data-lake
+    dotnet run migrate --facebook-lake
   ```
 
 ### Running the system
 
-For running all the jobs, you'll need to do:
+  The following instructions show some of the ways to run Andromeda.
+  **This topic assumes that you just did all the steps explained above and are on the Andromeda.ConsoleApp folder.**
 
-``` shell
-    cd ConsoleApp
-    dotnet run -- jobs
+  To fetch data from all social medias, run:
+
+  ```shell
+    dotnet run -- fetcher
   ```
 
-It's also possible to run an specific job with the following command:
+  Or Fetch just from a specific Social media:
 
-``` shell
-    dotnet run -- jobs -j Jobs.Fetcher.Facebook.page.posts
+  ```shell
+    dotnet run -- fetcher -s Facebook
   ```
 
-One type of Job:
+  After fetching your data, you can export your data as CSV with the command:
 
-``` shell
-    dotnet run -- jobs -t Fetcher -s Facebook
+  ```shell
+    dotnet run export
   ```
 
-Or see a list of jobs:
+You can see more details about how to export data using Andromeda on [How to
+export data lake data as CSV or JSON](./export_csv_json.md) documentat.
 
-``` shell
-    dotnet run -- jobs -l
+  To see all the commands available and their description:
+
+  ```shell
+    dotnet run -- --help
   ```
 
+  It's also possible to see the description of sub-commands:
+
+  ```shell
+    dotnet run -- fetcher --help
+  ```
