@@ -14,18 +14,18 @@ for more details.
 ## System Requirements
 
 You need:
-  - [.NET Core SDK 2.1.300](https://dotnet.microsoft.com/download/dotnet-core/2.1)
+  - [.NET Core SDK 2.1.X](https://dotnet.microsoft.com/download/dotnet-core/2.1)
   - [PostgreSQL 10](https://www.postgresql.org/)
-  - [Docker](#Running-with-Docker)
-  - [Docker-compose](#Running-with-Docker)
+  - [Docker](#Running-Andromeda-with-Docker)
+  - [Docker-compose](#Running-Andromeda-with-Docker)
 
 ## System Bootstrap
 
 You'll need to setup a few things before running Andromeda:
 
-  - [Run the Postgres database](#Running-with-Docker)
-  - [Create initial migration](#Building-the-system)
   - [Place the credential files](#Place-the-credential-files)
+  - [Run the Postgres database](#Setup-PostgreSQL-database-(Linux))
+  - [Create initial migration](#Initial-Migration)
 
 ## Place the credential files
 
