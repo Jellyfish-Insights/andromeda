@@ -29,12 +29,13 @@ namespace Jobs.Fetcher.Facebook {
                 Schemas = SchemaLoader.SchemaList();
             }
 
-            if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
+            if (CheckTypeAndScope(type, scope)) {
                 return NoJobs;
             }
 
             var jobs = new List<FacebookFetcher>();
-            try {
+            try
+            {
                 foreach (var schemaName in Schemas) {
                     foreach(var file in Directory.GetFiles(SchemaLoader.GetCredentialPath(schemaName))) {
                         if (!file.Contains("_credentials.json")) {
@@ -117,7 +118,7 @@ namespace Jobs.Fetcher.Facebook {
             {
                 string message = String.Format("Missing or invalid Facebook credentials!\n{0}", e.Message);
                 if (e is DirectoryNotFoundException) {
-                    message = String.Format("{0}\nCheck if the path above exists!\n", message);
+                    message = String.Format("{0}\nCheck if the path above exists!", message);
                 }
                 System.Console.WriteLine(message);
                 return NoJobs;
