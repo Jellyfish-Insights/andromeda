@@ -9,13 +9,13 @@ By running the python script **facebook_credentials.py** you can get your
 Facebook Page, Facebook Marketing and Instagram credentials.
 
 By running the python script **youtube_credentials.py** you can get your YouTube
-credential.
+credentials.
 
-All this python scripts are located in the folder utilities.
+All this python scripts are located in the folder **utilities**.
 
 ## Prerequisites
 
-To run the python scripts you need to have **Python v3.6 or higher** installed on your computer and also the following libraries:
+To run the python scripts, you need to have **Python v3.6 or higher** installed on your computer and also the following python libraries:
 
 - [Request](https://pypi.org/project/requests/)
 - [Google oauth lib](https://pypi.org/project/google-auth-oauthlib/)
@@ -39,18 +39,14 @@ credentials, we need to create a Facebook Application. A Facebook Application
 will identify the Andromeda's python script as a valid application and allows it
 to acquire the credentials.
 
-After we have Facebook application, we will need to configure file
-`utilities/fb_client_secrets.json` in order to run the python scripts.
+After we have Facebook application, we will need to configure the file
+`utilities/fb_client_secrets.json` in order to run the **facebook_credentials.py** python script.
 
 ### Requirement
 
-All the steps below consider that you have a Facebook developer account and that
-bound to it you have a **Facebook Page, Facebook Marketing and/or an Instagram business account**.
+All the steps below consider that you have a Facebook developer account and that bound to it you have a **Facebook Page, Facebook Marketing and/or an Instagram business account**.
 
-When you run the python script you will get the credentials to social media that
-are bounded to your Facebook account.  For instance, if you have a Facebook
-developer account, and you bound to It only your Page, the script will return
-for you just the Page credential.
+When you run the **facebook_credentials.py** python script, you will get the credentials to social media that are bound to your Facebook account.  For instance, if you have a Facebook developer account, and you bound to it only your Facebook Page, the script will return only the Page credential.
 
 ### Creating a Facebook application
 
