@@ -5,19 +5,21 @@ All the steps on this document were tested on ubuntu 18. If you plan to run this
 
 # Summary
 
-* [Prerequisites](#Prerequisites)
-* [Configuration files](#Configuration-files)
-* [Andromeda](#Andromeda)
-  + [Getting the credentials](#Getting-the-credentials)
-  + [Creating the folder structure](#Creating-the-folder-structure)
-  + [Configuring the appsettings.json](#Configuring-the-appsettings.json)
-  + [The docker container](#The-docker-container)
-    - [Editing the `andromeda/docker-compose-andromeda.yml` ](#Editing-the-`andromeda/docker-compose-andromeda.yml` )
-    - [Running the container](#Running-the-container)
-  + [Development tips](#Development-tips)
-    - [Prune unused local volumes](#Prune-unused-local-volumes)
-    - [Build from a local copy of the repositories](#Build-from-a-local-copy-of-the-repositories)
-    - [Forcing docker-compose up to rebuild](#Forcing-docker-compose-up-to-rebuild)
+- [Introduction](#introduction)
+- [Summary](#summary)
+- [Prerequisites](#prerequisites)
+- [Configuration files](#configuration-files)
+- [Andromeda](#andromeda)
+  - [Getting the credentials](#getting-the-credentials)
+  - [Creating the folder structure](#creating-the-folder-structure)
+  - [Configuring the appsettings.json](#configuring-the-appsettingsjson)
+  - [The docker container](#the-docker-container)
+    - [Editing the `andromeda/docker-compose-andromeda.yml`](#editing-the-andromedadocker-compose-andromedayml)
+    - [Running the container](#running-the-container)
+  - [Development tips](#development-tips)
+    - [Prune unused local volumes](#prune-unused-local-volumes)
+    - [Build from a local copy of the repositories](#build-from-a-local-copy-of-the-repositories)
+    - [Forcing docker-compose up to rebuild](#forcing-docker-compose-up-to-rebuild)
 
 # Prerequisites
 
@@ -124,12 +126,6 @@ Locate the line under the Andromeda service:
 
 ### Running the container
 
-Before running the Andromeda container, we need to kill any postgres process running on your computer. You can do this by executing the following command on terminal:
-
-``` bash
-sudo pkill -9 postgres
-```
-
 To run the Andromeda container, open a terminal and then navigate to the andromeda folder:
 
 ``` bash
@@ -145,6 +141,8 @@ sudo docker-compose -f docker-compose-andromeda.yml up andromeda
 Now we have Andromeda container running, you should see something like this:
 
 ![docker output](../assets/docker_output.jpeg)
+
+If you get an error running the command above, change the default Postgres port used by the data_lake container on the docker-compose-andromeda.yml file.
 
 ## Development tips
 
