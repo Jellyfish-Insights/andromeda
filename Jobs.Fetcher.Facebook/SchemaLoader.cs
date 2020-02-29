@@ -34,7 +34,7 @@ namespace Jobs.Fetcher.Facebook {
                     validSchemas.Add(schemaName);
                 } else {
                     System.Console.WriteLine($"Missing or invalid {GetServiceName(schemaName)} credentials!");
-                    System.Console.WriteLine($"Couldn't find any credential on folder '{credentialPath}'\n");
+                    System.Console.WriteLine($"Couldn't find any credential on folder '{credentialPath}'");
                 }
             }
             return validSchemas;
