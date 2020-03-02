@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <Target Name="CreateVersionFile" BeforeTargets="BeforeBuild" Condition="'$(OS)' != 'Windows_NT'">
-    <Exec Command="git log --pretty=format:%H -n 1 &gt; version.txt" />
+    <Exec Command="echo 7e1ffad5d95c8888a5262d08e2fae2afe3061c76 &gt; version.txt" />
   </Target>
 
   <ItemGroup>
