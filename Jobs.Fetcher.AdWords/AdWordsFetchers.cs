@@ -12,7 +12,7 @@ namespace Jobs.Fetcher.AdWords {
         public override JobScope Scope { get; } = JobScope.AdWords;
 
         public override IEnumerable<AbstractJob> GetJobs(JobType type, JobScope scope, IEnumerable<string> names, JobConfiguration jobConfiguration) {
-            if (CheckTypeAndScope(type, scope)) {
+            if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
                 return NoJobs;
             }
 

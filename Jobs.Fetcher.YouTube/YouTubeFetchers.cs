@@ -20,7 +20,7 @@ namespace Jobs.Fetcher.YouTube {
         public string SecretsFile = "./credentials/youtube/client_secret.json";
 
         public override IEnumerable<AbstractJob> GetJobs(JobType type, JobScope scope, IEnumerable<string> names, JobConfiguration jobConfiguration) {
-            if (CheckTypeAndScope(type, scope)) {
+            if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
                 return NoJobs;
             }
             var jobs = new List<AbstractJob>();
