@@ -5,8 +5,6 @@ All the steps on this document were tested on ubuntu 18. If you plan to run this
 
 # Summary
 
-- [Introduction](#introduction)
-- [Summary](#summary)
 - [Prerequisites](#prerequisites)
 - [Configuration files](#configuration-files)
 - [Andromeda](#andromeda)
