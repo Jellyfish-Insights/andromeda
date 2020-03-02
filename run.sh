@@ -32,7 +32,7 @@ if all_run_files_exists; then
     # Andromeda expects Adwords credentials to be in the same folder
     # as the binary, therefore, instead of copying this file inside the container
     # we create a symbolic link
-    if [ -f "/app/release/credentials/adwords/App.config"];then
+    if [ -f "/app/release/credentials/adwords/App.config" ];then
         ln -s  /app/release/credentials/adwords/App.config Andromeda.ConsoleApp.dll.config
     else
         echo "Failed to link files! Could not find Adwords credentials: credentials/adwords/App.config"
