@@ -22,17 +22,10 @@ namespace Jobs.Fetcher.Facebook {
         public override JobScope Scope { get; } = JobScope.Facebook;
 
         public override IEnumerable<AbstractJob> GetJobs(JobType type, JobScope scope, IEnumerable<string> names, JobConfiguration jobConfiguration) {
-            if (scope == JobScope.Instagram) {
-                scope = JobScope.Facebook;
-                Schemas = SchemaLoader.SchemaList(new List<string> { "instagram" });
-            } else {
-                Schemas = SchemaLoader.SchemaList();
-            }
-
-            if (CheckTypeAndScope(type, scope)) {
+            if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
                 return NoJobs;
             }
-
+            Schemas = SchemaLoader.SchemaList();
             var jobs = new List<FacebookFetcher>();
             try
             {

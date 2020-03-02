@@ -60,7 +60,7 @@ namespace Andromeda.ConsoleApp {
                         }
                     }
 
-                    var jobNames = selectedJobNames.HasValue() ? selectedJobNames.Values : new List<string>();
+                    var jobNames = selectedJobNames.HasValue() ? selectedJobNames.Values : new List<string>{ "All"};
 
                     if (printDependencyTreeFlag.HasValue()) {
                         RunJobsCommand.PrintDependencyTree(jobType, jobScope, jobNames);

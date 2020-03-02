@@ -18,7 +18,7 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public static List<string> SchemaList() {
-            var allSchemas = new List<string> { "page", "adaccount" };
+            var allSchemas = new List<string> { "page", "adaccount", "instagram" };
             return CheckCredentialStatus(allSchemas);
         }
 

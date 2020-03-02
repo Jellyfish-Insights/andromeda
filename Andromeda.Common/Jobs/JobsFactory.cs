@@ -14,11 +14,20 @@ namespace Andromeda.Common.Jobs {
             return (type != JobType.All && type != Type) || (scope != JobScope.All && scope != Scope);
         }
 
+        public bool CheckNameIsScope(IEnumerable<string> names) {
+            foreach(var name in names) {
+                if (name.Contains(Scope.ToString()) || name == "All") {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public IEnumerable<AbstractJob> FilterByName(IEnumerable<AbstractJob> jobs, IEnumerable<string> names) {
-            if (names.Any()) {
-                return jobs.Where(x => names.Where(n => x.Id().EndsWith(n)).Any());
-            } else {
+            if (!names.Any() || names.Contains("All")) {
                 return jobs;
+            } else {
+                return jobs.Where(x => names.Where(n => x.Id().EndsWith(n)).Any());;
             }
         }
 
