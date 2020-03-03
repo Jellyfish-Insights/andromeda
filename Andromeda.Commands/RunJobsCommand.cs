@@ -121,5 +121,15 @@ namespace Andromeda.Commands {
                 Console.WriteLine(job.Id());
             }
         }
+
+        public static int RunInstagramJobs(JobType jobType, JobScope jobScope, JobConfiguration configuration = null, bool debug = false) {
+            jobScope = JobScope.All;
+            var instagramJobNames = new List<string>();
+            foreach(var id in Jobs.Fetcher.Facebook.SchemaLoader.GetInstagramId()) {
+                instagramJobNames.Add($"Jobs.Fetcher.Facebook.instagram.{id}");
+                instagramJobNames.Add($"Jobs.Fetcher.Facebook.instagram.media.{id}");
+            }
+            return RunJobsCommand.RunJobs(jobType, jobScope, instagramJobNames, configuration, debug);
+        }
     }
 }
