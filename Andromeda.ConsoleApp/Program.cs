@@ -34,7 +34,7 @@ namespace Andromeda.ConsoleApp {
                 var listAvailableJobsFlag = command.Option("-l|--list-available-jobs", "Print the list of available jobs and exit.", CommandOptionType.NoValue);
 
                 var selectedJobNames = command.Option("-j|--job", "Filter jobs by name.", CommandOptionType.MultipleValue);
-                var selectedJobScope = command.Option("-s|--scope", "Filter jobs by scope: 'YouTube', 'AdWords', 'Facebook' or 'Application'.", CommandOptionType.SingleValue);
+                var selectedJobScope = command.Option("-s|--scope", "Filter jobs by scope: 'YouTube', 'AdWords', 'Facebook' or 'Instagram'.", CommandOptionType.SingleValue);
 
                 var fetchAll = command.Option("-a|--fetch-all", "Fetch daily metrics until completion", CommandOptionType.NoValue);
                 var maxEntities = command.Option("-m|--max-entities", "Number of entities to fetch", CommandOptionType.SingleValue);
@@ -60,12 +60,14 @@ namespace Andromeda.ConsoleApp {
                         }
                     }
 
-                    var jobNames = selectedJobNames.HasValue() ? selectedJobNames.Values : new List<string>{ "All"};
+                    var jobNames = selectedJobNames.HasValue() ? selectedJobNames.Values : new List<string>{ "All" };
 
                     if (printDependencyTreeFlag.HasValue()) {
                         RunJobsCommand.PrintDependencyTree(jobType, jobScope, jobNames);
                     } else if (listAvailableJobsFlag.HasValue()) {
                         RunJobsCommand.ListAvailableJobs(jobType, jobScope, jobNames);
+                    } else if(selectedJobScope.Value() == "Instagram") {
+                        return RunJobsCommand.RunInstagramJobs(jobType, jobScope, configuration, debugFlag.HasValue());
                     } else {
                         return RunJobsCommand.RunJobs(jobType, jobScope, jobNames, configuration, debugFlag.HasValue());
                     }

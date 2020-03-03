@@ -66,5 +66,14 @@ namespace Jobs.Fetcher.Facebook {
         public static Credentials GetCredentials(string schemaName) {
             return ParseCredentials<Credentials>(schemaName);
         }
+
+        public static List<string> GetInstagramId() {
+            var instagramIdList = new List<string>();
+            foreach(var file in Directory.GetFiles(SchemaLoader.GetCredentialPath("instagram"))) {
+                credentialFileName = file;
+                instagramIdList.Add(GetCredentials("instagram").Id);
+            }
+            return instagramIdList;
+        }
     }
 }
