@@ -60,13 +60,13 @@ namespace Andromeda.ConsoleApp {
                         }
                     }
 
-                    var jobNames = selectedJobNames.HasValue() ? selectedJobNames.Values : new List<string>{ "All" };
+                    var jobNames = selectedJobNames.HasValue() ? selectedJobNames.Values : new List<string> { "All" };
 
                     if (printDependencyTreeFlag.HasValue()) {
                         RunJobsCommand.PrintDependencyTree(jobType, jobScope, jobNames);
                     } else if (listAvailableJobsFlag.HasValue()) {
                         RunJobsCommand.ListAvailableJobs(jobType, jobScope, jobNames);
-                    } else if(selectedJobScope.Value() == "Instagram") {
+                    } else if (selectedJobScope.Value() == "Instagram") {
                         return RunJobsCommand.RunInstagramJobs(jobType, jobScope, configuration, debugFlag.HasValue());
                     } else {
                         return RunJobsCommand.RunJobs(jobType, jobScope, jobNames, configuration, debugFlag.HasValue());
@@ -156,16 +156,16 @@ namespace Andromeda.ConsoleApp {
                 var source = command.Option("-s|--source", "Select platform to export: 'facebook', 'youtube' or 'adwords'. All by default", CommandOptionType.SingleValue);
                 var limit = command.Option("-l|--limit", "Select a limit of rows. 10 by default.", CommandOptionType.SingleValue);
 
-                var platforms = new List<string> {"facebook", "youtube", "adwords", ""};
+                var platforms = new List<string> { "facebook", "youtube", "adwords", "" };
 
                 command.OnExecute(() => {
                     var selectedFileType = fileType.HasValue() ? fileType.Value() : "json";
                     var selectedPlatform = source.HasValue() ? source.Value() : "";
                     var queryLimit = limit.HasValue() ? Convert.ToInt32(limit.Value()) : 100;
 
-                    if(!platforms.Contains(selectedPlatform)){
+                    if (!platforms.Contains(selectedPlatform)) {
                         Console.WriteLine("Invalid source!\n\nList sources:");
-                        foreach(var s in platforms) {
+                        foreach (var s in platforms) {
                             Console.WriteLine($"\t{s}");
                         }
                         Environment.Exit(1);

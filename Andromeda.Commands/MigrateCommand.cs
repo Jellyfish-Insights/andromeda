@@ -23,7 +23,7 @@ namespace Andromeda.Commands {
                     break;
                 case Databases.LakeFacebook:
                     Jobs.Fetcher.Facebook.DatabaseInitializer.Init();
-                    Jobs.Fetcher.Facebook.DatabaseInitializer.Init(new List<string> {"instagram"});
+                    Jobs.Fetcher.Facebook.DatabaseInitializer.Init(new List<string> { "instagram" });
                     break;
                 default:
                     throw new Exception("Invalid database");

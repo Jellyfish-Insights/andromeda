@@ -26,7 +26,7 @@ namespace Jobs.Fetcher.YouTube {
             var jobs = new List<AbstractJob>();
             var youtubeServices = new List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)>();
             try {
-                foreach(var directory in Directory.GetDirectories(CredentialsDir)) {
+                foreach (var directory in Directory.GetDirectories(CredentialsDir)) {
                     youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
                 }
 

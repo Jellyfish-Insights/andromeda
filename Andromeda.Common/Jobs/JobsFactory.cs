@@ -15,7 +15,7 @@ namespace Andromeda.Common.Jobs {
         }
 
         public bool CheckNameIsScope(IEnumerable<string> names) {
-            foreach(var name in names) {
+            foreach (var name in names) {
                 if (name.Contains(Scope.ToString()) || name == "All") {
                     return true;
                 }
@@ -27,7 +27,7 @@ namespace Andromeda.Common.Jobs {
             if (!names.Any() || names.Contains("All")) {
                 return jobs;
             } else {
-                return jobs.Where(x => names.Where(n => x.Id().EndsWith(n)).Any());;
+                return jobs.Where(x => names.Where(n => x.Id().EndsWith(n)).Any());
             }
         }
 

@@ -10,7 +10,7 @@ namespace Jobs.Fetcher.YouTube {
 
     public abstract class YoutubeFetcher : AbstractJob {
         public List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> AccountInfos;
-        
+
         public YoutubeFetcher(List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos) {
             AccountInfos = accountInfos;
         }
