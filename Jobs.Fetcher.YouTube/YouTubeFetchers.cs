@@ -9,15 +9,19 @@ using Google.Apis.YouTubeAnalytics.v2;
 using Google.Apis.Http;
 using Google.Apis.Services;
 using Andromeda.Common.Jobs;
+using Microsoft.Extensions.Configuration;
 
 namespace Jobs.Fetcher.YouTube {
 
     public class YouTubeFetchers : FetcherJobsFactory {
-
+        private static IConfiguration Configuration = new ConfigurationBuilder()
+                                                          .SetBasePath(Directory.GetCurrentDirectory())
+                                                          .AddJsonFile("appsettings.json")
+                                                          .Build();
         public override JobScope Scope { get; } = JobScope.YouTube;
 
-        public string CredentialsDir = "./credentials/youtube";
-        public string SecretsFile = "./credentials/youtube/client_secret.json";
+        public static string CredentialsDir = Configuration.GetValue<string>("Credentials:Path");
+        public string SecretsFile = $"{CredentialsDir}/client_secret.json";
 
         public override IEnumerable<AbstractJob> GetJobs(JobType type, JobScope scope, IEnumerable<string> names, JobConfiguration jobConfiguration) {
             if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
