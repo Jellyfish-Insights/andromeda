@@ -61,7 +61,7 @@ namespace Andromeda.Commands {
             try {
                 JObject table = new JObject();
                 List<JObject> metrics = new List<JObject>();
-                
+
                 while (reader.Read()) {
                     JObject metric = new JObject();
                     for (int i = 0; i < reader.FieldCount; i++) {
@@ -69,7 +69,7 @@ namespace Andromeda.Commands {
                     }
                     metrics.Add(metric);
                 }
-               
+
                 table[tableName] = new JArray() { metrics };
                 using (StreamWriter file = File.CreateText($"./metrics/{path}/{schema}_{tableName}.json")) {
                     using (JsonTextWriter writer = new JsonTextWriter(file)) {
@@ -120,10 +120,10 @@ namespace Andromeda.Commands {
 
         private static void CreateDirectory(string path) {
             try {
-                if (!Directory.Exists("./metrics")){
+                if (!Directory.Exists("./metrics")) {
                     Directory.CreateDirectory("./metrics");
                 }
-                if (!Directory.Exists($"./metrics/{path}")){
+                if (!Directory.Exists($"./metrics/{path}")) {
                     Directory.CreateDirectory($"./metrics/{path}");
                 }
                 Console.WriteLine($"Created folder '{path}'");
@@ -160,8 +160,8 @@ namespace Andromeda.Commands {
                     }
                 }
             }
-            if(!exportStatus) {
-                if (Directory.Exists($"./metrics/{path}")){
+            if (!exportStatus) {
+                if (Directory.Exists($"./metrics/{path}")) {
                     Directory.Delete($"./metrics/{path}", true);
                     Console.WriteLine($"\nDeleted folder '{path}'");
                 }

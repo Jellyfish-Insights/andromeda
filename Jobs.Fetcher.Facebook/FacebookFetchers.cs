@@ -30,7 +30,7 @@ namespace Jobs.Fetcher.Facebook {
             try
             {
                 foreach (var schemaName in Schemas) {
-                    foreach(var file in Directory.GetFiles(SchemaLoader.GetCredentialPath(schemaName))) {
+                    foreach (var file in Directory.GetFiles(SchemaLoader.GetCredentialPath(schemaName))) {
                         if (!file.Contains("_credentials.json")) {
                             continue;
                         }

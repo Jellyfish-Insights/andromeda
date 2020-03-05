@@ -55,7 +55,7 @@ namespace Jobs.Fetcher.Facebook {
 
         public static string GetCredentialPath(string schemaName) {
             var prePath = schemaName == "instagram" ? "credentials" : "credentials/facebook";
-            return $"{prePath}/{schemaName}";            
+            return $"{prePath}/{schemaName}";
         }
 
         public static T ParseCredentials<T>(string schemaName) {
@@ -69,7 +69,7 @@ namespace Jobs.Fetcher.Facebook {
 
         public static List<string> GetInstagramId() {
             var instagramIdList = new List<string>();
-            foreach(var file in Directory.GetFiles(SchemaLoader.GetCredentialPath("instagram"))) {
+            foreach (var file in Directory.GetFiles(SchemaLoader.GetCredentialPath("instagram"))) {
                 credentialFileName = file;
                 instagramIdList.Add(GetCredentials("instagram").Id);
             }
