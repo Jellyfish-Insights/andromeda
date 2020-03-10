@@ -156,7 +156,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             var report = reportRequest.ExecuteAsync().Result;
 
             if (report.Rows != null) {
-                logger.Debug("Found {Rows} rows", report.Rows.Count);
+                logger.Information("Found {Rows} rows", report.Rows.Count);
                 foreach (var row in report.Rows) {
                     yield return row;
                 }
@@ -231,7 +231,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                         break;
                     }
                 }
-                logger.Debug("Replicated {Days} days for video {VideoId}", replicatedDays, video.VideoId);
+                logger.Information("Replicated {Days} days for video {VideoId}", replicatedDays, video.VideoId);
             }
         }
     }
