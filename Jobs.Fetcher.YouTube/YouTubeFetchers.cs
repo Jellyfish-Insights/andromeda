@@ -9,6 +9,7 @@ using Google.Apis.YouTubeAnalytics.v2;
 using Google.Apis.Http;
 using Google.Apis.Services;
 using Andromeda.Common.Jobs;
+using Andromeda.Common;
 
 namespace Jobs.Fetcher.YouTube {
 
@@ -27,13 +28,24 @@ namespace Jobs.Fetcher.YouTube {
             var youtubeServices = new List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)>();
             try {
                 foreach (var directory in Directory.GetDirectories(CredentialsDir)) {
-                    youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
+                    try {
+                        youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
+                    } catch {
+                        CredentialHelpers.GetCredentials(directory, SecretsFile);
+                        youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
+                    }
                 }
 
                 if (youtubeServices.Count == 0) {
-                    var path = $"{CredentialsDir}/channel_1";
-                    Directory.CreateDirectory(path);
-                    youtubeServices.Add(GetServicesCredential(SecretsFile, path));
+                    Console.WriteLine("Missing YouTube credentials.");
+                    Console.WriteLine("Do you want to add an Youtube credential? (Y/n)");
+                    var op = Console.ReadLine();
+                    if(op != "n") { 
+                        var path = $"{CredentialsDir}/channel_1";
+                        Directory.CreateDirectory(path);
+                        CredentialHelpers.GetCredentials(path, SecretsFile);
+                        youtubeServices.Add(GetServicesCredential(SecretsFile, path));
+                    }
                 }
 
                 jobs = new List<AbstractJob>() {
