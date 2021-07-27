@@ -53,7 +53,7 @@ namespace Jobs.Fetcher.Facebook {
             ) {
             FailureTimeout = 60000;
             SuccessTimeout = 1000;
-            CacheTTL = 8;
+            CacheTTL = 24;
             Secret = secret;
             ApiVersion = FacebookDatabaseManager.ApiVersion;
             IgnoreCache = ignoreCache;
