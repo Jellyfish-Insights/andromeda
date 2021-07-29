@@ -9,6 +9,7 @@ using Google.Apis.YouTube.v3.Data;
 using Google.Apis.YouTubeAnalytics.v2;
 using Serilog.Core;
 using Andromeda.Common;
+using System.Threading;
 
 namespace Jobs.Fetcher.YouTube.Helpers {
 
@@ -17,6 +18,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         public static (string, string) FetchChannelInfo(YouTubeService service) {
             var request = service.Channels.List("id,contentDetails");
             request.Mine = true;
+            Thread.Sleep(500);
             var result = request.ExecuteAsync().Result;
 
             var channelId = result.Items[0].Id;
@@ -64,6 +66,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
 
             foreach (var batch in SplitIntoBatches<string>(videoIds, BatchSize)) {
                 request.Id = String.Join(',', batch);
+                Thread.Sleep(500);
                 foreach (var video in request.ExecuteAsync().Result.Items) {
                     yield return video;
                 }
@@ -75,6 +78,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
 
             foreach (var batch in SplitIntoBatches<string>(videoIds, BatchSize)) {
                 request.Id = String.Join(',', batch);
+                Thread.Sleep(500);
                 foreach (var video in request.ExecuteAsync().Result.Items) {
                     yield return video;
                 }
@@ -94,6 +98,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 }
 
                 playlistRequest.PageToken = response.NextPageToken;
+                Thread.Sleep(500);
             } while (!String.IsNullOrEmpty(response.NextPageToken));
         }
 
@@ -110,6 +115,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 }
 
                 playlistItemsRequest.PageToken = result.NextPageToken;
+                Thread.Sleep(500);
             } while (!String.IsNullOrEmpty(result.NextPageToken));
         }
 
@@ -153,6 +159,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             reportRequest.Dimensions = "day";
             reportRequest.Sort = "day";
 
+            Thread.Sleep(500);
             var report = reportRequest.ExecuteAsync().Result;
 
             if (report.Rows != null) {
@@ -184,7 +191,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             reportRequest.Filters = String.Format("video=={0}", video.VideoId);
             reportRequest.Dimensions = "gender,ageGroup";
             reportRequest.Sort = "gender,ageGroup";
-
+            Thread.Sleep(2000);
             return reportRequest.ExecuteAsync().Result.Rows;
         }
 
