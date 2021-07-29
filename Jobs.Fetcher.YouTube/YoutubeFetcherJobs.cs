@@ -16,7 +16,7 @@ namespace Jobs.Fetcher.YouTube {
 
         override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
-            var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId).ToList();
+            var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId).ToHashSet().ToList();
             var videoProperties = ApiDataFetcher.FetchVideoProperties(DataService, videoIds);
             DbWriter.Write(videoProperties.Select(x => Api2DbObjectConverter.ConvertVideo(x)), channelId, Logger);
         }
@@ -110,7 +110,7 @@ namespace Jobs.Fetcher.YouTube {
 
         override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
-            var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId).ToList();
+            var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId).ToHashSet().ToList();
             var videoProperties = ApiDataFetcher.FetchVideoStatistics(DataService, videoIds).Where(x => x.Statistics != null);
             DbWriter.Write(videoProperties.Select(x => Api2DbObjectConverter.ConvertStatistics(x)), Logger);
         }
