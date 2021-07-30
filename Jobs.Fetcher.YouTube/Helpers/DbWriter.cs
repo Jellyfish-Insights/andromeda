@@ -50,6 +50,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                         case Modified.Updated:
                             logger.Debug("Found update to: {VideoId}", newObj.VideoId);
                             storedObj.ValidityEnd = newObj.ValidityStart;
+                            dlContext.Update(storedObj);
                             dlContext.Add(newObj);
                             break;
                         default:
@@ -78,6 +79,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                         case Modified.Updated:
                             logger.Debug("Found update to: {VideoId} {CaptureDate}", newObj.VideoId, newObj.CaptureDate);
                             storedObj.ValidityEnd = newObj.ValidityStart;
+                            dlContext.Update(storedObj);
                             dlContext.Add(newObj);
                             break;
                         default:
@@ -106,6 +108,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                         case Modified.Updated:
                             logger.Debug("Found update to: {PlaylistId}", newObj.PlaylistId);
                             storedObj.ValidityEnd = newObj.ValidityStart;
+                            dlContext.Update(storedObj);
                             dlContext.Add(newObj);
                             break;
                         default:
@@ -132,6 +135,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                             break;
                         case Modified.Updated:
                             storedObj.ValidityEnd = newObj.ValidityStart;
+                            dlContext.Update(storedObj);
                             dlContext.Add(newObj);
                             break;
                         default:
