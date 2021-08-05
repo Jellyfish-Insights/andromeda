@@ -1,8 +1,8 @@
 {
     "name": "page",
     "threads": 6,
-    "delay": 0,
-    "page_size": 20,
+    "delay": 1,
+    "page_size": 100,
     "columns":[
         ["id", "bigint"]
     ],

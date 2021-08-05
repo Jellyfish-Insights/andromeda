@@ -1,8 +1,8 @@
 {
     "name": "adaccount",
     "threads": 1,
-    "delay": 3,
-    "page_size": 20,
+    "delay": 2,
+    "page_size": 100,
     "columns":[
         ["id", "bigint"]
     ],
