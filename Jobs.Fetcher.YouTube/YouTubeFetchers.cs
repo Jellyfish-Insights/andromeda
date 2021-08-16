@@ -72,7 +72,7 @@ namespace Jobs.Fetcher.YouTube {
 
             using (var stream = new FileStream(clientSecretFileName, FileMode.Open, FileAccess.Read)) {
                 return GoogleWebAuthorizationBroker.AuthorizeAsync(
-                    GoogleClientSecrets.Load(stream).Secrets,
+                    GoogleClientSecrets.FromStream(stream).Secrets,
                     scopes,
                     "Credentials.json",
                     CancellationToken.None,

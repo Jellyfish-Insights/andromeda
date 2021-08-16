@@ -16,7 +16,7 @@ namespace Jobs.Fetcher.YouTube {
 
         override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
-            var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId).ToHashSet().ToList();
+            var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId, Logger).ToHashSet().ToList();
             var videoProperties = ApiDataFetcher.FetchVideoProperties(DataService, videoIds);
             DbWriter.Write(videoProperties.Select(x => Api2DbObjectConverter.ConvertVideo(x)), channelId, Logger);
         }
@@ -31,8 +31,8 @@ namespace Jobs.Fetcher.YouTube {
 
         override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
-            var playlists = ApiDataFetcher.FetchPlaylists(DataService, channelId);
-            var playlistsVideoIds = ApiDataFetcher.FetchVideoIdsInPlaylists(DataService, playlists);
+            var playlists = ApiDataFetcher.FetchPlaylists(DataService, channelId, Logger);
+            var playlistsVideoIds = ApiDataFetcher.FetchVideoIdsInPlaylists(DataService, playlists, Logger);
             var playlistsWithVideos = playlists.Zip(playlistsVideoIds, (playlist, videoIds) => new { playlist, videoIds });
             DbWriter.Write(playlistsWithVideos.Select(x => Api2DbObjectConverter.ConvertPlaylist(x.playlist, x.videoIds)), Logger);
         }
@@ -110,7 +110,7 @@ namespace Jobs.Fetcher.YouTube {
 
         override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
-            var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId).ToHashSet().ToList();
+            var videoIds = ApiDataFetcher.FetchVideoIds(DataService, uploadsListId, Logger).ToHashSet().ToList();
             var videoProperties = ApiDataFetcher.FetchVideoStatistics(DataService, videoIds).Where(x => x.Statistics != null);
             DbWriter.Write(videoProperties.Select(x => Api2DbObjectConverter.ConvertStatistics(x)), Logger);
         }

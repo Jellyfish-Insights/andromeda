@@ -4,16 +4,20 @@ using System.Linq;
 using DataLakeModels;
 using YTD = DataLakeModels.Models.YouTube.Data;
 using YTA = DataLakeModels.Models.YouTube.Analytics;
+using Google.Apis.Requests;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTube.v3.Data;
 using Google.Apis.YouTubeAnalytics.v2;
 using Serilog.Core;
 using Andromeda.Common;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Jobs.Fetcher.YouTube.Helpers {
 
     public static class ApiDataFetcher {
+
+        public const int Retries = 10;
 
         public static (string, string) FetchChannelInfo(YouTubeService service) {
             var request = service.Channels.List("id,contentDetails");
@@ -27,21 +31,38 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             return (channelId, uploadsListId);
         }
 
-        public static IEnumerable<string> FetchVideoIds(YouTubeService service, string uploadsListId) {
+        public static IEnumerable<string> FetchVideoIds(YouTubeService service, string uploadsListId, Logger logger) {
 
             var request = service.PlaylistItems.List("snippet");
             request.PlaylistId = uploadsListId;
 
             PlaylistItemListResponse response;
             do {
-                response = request.ExecuteAsync().Result;
-
+                response = FetchWithRetries<PlaylistItemListResponse>(request, logger);
                 foreach (var videoId in response.Items.Select(i => i.Snippet.ResourceId.VideoId)) {
                     yield return videoId;
                 }
 
                 request.PageToken = response.NextPageToken;
             } while (!String.IsNullOrEmpty(response.NextPageToken));
+        }
+
+        private static TResponse FetchWithRetries<TResponse>(ClientServiceRequest<TResponse> request, Logger logger)
+        {
+            for (int i = 0; i < Retries; i++)
+            {
+                try
+                {
+                    return (request.ExecuteAsync() as Task<TResponse>).Result;
+                }
+                catch (Exception e)
+                {
+                    logger.Information("{Message}\nRetrying in {Time} milliseconds.", e.Message, 500 * (i + 1));
+                }
+
+                Thread.Sleep(500 * (i + 1));
+            }
+            throw new Exception($"Request failed. We reached the limit of retries: {Retries}");
         }
 
         private static IEnumerable<List<T>> SplitIntoBatches<T>(IEnumerable<T> source, int batchSize) {
@@ -85,13 +106,13 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             }
         }
 
-        public static IEnumerable<Playlist> FetchPlaylists(YouTubeService service, string channelId) {
+        public static IEnumerable<Playlist> FetchPlaylists(YouTubeService service, string channelId, Logger logger) {
             var playlistRequest = service.Playlists.List("snippet");
             playlistRequest.ChannelId = channelId;
 
             PlaylistListResponse response;
             do {
-                response = playlistRequest.ExecuteAsync().Result;
+                response = FetchWithRetries<PlaylistListResponse>(playlistRequest, logger);
 
                 foreach (var playList in response.Items) {
                     yield return playList;
@@ -102,13 +123,13 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             } while (!String.IsNullOrEmpty(response.NextPageToken));
         }
 
-        private static IEnumerable<PlaylistItem> FetchItemsInPlaylist(YouTubeService service, string playListId) {
+        private static IEnumerable<PlaylistItem> FetchItemsInPlaylist(YouTubeService service, string playListId, Logger logger) {
             var playlistItemsRequest = service.PlaylistItems.List("snippet");
             playlistItemsRequest.PlaylistId = playListId;
 
-            PlaylistItemListResponse result;
+            PlaylistItemListResponse result = null;
             do {
-                result = playlistItemsRequest.ExecuteAsync().Result;
+                result = FetchWithRetries<PlaylistItemListResponse>(playlistItemsRequest, logger);
 
                 foreach (var item in result.Items) {
                     yield return item;
@@ -119,16 +140,18 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             } while (!String.IsNullOrEmpty(result.NextPageToken));
         }
 
-        private static string[] GetVideoIdsInPlaylist(YouTubeService service, string playlistId) {
-            return FetchItemsInPlaylist(service, playlistId)
+
+
+        private static string[] GetVideoIdsInPlaylist(YouTubeService service, string playlistId, Logger logger) {
+            return FetchItemsInPlaylist(service, playlistId, logger)
                        .Where(x => x.Snippet.ResourceId.Kind == "youtube#video")
                        .Select(x => x.Snippet.ResourceId.VideoId)
                        .Distinct()
                        .ToArray();
         }
 
-        public static IEnumerable<string[]> FetchVideoIdsInPlaylists(YouTubeService service, IEnumerable<Playlist> playlists) {
-            return playlists.Select(x => GetVideoIdsInPlaylist(service, x.Id));
+        public static IEnumerable<string[]> FetchVideoIdsInPlaylists(YouTubeService service, IEnumerable<Playlist> playlists, Logger logger) {
+            return playlists.Select(x => GetVideoIdsInPlaylist(service, x.Id, logger));
         }
 
         private static readonly TimeSpan TimeMargin = new TimeSpan(5, 0, 0, 0);
