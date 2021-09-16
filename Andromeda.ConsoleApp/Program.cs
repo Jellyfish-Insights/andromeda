@@ -82,14 +82,16 @@ namespace Andromeda.ConsoleApp {
                 var lake = command.Option("--data-lake", "Migrate data-lake databases", CommandOptionType.NoValue);
                 var facebook = command.Option("--facebook-lake", "Migrate facebook-lake database", CommandOptionType.NoValue);
 
+                var force_update = command.Option("-f|--force-update", "Checks and updates every column of every table.", CommandOptionType.NoValue);
+
                 command.OnExecute(() => {
                     if (lake.HasValue()) {
                         MigrateCommand.MigrateDataLake();
                     } else if (facebook.HasValue()) {
-                        MigrateCommand.MigrateFacebook();
+                        MigrateCommand.MigrateFacebook(force_update.HasValue());
                     } else {
                         MigrateCommand.MigrateDataLake();
-                        MigrateCommand.MigrateFacebook();
+                        MigrateCommand.MigrateFacebook(force_update.HasValue());
                     }
                     return 0;
                 });

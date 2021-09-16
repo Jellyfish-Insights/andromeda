@@ -38,24 +38,6 @@
             "edges": [],
             "time": ["created_time"]
         }, {
-            "name": "reactions",
-            "ordering": "desc",
-            "columns": [
-                ["id", "bigint"],
-                ["name", "text"],
-                ["type", "text"]
-            ],
-            "time": []
-        }, {
-            "name": "sharedposts",
-            "ordering": "desc",
-            "columns": [
-                ["id", "text"],
-                ["story", "text"],
-                ["created_time", "timestamp without time zone"]
-            ],
-            "time": ["created_time"]
-        }, {
             "name": "crosspost_shared_pages",
             "ordering": "desc",
             "columns": [
@@ -82,9 +64,25 @@
                 ["total_video_impressions_paid", "bigint"],
                 ["total_video_retention_graph", "jsonb"],
                 ["total_video_view_time_by_age_bucket_and_gender", "jsonb"],
-                ["total_video_view_time_by_region_id", "jsonb"]
+                ["total_video_view_time_by_region_id", "jsonb"],
+                ["total_video_reactions_by_type_total", "jsonb"],
+                ["total_video_stories_by_action_type", "jsonb"]
             ],
             "time": []
+        },{
+            "name": "likes",
+            "granularity": "day",
+            "bounds": [
+                ["created_time"]
+            ],
+            "summary" : true,
+            "time": [],
+            "columns": [],
+            "metrics": [
+                ["total_count", "bigint"],
+                ["can_like", "bool"],
+                ["has_liked", "bool"]
+            ]
         }]
     }, {
         "name": "posts",
