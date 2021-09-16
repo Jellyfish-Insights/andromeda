@@ -33,11 +33,11 @@ namespace Jobs.Fetcher.Facebook {
                 }
         }
 
-        public static void CreateTable(Table table) {
-            CreateTable(table.TableName, table.ColumnDefinition, table.Constraints);
+        public static void CreateTable(Table table, bool force_update) {
+            CreateTable(table.TableName, table.ColumnDefinition, table.Constraints, force_update);
         }
 
-        public static void CreateTable(string name, Dictionary<string, Column> columns, List<string> constraints) {
+        public static void CreateTable(string name, Dictionary<string, Column> columns, List<string> constraints, bool force_update) {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -48,10 +48,54 @@ namespace Jobs.Fetcher.Facebook {
                         cmd.ExecuteNonQuery();
                         Logger.Information($"Table created: {name}");
                     } catch (Npgsql.PostgresException e) {
-                        if (e.Message.Contains("already exists"))
+                        if (e.Message.Contains("already exists")) {
                             Logger.Warning($"Table already exists: {name}");
-                        else
+                            if (force_update) {
+                                foreach (var column in columns.Values) {
+                                    CheckAndCreateColumns(name, column);
+                                }
+                            }
+                        } else
                             Logger.Error($"Table creation operation failed: {e.Message}");
+                    }
+                }
+        }
+
+        public static void CheckAndCreateColumns(string name, Column column) {
+            using (var connection = new NpgsqlConnection(ConnectionString()))
+                using (var cmd = connection.CreateCommand()) {
+                    connection.Open();
+                    cmd.CommandText = String.Format(@"SELECT EXISTS (SELECT 1 FROM information_schema.columns 
+                                                        WHERE  table_name='{0}' AND column_name='{1}')",
+                                                    name,
+                                                    column.Name
+                                                    );
+                    try {
+                        using (var r = cmd.ExecuteReader()) {
+                            r.Read();
+                            if (r.GetBoolean(0)) {
+                                Logger.Warning($"Column already exists: {column.Name}");
+                            } else {
+                                CreateColumn(name, column);
+                                Logger.Information($"Column created: {column.Name}");
+                            }
+                        }
+                    } catch (Npgsql.PostgresException e) {
+                        Logger.Error($"Column check and creation failed: {e.Message}");
+                    }
+                }
+        }
+
+        public static void CreateColumn(string name, Column column) {
+            using (var connection = new NpgsqlConnection(ConnectionString()))
+                using (var cmd = connection.CreateCommand()) {
+                    connection.Open();
+                    cmd.CommandText = String.Format("ALTER TABLE {0} ADD COLUMN {1} {2} {3}", name, column.Name, column.Type, column.Constraint);
+                    try {
+                        cmd.ExecuteNonQuery();
+                        Logger.Information($"Column created: {name}");
+                    } catch (Npgsql.PostgresException e) {
+                        Logger.Error($"Column creation failed: {e.Message}");
                     }
                 }
         }
@@ -254,7 +298,6 @@ namespace Jobs.Fetcher.Facebook {
                 foreach (KeyValuePair<string, Column> x in parameters) {
                     AddParameter(cmd, x.Value, row);
                 }
-
                 using (var r = cmd.ExecuteReader()) {
                     return r.HasRows;
                 }
@@ -544,6 +587,7 @@ namespace Jobs.Fetcher.Facebook {
                 foreach (KeyValuePair<string, Column> x in columns.Where(x => row[x.Key] != null)) {
                     AddParameter(cmd, x.Value, row);
                 }
+
                 cmd.ExecuteNonQuery();
             }
         }
