@@ -9,7 +9,8 @@ namespace Jobs.Fetcher.Facebook {
             List<string> time,
             List<string[]> metrics,
             string granularity,
-            List<string[]> bounds
+            List<string[]> bounds,
+            bool? summary
             ): base(name, columns, null, null, time, null, null, "unordered") {
             // treat missing parameters
             if (bounds != null && bounds.Count() >= 1) {
@@ -19,6 +20,7 @@ namespace Jobs.Fetcher.Facebook {
                 }
             }
             Granularity = granularity ?? "lifetime";
+            Summary = summary ?? false;
             metrics = metrics ?? new List<string[]>();
             Metrics = metrics.Select(x => new Metrics(x)).ToDictionary(x => x.Name);
 
@@ -36,6 +38,7 @@ namespace Jobs.Fetcher.Facebook {
             }
         }
         public string Granularity { get; set; }
+        public bool Summary { get; set; }
         // If false: API returns data in the format: (date, metric, value), which is the format dealt by the code base.
         // If true: API returns data in the format: (metric, date, value), which must be transposed to (date, metric, value) before processing
         public bool Transposed { get => Metrics.Count() > 0; }
@@ -73,12 +76,13 @@ namespace Jobs.Fetcher.Facebook {
         public InstagramInsights(
             string name,
             string granularity,
+            bool? summary,
             List<string[]> bounds,
             List<string[]> columns,
             List<string[]> metrics,
             List<string> time,
             string instagram_media_type
-            ): base(name, columns, time, metrics, granularity, bounds) {
+            ): base(name, columns, time, metrics, granularity, bounds, summary) {
             InstagramMediaType = instagram_media_type ?? "";
         }
 

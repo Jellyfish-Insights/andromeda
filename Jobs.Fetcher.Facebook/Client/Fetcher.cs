@@ -66,6 +66,7 @@ namespace Jobs.Fetcher.Facebook {
 
         private async Task<JObject> FetchEndpoint(Table root, string node, string edge, List<Column> fields, string ordering = null) {
             var url_params = new Dictionary<string, string>();
+
             url_params.Add("fields", fields.Select(x => x.ApiName()).Aggregate((x, y) => x + ',' + y));
             url_params.Add("limit", PageSize.ToString());
             if (ordering != null && ordering != "unordered") {
@@ -93,28 +94,33 @@ namespace Jobs.Fetcher.Facebook {
             var fields = edge.Columns.Select(x => x.Value).ToList();
             var metrics = edge.Metrics.Select(x => x.Value).ToList();
             var url_params = new Dictionary<string, string>();
-            if (fields != null && fields.Any())
-                url_params.Add("fields", fields.Select(x => x.Name).Aggregate((x, y) => x + ',' + y));
-            if (!edge.Transposed) {
-                if (edge.Granularity == "day") {
-                    url_params.Add("time_increment", "1");
-                }
-                if (range != null) {
-                    var rjson = new JObject();
-                    rjson.Add("since", FormatDate(range.Minimum));
-                    rjson.Add("until", FormatDate(range.Maximum));
-                    url_params.Add("time_range",
-                                   rjson.ToString());
-                }
+            if (edge.Summary) {
+                url_params.Add("summary", edge.Summary.ToString());
             } else {
-                url_params.Add("metric", metrics.Select(x => x.Name).Aggregate((x, y) => x + ',' + y));
-                url_params.Add("period", edge.Granularity);
+                if (fields != null && fields.Any())
+                    url_params.Add("fields", fields.Select(x => x.Name).Aggregate((x, y) => x + ',' + y));
+                if (!edge.Transposed) {
+                    if (edge.Granularity == "day") {
+                        url_params.Add("time_increment", "1");
+                    }
+                    if (range != null) {
+                        var rjson = new JObject();
+                        rjson.Add("since", FormatDate(range.Minimum));
+                        rjson.Add("until", FormatDate(range.Maximum));
+                        url_params.Add("time_range",
+                                       rjson.ToString());
+                    }
+                } else {
+                    url_params.Add("metric", metrics.Select(x => x.Name).Aggregate((x, y) => x + ',' + y));
+                    url_params.Add("period", edge.Granularity);
 
-                if (range != null && edge.Granularity != "lifetime") {
-                    url_params.Add("since", UnixTimeStampUTC(range.Minimum, true).ToString());
-                    url_params.Add("until", UnixTimeStampUTC(range.Maximum, false).ToString());
+                    if (range != null && edge.Granularity != "lifetime") {
+                        url_params.Add("since", UnixTimeStampUTC(range.Minimum, true).ToString());
+                        url_params.Add("until", UnixTimeStampUTC(range.Maximum, false).ToString());
+                    }
                 }
             }
+
             var url = ApiMan.EndPoint(node, edge.Name, url_params);
             var stringTask = ApiMan.CachedRequest(edge.TableName, url);
             stringTask.Wait();
@@ -127,6 +133,7 @@ namespace Jobs.Fetcher.Facebook {
                 o["fetch_time"] = source["fetch_time"];
                 yield return o;
             }
+
             if (source["paging"] != null) {
                 var paging = source["paging"];
                 var next = paging ? ["next"];
@@ -440,15 +447,19 @@ namespace Jobs.Fetcher.Facebook {
             while (
                 (!hasRow || i < ITER_LIMIT || !ApiMan.ShouldPaginate)
                 && range.Minimum < upperLimit
-                && !DatabaseManager.DailyInsightsAreComplete(lifetime, edge, node)
+                && (!DatabaseManager.DailyInsightsAreComplete(lifetime, edge, node) || edge.Summary)
                 ) {
                 Logger.Debug("Fetching date range {From} {To}", range.Minimum.Date, range.Maximum.Date);
                 i++;
                 var row = FetchInsights(node["id"].ToString(), edge, range);
+
                 var result = new List<JObject>();
                 result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
+                if (edge.Summary) {
+                    result.Add((JObject) row.SelectToken("summary"));
+                }
 
-                if (edge.Transposed) {
+                if (edge.Transposed && !edge.Summary) {
                     var names = result.Select(x => x["name"]).Where(y => y != null);
                     result = result.Select(x =>
                                            x["values"].ToObject<List<JObject>>().Select(o => new JObject(){ { (string) x["name"], o["value"] }, { "date_start", o["end_time"] }, { "date_stop", o["end_time"] } }))
@@ -464,6 +475,10 @@ namespace Jobs.Fetcher.Facebook {
                     nobj.Add("systime", "[" + row["fetch_time"].ToObject<DateTime>().ToString("yyyy-MM-dd HH:mm:ss") + ",)");
                     if (!edge.Source.IsRoot) {
                         nobj.Add(edge.Source.Name + "_id", node["id"]);
+                    }
+                    if (edge.Summary) {
+                        nobj.Add("date_start", row["fetch_time"]);
+                        nobj.Add("date_stop", row["fetch_time"]);
                     }
 
                     string[] pk;
@@ -488,7 +503,6 @@ namespace Jobs.Fetcher.Facebook {
                             break;
                     }
                 }
-
                 delta = now.Subtract(range.Maximum);
 
                 // Don't fetch if there is only one day of data, because we are already looking some days forward
