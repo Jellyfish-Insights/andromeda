@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Andromeda.Common.Jobs;
 using Google.Apis.Auth.OAuth2;
+using Google.Apis.Http;
+using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTubeAnalytics.v2;
-using Google.Apis.Http;
-using Google.Apis.Services;
-using Andromeda.Common.Jobs;
 
 namespace Jobs.Fetcher.YouTube {
 
@@ -26,24 +26,30 @@ namespace Jobs.Fetcher.YouTube {
             var jobs = new List<AbstractJob>();
             var youtubeServices = new List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)>();
             try {
-                foreach (var directory in Directory.GetDirectories(CredentialsDir)) {
-                    youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
-                }
+                var usrDirs = Directory.GetDirectories("./credentials");
+                foreach (var usrDir in usrDirs) {
+                    CredentialsDir = $"{usrDir}/youtube";
+                    SecretsFile = $"{CredentialsDir}/client_secret.json";
 
-                if (youtubeServices.Count == 0) {
-                    var path = $"{CredentialsDir}/channel_1";
-                    Directory.CreateDirectory(path);
-                    youtubeServices.Add(GetServicesCredential(SecretsFile, path));
-                }
+                    foreach (var directory in Directory.GetDirectories(CredentialsDir)) {
+                        youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
+                    }
 
-                jobs = new List<AbstractJob>() {
-                    new VideosQuery(youtubeServices),
-                    new PlaylistsQuery(youtubeServices),
-                    new DailyVideoMetricsQuery(youtubeServices),
-                    new ViewerPercentageMetricsQuery(youtubeServices),
-                    new StatisticsQuery(youtubeServices),
-                    new ReprocessDailyVideoMetricsQuery(youtubeServices),
-                };
+                    if (youtubeServices.Count == 0) {
+                        var path = $"{CredentialsDir}/channel_1";
+                        Directory.CreateDirectory(path);
+                        youtubeServices.Add(GetServicesCredential(SecretsFile, path));
+                    }
+
+                    jobs = new List<AbstractJob>() {
+                        new VideosQuery(youtubeServices),
+                        new PlaylistsQuery(youtubeServices),
+                        new DailyVideoMetricsQuery(youtubeServices),
+                        new ViewerPercentageMetricsQuery(youtubeServices),
+                        new StatisticsQuery(youtubeServices),
+                        new ReprocessDailyVideoMetricsQuery(youtubeServices),
+                    };
+                }
             }
             catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
             {
