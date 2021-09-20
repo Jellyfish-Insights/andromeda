@@ -25,6 +25,9 @@ namespace Jobs.Fetcher.Facebook {
             if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
                 return NoJobs;
             }
+            // TODO: We should handle the old credential path here as well like the youtube
+            // if detected the old credentials path, only load the jobs related to the old path
+            // otherwise load all jobs for the new credentials path
             var jobs = new List<FacebookFetcher>();
             try {
                 var userDirs = Directory.GetDirectories("credentials");

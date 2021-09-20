@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using DataLakeModels;
@@ -19,7 +20,23 @@ namespace Jobs.Fetcher.Facebook {
 
         public static List<string> SchemaList() {
             var allSchemas = new List<string> { "page", "adaccount", "instagram" };
-            return CheckCredentialStatus(allSchemas);
+            var validSchemas = CheckCredentialStatus(allSchemas);
+
+            // First check for the old folder structure
+            if (validSchemas.Count > 0) {
+                Console.WriteLine($"Detected old folder structure. Loading only the old structure schemas. Please, consider changing to the new folder structure");
+                return validSchemas;
+            }
+
+            var setOfSchemas = new HashSet<string>();
+            var userDirs = new List<string>(Directory.GetDirectories("./credentials"));
+            foreach(var userDir in userDirs) {
+                validSchemas = CheckCredentialStatus(allSchemas, userDir);
+                foreach(var schema in validSchemas) {
+                    setOfSchemas.Add(schema);
+                }
+            }
+            return new List<string>(setOfSchemas);
         }
 
         public static List<string> SchemaList(string usrFolderName) {
@@ -42,8 +59,8 @@ namespace Jobs.Fetcher.Facebook {
                 if (Directory.Exists(credentialPath) && Directory.GetFiles(credentialPath).Length > 0) {
                     validSchemas.Add(schemaName);
                 } else {
-                    System.Console.WriteLine($"Missing or invalid {GetServiceName(schemaName)} credentials!");
-                    System.Console.WriteLine($"Couldn't find any credential on folder '{credentialPath}'");
+                    Console.WriteLine($"Missing or invalid {GetServiceName(schemaName)} credentials!");
+                    Console.WriteLine($"Couldn't find any credential on folder '{credentialPath}'");
                 }
             }
             return validSchemas;
@@ -56,9 +73,9 @@ namespace Jobs.Fetcher.Facebook {
                 if (Directory.Exists(credentialPath) && Directory.GetFiles(credentialPath).Length > 0) {
                     validSchemas.Add(schemaName);
                 } else {
-                    System.Console.WriteLine($"Missing or invalid {GetServiceName(schemaName)} credentials!");
-                    System.Console.WriteLine($"Couldn't find any credential on folder '{credentialPath}'");
-                    System.Console.WriteLine($"File: {credentialFileName}\n");
+                    Console.WriteLine($"Missing or invalid {GetServiceName(schemaName)} credentials!");
+                    Console.WriteLine($"Couldn't find any credential on folder '{credentialPath}'");
+                    Console.WriteLine($"File: {credentialFileName}\n");
                 }
             }
             return validSchemas;
@@ -88,8 +105,6 @@ namespace Jobs.Fetcher.Facebook {
                 default:
                     return "";
             }
-            // var prePath = schemaName == "instagram" ? "" : "facebook";
-            // return $"{prePath}/{schemaName}";
         }
 
         public static string GetCredentialPath(string schemaName, string usrFolder) {
@@ -103,8 +118,6 @@ namespace Jobs.Fetcher.Facebook {
                 default:
                     return usrFolder;
             }
-            // var prePath = schemaName == "instagram" ? "" : "facebook";
-            // return $"{prePath}/{schemaName}";
         }
 
         public static T ParseCredentials<T>(string schemaName) {
