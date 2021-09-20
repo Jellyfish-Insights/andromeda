@@ -22,8 +22,17 @@ namespace Jobs.Fetcher.Facebook {
             return CheckCredentialStatus(allSchemas);
         }
 
+        public static List<string> SchemaList(string usrFolderName) {
+            var allSchemas = new List<string> { "page", "adaccount", "instagram" };
+            return CheckCredentialStatus(allSchemas, usrFolderName);
+        }
+
         public static List<string> SchemaList(List<string> allSchemas) {
             return CheckCredentialStatus(allSchemas);
+        }
+
+        public static List<string> SchemaList(List<string> allSchemas, string usrFolderName) {
+            return CheckCredentialStatus(allSchemas, usrFolderName);
         }
 
         private static List<string> CheckCredentialStatus(List<string> allSchemas) {
@@ -35,6 +44,21 @@ namespace Jobs.Fetcher.Facebook {
                 } else {
                     System.Console.WriteLine($"Missing or invalid {GetServiceName(schemaName)} credentials!");
                     System.Console.WriteLine($"Couldn't find any credential on folder '{credentialPath}'");
+                }
+            }
+            return validSchemas;
+        }
+
+        private static List<string> CheckCredentialStatus(List<string> allSchemas, string usrFolderName) {
+            var validSchemas = new List<string>();
+            foreach (var schemaName in allSchemas) {
+                var credentialPath = GetCredentialPath(schemaName, usrFolderName);
+                if (Directory.Exists(credentialPath) && Directory.GetFiles(credentialPath).Length > 0) {
+                    validSchemas.Add(schemaName);
+                } else {
+                    System.Console.WriteLine($"Missing or invalid {GetServiceName(schemaName)} credentials!");
+                    System.Console.WriteLine($"Couldn't find any credential on folder '{credentialPath}'");
+                    System.Console.WriteLine($"File: {credentialFileName}\n");
                 }
             }
             return validSchemas;
@@ -54,8 +78,33 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         public static string GetCredentialPath(string schemaName) {
-            var prePath = schemaName == "instagram" ? "credentials" : "credentials/facebook";
-            return $"{prePath}/{schemaName}";
+            switch (schemaName) {
+                case "instagram":
+                    return "instagram";
+                case "page":
+                    return $"facebook/{schemaName}";
+                case "adaccount":
+                    return $"facebook/{schemaName}";
+                default:
+                    return "";
+            }
+            // var prePath = schemaName == "instagram" ? "" : "facebook";
+            // return $"{prePath}/{schemaName}";
+        }
+
+        public static string GetCredentialPath(string schemaName, string usrFolder) {
+            switch (schemaName) {
+                case "instagram":
+                    return $"{usrFolder}/instagram";
+                case "page":
+                    return $"{usrFolder}/facebook/{schemaName}";
+                case "adaccount":
+                    return $"{usrFolder}/facebook/{schemaName}";
+                default:
+                    return usrFolder;
+            }
+            // var prePath = schemaName == "instagram" ? "" : "facebook";
+            // return $"{prePath}/{schemaName}";
         }
 
         public static T ParseCredentials<T>(string schemaName) {
