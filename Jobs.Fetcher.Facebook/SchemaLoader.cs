@@ -30,9 +30,9 @@ namespace Jobs.Fetcher.Facebook {
 
             var setOfSchemas = new HashSet<string>();
             var userDirs = new List<string>(Directory.GetDirectories("./credentials"));
-            foreach(var userDir in userDirs) {
+            foreach (var userDir in userDirs) {
                 validSchemas = CheckCredentialStatus(allSchemas, userDir);
-                foreach(var schema in validSchemas) {
+                foreach (var schema in validSchemas) {
                     setOfSchemas.Add(schema);
                 }
             }
