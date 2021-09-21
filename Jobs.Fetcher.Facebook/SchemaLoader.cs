@@ -97,13 +97,13 @@ namespace Jobs.Fetcher.Facebook {
         public static string GetCredentialPath(string schemaName) {
             switch (schemaName) {
                 case "instagram":
-                    return "instagram";
+                    return "./credentials/instagram";
                 case "page":
-                    return $"facebook/{schemaName}";
+                    return $"./credentials/facebook/{schemaName}";
                 case "adaccount":
-                    return $"facebook/{schemaName}";
+                    return $"./credentials/facebook/{schemaName}";
                 default:
-                    return "";
+                    return "./credentials/";
             }
         }
 

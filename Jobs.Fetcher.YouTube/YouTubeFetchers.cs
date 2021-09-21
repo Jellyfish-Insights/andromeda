@@ -30,7 +30,7 @@ namespace Jobs.Fetcher.YouTube {
             try {
                 var usrDirs = Directory.GetDirectories("./credentials");
 
-                if (usrDirs.Contains("youtube")) {
+                if (usrDirs.Any(dir => dir.Contains("youtube") || dir.Contains("facebook") || dir.Contains("instagram"))) {
                     Console.WriteLine($"Detected old folder structure. Loading only the old structure credentials. Please, consider changing to the new folder structure");
                     jobs.AddRange(GetListOfJobs(youtubeServices));
                 } else {
