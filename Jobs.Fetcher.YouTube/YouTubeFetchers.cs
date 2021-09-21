@@ -47,7 +47,6 @@ namespace Jobs.Fetcher.YouTube {
                         jobs.AddRange(GetListOfJobs(youtubeServices));
                     }
                 }
-
             }
             catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
             {
@@ -99,7 +98,6 @@ namespace Jobs.Fetcher.YouTube {
             });
         }
 
-
         private List<AbstractJob> GetListOfJobs(List<(YouTubeService, YouTubeAnalyticsService)> youtubeServices) {
             foreach (var directory in Directory.GetDirectories(CredentialsDir)) {
                 youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
@@ -112,12 +110,12 @@ namespace Jobs.Fetcher.YouTube {
             }
 
             return new List<AbstractJob>() {
-                new VideosQuery(youtubeServices),
-                new PlaylistsQuery(youtubeServices),
-                new DailyVideoMetricsQuery(youtubeServices),
-                new ViewerPercentageMetricsQuery(youtubeServices),
-                new StatisticsQuery(youtubeServices),
-                new ReprocessDailyVideoMetricsQuery(youtubeServices),
+                       new VideosQuery(youtubeServices),
+                       new PlaylistsQuery(youtubeServices),
+                       new DailyVideoMetricsQuery(youtubeServices),
+                       new ViewerPercentageMetricsQuery(youtubeServices),
+                       new StatisticsQuery(youtubeServices),
+                       new ReprocessDailyVideoMetricsQuery(youtubeServices),
             };
         }
     }
