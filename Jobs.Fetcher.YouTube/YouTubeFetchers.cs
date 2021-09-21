@@ -38,6 +38,12 @@ namespace Jobs.Fetcher.YouTube {
                         CredentialsDir = $"{usrDir}/youtube";
                         SecretsFile = $"{CredentialsDir}/client_secret.json";
 
+                        if (!Directory.Exists(CredentialsDir) || !File.Exists(SecretsFile)) {
+                            Console.WriteLine($"Missing or invalid Youtube credentials!");
+                            Console.WriteLine($"Couldn't find any credential on folder '{CredentialsDir}'");
+                            continue;
+                        }
+
                         jobs.AddRange(GetListOfJobs(youtubeServices));
                     }
                 }
@@ -49,7 +55,7 @@ namespace Jobs.Fetcher.YouTube {
                 if (e is DirectoryNotFoundException) {
                     message = String.Format("{0}\nCheck if the path above exists!", message);
                 }
-                System.Console.WriteLine(message);
+                Console.WriteLine(message);
                 return NoJobs;
             };
 
