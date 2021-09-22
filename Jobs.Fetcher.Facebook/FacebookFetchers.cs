@@ -93,13 +93,13 @@ namespace Jobs.Fetcher.Facebook {
                             );
                         var pageFetcher = new Fetcher(pageApiMan, pageSchema.PageSize);
 
-                        var key = (SchemaName: "adaccount", TableName: "ads", CustomEdgeName: "custom_videos");
+                        var key = (SchemaName : "adaccount", TableName : "ads", CustomEdgeName : "custom_videos");
                         if (!customEdge.ContainsKey(key)) {
 
                             Action<Logger, JObject> callback = (logger, parent) => {
                                 var creative = parent["creative"];
 
-                                var video = creative?["video_id"];
+                                var video = creative ? ["video_id"];
                                 if (video != null) {
                                     pageFetcher.GetRoot(pageSchema, "videos", video, logger);
                                 }
@@ -110,7 +110,7 @@ namespace Jobs.Fetcher.Facebook {
                                     pageFetcher.GetRoot(pageSchema, "videos", sourceFileVideoId, logger);
                                 }
 
-                                var post = creative?["object_story_id"];
+                                var post = creative ? ["object_story_id"];
                                 if (post != null) {
                                     pageFetcher.GetRoot(pageSchema, "posts", post, logger);
                                 }
