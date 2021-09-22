@@ -32,17 +32,19 @@ You'll need to setup a few things before running Andromeda:
 If you want to fetch data from all the social media that Andromeda supports the
 following credential files are needed:
 
-  - By the Andromeda.ConsoleApp project:
-    - The "AdWords" credentials:
-      - ```./Andromeda.ConsoleApp/credentials/adwords/App.config```
-    - The "YouTube" credentials
-      - ```./Andromeda.ConsoleApp/credentials/youtube/client_secret.json```
-      - ```./Andromeda.ConsoleApp/credentials/youtube/channel_1/Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json```
-    - The "Facebook" credentials
-      - ```./Andromeda.ConsoleApp/credentials/facebook/adaacount/user1_credentials.json```
-      - ```./Andromeda.ConsoleApp/credentials/facebook/page/user1_credentials.json```
-    - The "Instagram" credentials
-      - ```./Andromeda.ConsoleApp/credentials/instagram/user1_credentials.json```
+**Note:** All occurrences of `<ANDROMEDA_USER_FOLDER>` should be changed to the name of your user folder
+
+- By the Andromeda.ConsoleApp project:
+  - The "AdWords" credentials:
+    - ```./Andromeda.ConsoleApp/credentials/<ANDROMEDA_USER_FOLDER>/adwords/App.config```
+  - The "YouTube" credentials
+    - ```./Andromeda.ConsoleApp/credentials/<ANDROMEDA_USER_FOLDER>/youtube/client_secret.json```
+    - ```./Andromeda.ConsoleApp/credentials/<ANDROMEDA_USER_FOLDER>/youtube/channel_1/Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json```
+  - The "Facebook" credentials
+    - ```./Andromeda.ConsoleApp/credentials/<ANDROMEDA_USER_FOLDER>/facebook/adaacount/user1_credentials.json```
+    - ```./Andromeda.ConsoleApp/credentials/<ANDROMEDA_USER_FOLDER>/facebook/page/user1_credentials.json```
+  - The "Instagram" credentials
+    - ```./Andromeda.ConsoleApp/credentials/<ANDROMEDA_USER_FOLDER>/instagram/user1_credentials.json```
 
 Check how to get these credentials on [How to get credentials
 documentation](./how_to_get_credentials.md).
@@ -139,7 +141,7 @@ edit them on [Configuring the appsettings.json](./docker_container.md#configurin
   ```
 
 You can see more details about how to export data using Andromeda on [How to
-export data lake data as CSV or JSON](./export_csv_json.md) documentat.
+export data lake data as CSV or JSON](./export_csv_json.md) documentation.
 
   To see all the commands available and their description:
 
