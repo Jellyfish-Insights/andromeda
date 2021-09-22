@@ -7,16 +7,18 @@ multiple Facebook accounts and/or YouTube channels.
 
 The process for setting up Andromeda to fetch data from multiple Facebook accounts is very simple. Just get the Facebook Page, Facebook Marketing or Instagram credentials for every account that you want to pull data and place them the respective folders:
 
-- `credentials/facebook/page`
-- `credentials/facebook/adaccount`
-- `credentials/instagram`
+**Note:** All occurrences of `<ANDROMEDA_USER_FOLDER>` should be changed to the name of your user folder
+
+- `credentials/<ANDROMEDA_USER_FOLDER>/facebook/page`
+- `credentials/<ANDROMEDA_USER_FOLDER>/facebook/adaccount`
+- `credentials/<ANDROMEDA_USER_FOLDER>/instagram`
 
 Also, every credential file has to follow this name convention: `<some_name>_credentials.json`.
 
 For instance, if we want to fetch data from three Facebook Pages, our `credentials/facebook/page` folder will be like this:
 
 ```
-credentials/facebook/page
+credentials/<ANDROMEDA_USER_FOLDER>/facebook/page
 |
 └──100679434865960_credentials.json
 |
@@ -36,7 +38,7 @@ The process for setting up Andromeda to fetch data from multiple YouTube channel
 For instance, if we want to pull data from three different YouTube channel our `credentials/youtube` folder will be like this:
 
 ```
-credentials/youtube
+credentials/<ANDROMEDA_USER_FOLDER>/youtube
 |
 └──channel_1
 |    Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json
