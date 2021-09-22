@@ -19,7 +19,7 @@ namespace Jobs.Fetcher.YouTube {
         public override JobScope Scope { get; } = JobScope.YouTube;
 
         public string CredentialsDir = "./credentials/youtube";
-        public string SecretsFile = "./credentials/youtube/client_secret.json";
+        public string SecretsFile = "./credentials/client_secret.json";
 
         public override IEnumerable<AbstractJob> GetJobs(JobType type, JobScope scope, IEnumerable<string> names, JobConfiguration jobConfiguration) {
             if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
@@ -36,7 +36,6 @@ namespace Jobs.Fetcher.YouTube {
                 } else {
                     foreach (var usrDir in usrDirs) {
                         CredentialsDir = $"{usrDir}/youtube";
-                        SecretsFile = $"{CredentialsDir}/client_secret.json";
 
                         if (!Directory.Exists(CredentialsDir) || !File.Exists(SecretsFile)) {
                             Console.WriteLine($"Missing or invalid Youtube credentials!");
