@@ -1,4 +1,4 @@
-#!/usr/local/bin/env python3
+#!env python3
 '''
     This script will help the process on get credentials
     to fetch data from Andromeda
@@ -9,21 +9,24 @@ FB_URL = 'https://graph.facebook.com'
 VERSION = 'v5.0'
 MARKETING_VERSION = 'v6.0'
 
+CREDENTIAL_DEFAULT = './credentials/user_folder'
+
 with open('fb_client_secret.json') as json_file:
     data = json.load(json_file)
     APP_ID = data["APP_ID"]
     APP_SECRET = data["APP_SECRET"]
-    USER_ACCESS_TOKEN = data["USER_ACCESS_TOKEN"] 
+    USER_ACCESS_TOKEN = data["USER_ACCESS_TOKEN"]
 
 def create_credential_folders():
     try:
         os.mkdir('./credentials/')
-        os.mkdir('./credentials/adwords')
-        os.mkdir('./credentials/facebook')
-        os.mkdir('./credentials/facebook/adaccount')
-        os.mkdir('./credentials/facebook/page')
-        os.mkdir('./credentials/instagram')
-        os.mkdir('./credentials/youtube')
+        os.mkdir(f'{CREDENTIAL_DEFAULT}')
+        os.mkdir(f'{CREDENTIAL_DEFAULT}/adwords')
+        os.mkdir(f'{CREDENTIAL_DEFAULT}/facebook')
+        os.mkdir(f'{CREDENTIAL_DEFAULT}/facebook/adaccount')
+        os.mkdir(f'{CREDENTIAL_DEFAULT}/facebook/page')
+        os.mkdir(f'{CREDENTIAL_DEFAULT}/instagram')
+        os.mkdir(f'{CREDENTIAL_DEFAULT}/youtube')
     except:
         pass
     print('Created credential structure.')
@@ -43,7 +46,7 @@ def save_on_json(path, data, platform, name):
         json.dump(data, outfile)
 
 def long_lived_user_token():
-    path = './credentials/facebook/user_credentials.json'
+    path = f'{CREDENTIAL_DEFAULT}/facebook/user_credentials.json'
     if os.path.isfile(path):
         print('Loading long lived user token.')
         with open(path) as json_file:
@@ -80,27 +83,27 @@ def long_lived_instagram_token(page):
             "id" : instagram["instagram_business_account"]["id"],
             "source_page" : page["name"]
         }
-        save_on_json(f'./credentials/instagram/{instagram_data["id"]}_credentials.json', instagram_data, 'instagram', instagram_data["source_page"])
+        save_on_json(f'{CREDENTIAL_DEFAULT}/instagram/{instagram_data["id"]}_credentials.json', instagram_data, 'instagram', instagram_data["source_page"])
 
 def long_lived_adaccount_token(access_token):
     return request_data(f'{FB_URL}/{MARKETING_VERSION}/me/adaccounts?access_token={access_token}')
 
 def test_credentials():
-    path = './credentials/facebook/page'
+    path = f'{CREDENTIAL_DEFAULT}/facebook/page'
     for page in os.listdir(path):
         with open(f'{path}/{page}') as json_file:
             data = json.load(json_file)
             print(f'Testing Page {data["name"]} token.')
             request_data(f'{FB_URL}/{VERSION}/{data["id"]}/posts?access_token={data["token"]}')
-    
-    path = './credentials/instagram'
+
+    path = f'{CREDENTIAL_DEFAULT}/instagram'
     for instagram in os.listdir(path):
             with open(f'{path}/{instagram}') as json_file:
                 data = json.load(json_file)
                 print(f'Testing Instagram {data["source_page"]} token.')
                 request_data(f'{FB_URL}/{VERSION}/{data["id"]}/media?access_token={data["token"]}')
-    
-    path = './credentials/facebook/adaccount'
+
+    path = f'{CREDENTIAL_DEFAULT}/facebook/adaccount'
     for adaccount in os.listdir(path):
             with open(f'{path}/{adaccount}') as json_file:
                 data = json.load(json_file)
@@ -114,7 +117,7 @@ def main():
     pages_access_token = long_lived_page_token(user_access_token["access_token"])
     for page in pages_access_token["data"]:
         page = change_token(page)
-        save_on_json(f'./credentials/facebook/page/{page["id"]}_credentials.json', page, "page", page["name"])
+        save_on_json(f'{CREDENTIAL_DEFAULT}/facebook/page/{page["id"]}_credentials.json', page, "page", page["name"])
         long_lived_instagram_token(page)
 
     adaccounts_access_token = long_lived_adaccount_token(user_access_token["access_token"])
@@ -124,10 +127,10 @@ def main():
             "id" : adaccount["id"],
             "account_id" : adaccount["account_id"]
         }
-        save_on_json(f'./credentials/facebook/adaccount/{adaccount_data["id"]}_credentials.json', adaccount_data, "adaccount", adaccount_data["id"])
+        save_on_json(f'{CREDENTIAL_DEFAULT}/facebook/adaccount/{adaccount_data["id"]}_credentials.json', adaccount_data, "adaccount", adaccount_data["id"])
 
     test_credentials()
     print('Done.')
 
-if __name__ == '__main__': 
+if __name__ == '__main__':
     main()
