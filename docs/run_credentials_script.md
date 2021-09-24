@@ -140,29 +140,30 @@ following folder structure on your utilities folder:
 
 ```
 utilities
-|  facebook_credentials.py
-|  fb_client_secret.json
-|  youtube_credentials.py
-|
+└─ facebook_credentials.py
+└─ fb_client_secret.json
+└─ youtube_credentials.py
+│
 └─ credentials
-  |
-  └─ facebook
-  | |  user_credentials.json
-  | |
-  │ └── adaccount
-  | |    adaccount-id1_credentials.json
-  | |    adaccount-id2_credentials.json
-  │ └── page
-  │      page-id1_credentials.json
-  │      page-id2_credentials.json
-  |
-  └─ youtube
-  |
-  |
-  └─ adwords
-  |
-  └─ instagram
-      instagram-id1_credentials.json
+   └─ user_folder
+      │
+      └─ facebook
+      │  └─ user_credentials.json
+      │  │
+      │  └─ adaccount
+      │  │  └─ adaccount-id1_credentials.json
+      │  │  └─ adaccount-id2_credentials.json
+      │  └─ page
+      │     └─ page-id1_credentials.json
+      │     └─ page-id2_credentials.json
+      │
+      └─ youtube
+      │
+      │
+      └─ adwords
+      │
+      └─ instagram
+         └─instagram-id1_credentials.json
 ```
 
 Move this **credentials folder** to where you plan to run Andromeda.
@@ -220,26 +221,29 @@ following folder structure on your utilities folder:
 
 ```
 utilities
-|  facebook_credentials.py
-|  fb_client_secret.json
-|  youtube_credentials.py
-|  client_secret.json
-|
+│  facebook_credentials.py
+│  fb_client_secret.json
+│  youtube_credentials.py
+│  client_secret.json
+│
 └─ credentials
-  |
-  └─ facebook
-  |
-  └─ youtube
-  |  |  client_secret.json
-  |  |
-  |  └── channel_1
-  |  |    Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json
-  |  └── channel_2
-  |       Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json
-  |
-  └─ adwords
-  |
-  └─ instagram
+   └─ user_folder
+   │   │
+   │   └─ facebook
+   │   │
+   │   └─ youtube
+   │   │  │
+   │   │  └─ channel_1
+   │   │  │  └─ Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json
+   │   │  └─ channel_2
+   │   │     └─ Google.Apis.Auth.OAuth2.Responses.TokenResponse-Credentials.json
+   │   │
+   │   └─ adwords
+   │   │
+   │   └─ instagram
+   └─ client_secret.json
 ```
 
-Move this **credentials folder** to where you plan to run Andromeda.
+Move this **credentials folder** to where you plan to run Andromeda and change the name of the **user_folder** to anything you'd like.
+
+For new users credentials, it is only required to move the newly generated **user_folder** inside the **credentials folder** where you plan to run Andromeda.
