@@ -454,9 +454,11 @@ namespace Jobs.Fetcher.Facebook {
                 var row = FetchInsights(node["id"].ToString(), edge, range);
 
                 var result = new List<JObject>();
-                result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
+
                 if (edge.Summary) {
                     result.Add((JObject) row.SelectToken("summary"));
+                }else{
+                    result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
                 }
 
                 if (edge.Transposed && !edge.Summary) {
@@ -477,8 +479,8 @@ namespace Jobs.Fetcher.Facebook {
                         nobj.Add(edge.Source.Name + "_id", node["id"]);
                     }
                     if (edge.Summary) {
-                        nobj.Add("date_start", row["fetch_time"]);
-                        nobj.Add("date_stop", row["fetch_time"]);
+                        nobj.Add("date_start", row["fetch_time"].ToObject<DateTime>().ToString("yyyy-MM-dd 12:00:00"));
+                        nobj.Add("date_stop", row["fetch_time"].ToObject<DateTime>().AddDays(1.0).ToString("yyyy-MM-dd 12:00:00"));
                     }
 
                     string[] pk;
