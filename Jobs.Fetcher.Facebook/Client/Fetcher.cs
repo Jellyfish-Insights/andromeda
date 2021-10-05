@@ -457,7 +457,7 @@ namespace Jobs.Fetcher.Facebook {
 
                 if (edge.Summary) {
                     result.Add((JObject) row.SelectToken("summary"));
-                }else{
+                } else {
                     result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
                 }
 
