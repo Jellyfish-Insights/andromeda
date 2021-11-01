@@ -31,7 +31,7 @@
                 ["created_time"],
                 ["campaign", "stop_time"]
             ],
-            "granularity": "lifetime",
+            "granularity": "maximum",
             "columns": [
                 ["impressions", "integer"],
                 ["cpm", "double precision"],
