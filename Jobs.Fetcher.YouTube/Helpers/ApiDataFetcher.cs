@@ -174,7 +174,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             using (var dbContext = new DataLakeYouTubeAnalyticsContext()) {
                 var now = DateTime.UtcNow;
                 var mostRecentRecord = dbContext.VideoDailyMetrics
-                                           .Where(x => x.VideoId == video.VideoId && x.ValidityStart <= now && now < x.ValidityEnd)
+                                           .Where(x => x.VideoId == video.VideoId && x.ValidityStart <= now && x.ValidityEnd >= now)
                                            .OrderByDescending(x => x.Date)
                                            .FirstOrDefault();
                 return FetchVideoDailyMetrics(mostRecentRecord, channelId, video, now, analyticsService, logger, reprocess)

@@ -15,5 +15,20 @@ namespace Andromeda.Common.Extensions {
                 (acc, cur) => acc.Concat(cur)
                 );
         }
+
+        public static IEnumerable<List<T>> SplitIntoBatches<T>(this IEnumerable<T> source, int batchSize) {
+            List<T> currentBatch = new List<T>();
+            int count = 0;
+            foreach (T e in source) {
+                currentBatch.Add(e);
+                count++;
+                if (count >= batchSize) {
+                    yield return currentBatch;
+                    currentBatch = new List<T>();
+                    count = 0;
+                }
+            }
+            yield return currentBatch;
+        }
     }
 }
