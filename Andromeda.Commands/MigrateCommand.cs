@@ -21,6 +21,12 @@ namespace Andromeda.Commands {
                 case Databases.LakeLogging:
                     DatabaseOperations.Migrate<DataLakeLoggingContext>();
                     break;
+                case Databases.LakeTwitterData:
+                    DatabaseOperations.Migrate<DataLakeTwitterDataContext>();
+                    break;
+                case Databases.LakeTwitterAds:
+                    DatabaseOperations.Migrate<DataLakeTwitterAdsContext>();
+                    break;
                 case Databases.LakeFacebook:
                     Jobs.Fetcher.Facebook.DatabaseInitializer.Init(force_update);
                     Jobs.Fetcher.Facebook.DatabaseInitializer.Init(new List<string> { "instagram" });
@@ -34,6 +40,8 @@ namespace Andromeda.Commands {
             DatabaseOperations.Migrate<DataLakeYouTubeDataContext>();
             DatabaseOperations.Migrate<DataLakeYouTubeAnalyticsContext>();
             DatabaseOperations.Migrate<DataLakeAdWordsContext>();
+            DatabaseOperations.Migrate<DataLakeTwitterDataContext>();
+            DatabaseOperations.Migrate<DataLakeTwitterAdsContext>();
             DatabaseOperations.Migrate<DataLakeLoggingContext>();
             Console.WriteLine("Successfully migrated data-lake.");
         }

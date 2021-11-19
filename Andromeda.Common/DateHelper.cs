@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Andromeda.Common {
 
@@ -30,6 +31,29 @@ namespace Andromeda.Common {
             }
 
             yield return current;
+        }
+
+        public static IEnumerable<(DateTime, DateTime)> GetSemestersRange(DateTime startDate, DateTime endDate) {
+            return Enumerable.Range(0, ((endDate - startDate).Days / 180) + 1)
+                       .ToList()
+                       .Select(it => (startDate.AddMonths(it * 6), DateHelper.Min(startDate.AddMonths((it + 1) * 6), endDate)));
+        }
+
+        public static IEnumerable<(DateTime, DateTime)> GetWeeksRange(DateTime startDate, DateTime endDate) {
+            return Enumerable.Range(0, ((endDate - startDate).Days / 7) + 1)
+                       .ToList()
+                       .Select(it => (startDate.AddDays(it * 7), DateHelper.Min(startDate.AddDays((it + 1) * 7), endDate)));
+        }
+
+        public static DateTime GetDateOnly(DateTime dateTime) {
+            return new DateTime(dateTime.Year, dateTime.Month, dateTime.Day);
+        }
+
+        public static DateTime AddTimezoneOffset(DateTime dateTime, string timeZoneId) {
+            var dateOnly = GetDateOnly(dateTime);
+            var timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            var offset = timeZoneInfo.GetUtcOffset(dateOnly).Hours;
+            return dateOnly.AddHours(-offset);
         }
     }
 }

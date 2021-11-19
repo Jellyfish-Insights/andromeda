@@ -13,6 +13,7 @@
     <ProjectReference Include="..\Jobs.Fetcher.AdWords\Jobs.Fetcher.AdWords.csproj" />
     <ProjectReference Include="..\Jobs.Fetcher.YouTube\Jobs.Fetcher.YouTube.csproj" />
     <ProjectReference Include="..\Jobs.Fetcher.Facebook\Jobs.Fetcher.Facebook.csproj" />
+    <ProjectReference Include="..\Jobs.Fetcher.Twitter\Jobs.Fetcher.Twitter.csproj" />
   </ItemGroup>
 
   <ItemGroup>

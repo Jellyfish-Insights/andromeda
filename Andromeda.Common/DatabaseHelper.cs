@@ -16,6 +16,8 @@ namespace Andromeda.Common {
         LakeAdWords,
         LakeLogging,
         LakeFacebook,
+        LakeTwitterData,
+        LakeTwitterAds
     }
 
     public enum YearDatabase {
@@ -31,6 +33,7 @@ namespace Andromeda.Common {
                 case Databases.LakeYouTubeAnalytics:
                 case Databases.LakeAdWords:
                 case Databases.LakeLogging:
+                case Databases.LakeTwitterData:
                     settingsField = "DataLakeDatabase";
                     break;
                 case Databases.LakeFacebook:
