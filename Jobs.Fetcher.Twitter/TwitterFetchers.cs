@@ -55,24 +55,28 @@ namespace Jobs.Fetcher.Twitter {
 
                 foreach (var usrDir in Directory.GetDirectories("./credentials")) {
 
-                    var CredentialsFilePath = $"{usrDir}/twitter/{SecretsFile}";
+                    foreach (var channel in Directory.GetDirectories($"{usrDir}/twitter")) {
 
-                    if (!File.Exists(CredentialsFilePath)) {
-                        Console.WriteLine($"Missing or invalid TWitter credentials!");
-                        Console.WriteLine($"Couldn't find any credential on folder '{usrDir}/twitter'");
-                        continue;
-                    }
+                        var CredentialsFilePath = $"{channel}/{SecretsFile}";
 
-                    var text = File.ReadAllText(CredentialsFilePath);
+                        if (!File.Exists(CredentialsFilePath)) {
+                            Console.WriteLine($"Missing or invalid Twitter credentials!");
+                            Console.WriteLine($"Couldn't find any credential on folder '{usrDir}/twitter'");
+                            continue;
+                        }
 
-                    var credential = JsonConvert.DeserializeObject<TwitterCredentials>(text);
+                        var text = File.ReadAllText(CredentialsFilePath);
 
-                    if (credential.IsValid()) {
-                        Credentials.Add(credential.Username, credential);
+                        var credential = JsonConvert.DeserializeObject<TwitterCredentials>(text);
+
+                        if (credential.IsValid()) {
+                            Credentials.Add(credential.Username, credential);
+                        }
                     }
                 }
 
                 return Credentials;
+
             } catch (Exception e) {
 
                 // TODO log the error
