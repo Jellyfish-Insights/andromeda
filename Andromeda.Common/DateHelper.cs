@@ -34,12 +34,14 @@ namespace Andromeda.Common {
         }
 
         public static IEnumerable<(DateTime, DateTime)> GetSemestersRange(DateTime startDate, DateTime endDate) {
+            endDate = GetDateOnly(endDate).AddDays(1);
             return Enumerable.Range(0, ((endDate - startDate).Days / 180) + 1)
                        .ToList()
                        .Select(it => (startDate.AddMonths(it * 6), DateHelper.Min(startDate.AddMonths((it + 1) * 6), endDate)));
         }
 
         public static IEnumerable<(DateTime, DateTime)> GetWeeksRange(DateTime startDate, DateTime endDate) {
+            endDate = GetDateOnly(endDate).AddDays(1);
             return Enumerable.Range(0, ((endDate - startDate).Days / 7) + 1)
                        .ToList()
                        .Select(it => (startDate.AddDays(it * 7), DateHelper.Min(startDate.AddDays((it + 1) * 7), endDate)));
