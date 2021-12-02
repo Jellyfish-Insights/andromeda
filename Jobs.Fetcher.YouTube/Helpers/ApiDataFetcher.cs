@@ -170,6 +170,33 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             }
         }
 
+        public static YTA.VideoDailyMetric FetchSubscriberViews(YTA.VideoDailyMetric thisVideoMetric, string channelId, YouTubeAnalyticsService analyticsService, Logger logger, bool reprocessMetrics = false) {
+            var thisDate = thisVideoMetric.Date;
+
+            var reportRequest = analyticsService.Reports.Query();
+            reportRequest.Ids = $"channel=={channelId}";
+            reportRequest.StartDate = thisDate.ToString("yyyy-MM-dd");
+            reportRequest.EndDate = thisDate.ToString("yyyy-MM-dd");
+            reportRequest.Metrics = "views";
+            reportRequest.Filters = $"video=={thisVideoMetric.VideoId};subscribedStatus==SUBSCRIBED";
+            reportRequest.Dimensions = "subscribedStatus,day";
+
+            //Thread.Sleep(50);
+            try{
+                var report = reportRequest.ExecuteAsync().Result;
+                if (report.Rows != null) {
+                    foreach (var row in report.Rows) {
+                        thisVideoMetric.SubscriberViews = (long)row[2];
+                    }
+                }
+            }
+            catch{
+                //logger.Information("Could not get Subscriber Views");
+            }
+            
+            return thisVideoMetric;
+        }
+
         public static IEnumerable<YTA.VideoDailyMetric> FetchDailyMetrics(YouTubeAnalyticsService analyticsService, string channelId, YTD.Video video, Logger logger, bool reprocess = false) {
             using (var dbContext = new DataLakeYouTubeAnalyticsContext()) {
                 var now = DateTime.UtcNow;
@@ -178,7 +205,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                                            .OrderByDescending(x => x.Date)
                                            .FirstOrDefault();
                 return FetchVideoDailyMetrics(mostRecentRecord, channelId, video, now, analyticsService, logger, reprocess)
-                           .Select(x => Api2DbObjectConverter.ConvertDailyMetricRow(video.VideoId, x));
+                           .Select(x => FetchSubscriberViews(Api2DbObjectConverter.ConvertDailyMetricRow(video.VideoId, x), channelId, analyticsService, logger));
             }
         }
 
