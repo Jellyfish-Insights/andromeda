@@ -53,7 +53,6 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                        Comments = (long) row[4],
                        AverageViewDuration = (long) row[5],
                        Dislikes = (long) row[6],
-                       SubscriberViews = 0,
                        SubscribersGained = (long) row[7],
                        SubscribersLost = (long) row[8],
                        VideosAddedToPlaylists = (long) row[9],
