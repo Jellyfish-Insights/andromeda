@@ -10,6 +10,7 @@ namespace DataLakeModels.Models.YouTube.Analytics {
         public string VideoId { get; set; }
         public long Views { get; set; }
         public long Likes { get; set; }
+        public long SubscriberViews { get; set; }
         public long Shares { get; set; }
         public long Comments { get; set; }
         public long AverageViewDuration { get; set; }
@@ -26,6 +27,7 @@ namespace DataLakeModels.Models.YouTube.Analytics {
                    Comments == other.Comments &&
                    AverageViewDuration == other.AverageViewDuration &&
                    Dislikes == other.Dislikes &&
+                   SubscriberViews == other.SubscriberViews &&
                    SubscribersGained == other.SubscribersGained &&
                    SubscribersLost == other.SubscribersLost &&
                    VideosAddedToPlaylists == other.VideosAddedToPlaylists &&
