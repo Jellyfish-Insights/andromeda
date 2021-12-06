@@ -60,6 +60,7 @@
             "metrics": [
                 ["total_video_views", "bigint"],
                 ["total_video_views_paid", "bigint"],
+                ["total_video_views_unique", "bigint"],
                 ["total_video_impressions", "bigint"],
                 ["total_video_impressions_paid", "bigint"],
                 ["total_video_retention_graph", "jsonb"],
