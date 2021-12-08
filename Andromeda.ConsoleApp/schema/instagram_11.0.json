@@ -16,14 +16,58 @@
             ["id","bigint"],
             ["ig_id","bigint"],
             ["like_count","bigint"],
+            ["media_product_type", "text"],
             ["media_type","text"],
             ["media_url","text"],
             ["permalink","text"],
             ["shortcode","text"],
             ["thumbnail_url","text"],
-            ["timestamp","timestamp without time zone"]
+            ["timestamp","timestamp without time zone"],
+            ["video_title", "text"],
+            ["comments", "json"]
         ],
-        "edges": [],
+        "edges": [{
+            "name": "comments",
+            "time": [],
+            "columns": [
+                ["hidden", "bool"],
+                ["id", "bigint"],
+                ["like_count", "bigint"],
+                ["media", "json"],
+                ["replies", "json"],
+                ["text", "text"],
+                ["timestamp", "timestamp without time zone"],
+                ["username", "text"]
+            ],
+            "edges": [{
+                "name": "replies",
+                "time": [],
+                "columns": [
+                    ["hidden", "bool"],
+                    ["id", "bigint"],
+                    ["like_count", "bigint"],
+                    ["media", "json"],
+                    ["text", "text"],
+                    ["timestamp", "timestamp without time zone"],
+                    ["username", "text"]
+                ],
+                "edges": []
+            }]
+        },{
+            "name": "children",
+            "time": [],
+            "columns": [
+                ["id","bigint"],
+                ["ig_id","bigint"],
+                ["media_type","text"],
+                ["media_url","text"],
+                ["permalink","text"],
+                ["shortcode","text"],
+                ["thumbnail_url","text"],
+                ["timestamp","timestamp without time zone"]
+            ],
+            "edges": []
+        }],
         "instagram_insights": [{
             "name": "insights",
             "instagram_media_type": "video",
@@ -62,7 +106,23 @@
                 ["carousel_album_engagement", "bigint"],
                 ["carousel_album_impressions", "bigint"],
                 ["carousel_album_reach", "bigint"],
-                ["carousel_album_saved", "bigint"]
+                ["carousel_album_saved", "bigint"],
+                ["carousel_album_video_views", "bigint"]
+            ]
+        },{
+            "name": "insights",
+            "instagram_media_type": "story",
+            "columns": [],
+            "bounds": [],
+            "granularity": "lifetime",
+            "time": [],
+            "metrics": [
+                ["exits", "bigint"],
+                ["impressions", "bigint"],
+                ["reach", "bigint"],
+                ["replies", "bigint"],
+                ["taps_forward", "bigint"],
+                ["taps_back", "bigint"]
             ]
         } ]
     }],
