@@ -209,7 +209,6 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             catch {
                 //logger.Information("Could not get Subscriber Views");
             }
-
             return subscriberViewsList;
         }
 
