@@ -32,7 +32,7 @@ namespace Jobs.Fetcher.YouTube {
 
                 if (usrDirs.Any(dir => dir.Contains("youtube") || dir.Contains("facebook") || dir.Contains("instagram"))) {
                     Console.WriteLine($"Detected old folder structure. Loading only the old structure credentials. Please, consider changing to the new folder structure");
-                    jobs.AddRange(GetListOfJobs(youtubeServices));
+                    jobs.AddRange(GetListOfJobs(youtubeServices, jobConfiguration.ForceFetch));
                 } else {
                     foreach (var usrDir in usrDirs) {
                         CredentialsDir = $"{usrDir}/youtube";
@@ -43,7 +43,7 @@ namespace Jobs.Fetcher.YouTube {
                             continue;
                         }
 
-                        jobs.AddRange(GetListOfJobs(youtubeServices));
+                        jobs.AddRange(GetListOfJobs(youtubeServices, jobConfiguration.ForceFetch));
                     }
                 }
             }
@@ -97,7 +97,7 @@ namespace Jobs.Fetcher.YouTube {
             });
         }
 
-        private List<AbstractJob> GetListOfJobs(List<(YouTubeService, YouTubeAnalyticsService)> youtubeServices) {
+        private List<AbstractJob> GetListOfJobs(List<(YouTubeService, YouTubeAnalyticsService)> youtubeServices, bool forceFetch) {
             foreach (var directory in Directory.GetDirectories(CredentialsDir)) {
                 youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
             }
@@ -114,7 +114,7 @@ namespace Jobs.Fetcher.YouTube {
                        new DailyVideoMetricsQuery(youtubeServices),
                        new ViewerPercentageMetricsQuery(youtubeServices),
                        new StatisticsQuery(youtubeServices),
-                       new ReprocessDailyVideoMetricsQuery(youtubeServices),
+                       new ReprocessDailyVideoMetricsQuery(youtubeServices, forceFetch),
             };
         }
     }

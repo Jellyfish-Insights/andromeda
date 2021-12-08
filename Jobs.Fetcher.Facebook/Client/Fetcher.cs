@@ -318,7 +318,7 @@ namespace Jobs.Fetcher.Facebook {
             }
             JObject row = FetchInsights(node["id"].ToString(), edge, new Range<DateTime>(startN - new TimeSpan(3, 0, 0, 0), upperLimit));
             JObject nobj;
-            if (edge.Transposed) {
+            if (edge.Transposed && row.SelectToken("data").Count() > 0) {
                 nobj = new JObject();
                 List<JObject> result = new List<JObject>();
                 result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
