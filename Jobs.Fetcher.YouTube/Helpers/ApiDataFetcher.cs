@@ -202,7 +202,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 var report = reportRequest.ExecuteAsync().Result;
                 if (report.Rows != null) {
                     foreach (var row in report.Rows) {
-                        thisVideoMetric.SubscriberViews = (long)row[2];
+                        subscriberViewsList.Add((Convert.ToDateTime(row[1]).Date, (long)row[2]));
                     }
                 }
             }
@@ -210,7 +210,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 //logger.Information("Could not get Subscriber Views");
             }
             
-            return thisVideoMetric;
+            return subscriberViewsList;
         }
 
         public static IEnumerable<YTA.VideoDailyMetric> FetchDailyMetrics(YouTubeAnalyticsService analyticsService, string channelId, YTD.Video video, Logger logger, bool reprocess = false) {
@@ -220,8 +220,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                                            .Where(x => x.VideoId == video.VideoId && x.ValidityStart <= now && x.ValidityEnd >= now)
                                            .OrderByDescending(x => x.Date)
                                            .FirstOrDefault();
-                return FetchVideoDailyMetrics(mostRecentRecord, channelId, video, now, analyticsService, logger, reprocess)
-                           .Select(x => FetchSubscriberViews(Api2DbObjectConverter.ConvertDailyMetricRow(video.VideoId, x), channelId, analyticsService, logger));
+
+                var videoDailyMetrics = FetchVideoDailyMetrics(mostRecentRecord, channelId, video, now, analyticsService, logger, reprocess);
+                var subscriberViews = FetchSubscriberViews(mostRecentRecord, channelId, video, now, analyticsService, logger, reprocess);
+                return videoDailyMetrics.Select(x => Api2DbObjectConverter.ConvertDailyMetricRow(video.VideoId, x, subscriberViews));
             }
         }
 
