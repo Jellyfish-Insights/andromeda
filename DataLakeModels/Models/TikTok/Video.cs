@@ -25,7 +25,6 @@ namespace DataLakeModels.Models.TikTok {
         public string EncodedUserTag { get; set; }
         public string CodecType { get; set; }
         public string Definition { get; set; }
-        public ICollection<Post> Posts { get; set; }
 
         bool IEquatable<Video>.Equals(Video other) {
             return Id == other.Id &&

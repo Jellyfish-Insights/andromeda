@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DataLakeModels.Models.TikTok {
 
-    public class Post : IEquatable<Post>, IValidityRange {
+    public class Post : IEquatable<Post> {
 
         /// <summary>
         /// Unique identifier of the post.
@@ -23,35 +23,32 @@ namespace DataLakeModels.Models.TikTok {
         /// <summary>
         /// 
         /// </summary>
-        public string VideoId { get; set; }
-        public Video Video { get; set; }
+        public ICollection<Video> Video { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
-        public string AuthorId { get; set; }
-        public Author Author { get; set; }
+        public ICollection<Author> Author { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
-        public string MusicId { get; set; }
-        public Music Music { get; set; }
+        public ICollection<Music> Music { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
-        public List<string> ChallengeIds { get; set; }
+        public ICollection<Challenge> Challenges { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<PostStats> Stats { get; set; }
+        public ICollection<Stats> Stats { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
-        public string DuetInfo { get; set; }
+        public List<string> DuetInfo { get; set; }
         
         /// <summary>
         /// 
@@ -66,7 +63,7 @@ namespace DataLakeModels.Models.TikTok {
         /// <summary>
         /// 
         /// </summary>
-        public List<string> TagIds { get; set; }
+        public ICollection<Tag> Tags { get; set; }
         
         /// <summary>
         /// 
@@ -106,7 +103,12 @@ namespace DataLakeModels.Models.TikTok {
         /// <summary>
         /// 
         /// </summary>
-        public List<string> EffectStickerIds { get; set; }
+        public ICollection<EffectSticker> EffectStickers { get; set; }
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        public ICollection<AuthorStats> AuthorStats { get; set; }
         
         /// <summary>
         /// 
@@ -142,9 +144,6 @@ namespace DataLakeModels.Models.TikTok {
         /// 
         /// </summary>
         public int StitchDisplay { get; set; }
-        
-        public DateTime ValidityStart { get; set; }
-        public DateTime ValidityEnd { get; set; }
 
         /************* METRICS ************/
 

@@ -1,8 +1,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using DataLakeModels.Models.TikTok;
+using DataLakeModels.Models.Twitter.Ads;
 
-namespace DataLakeModels {
+/*namespace DataLakeModels {
 
     public partial class DataLakeTikTokContext : AbstractDataLakeContext {
 
@@ -14,14 +14,11 @@ namespace DataLakeModels {
             modelBuilder.HasDefaultSchema($"tiktok_v{TikTokCrawlerVersion}");
 
             modelBuilder.Entity<Author>()
-                .HasKey(table => new { table.Id });
-            
-            modelBuilder.Entity<AuthorStats>()
-                .HasKey(table => new { table.AuthorId, table.ValidityStart});
+                .HasKey(table => new { table.Id, table.UniqueId });
 
             modelBuilder.Entity<AuthorStats>()
                 .HasOne(table => table.Author)
-                .WithMany(author => author.Stats)
+                .WithMany(author => author.AuthorStats)
                 .HasForeignKey(table => table.AuthorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -37,32 +34,14 @@ namespace DataLakeModels {
             modelBuilder.Entity<Post>()
                 .HasKey(table => new { table.Id });
 
-            modelBuilder.Entity<Post>()
-                .HasOne(table => table.Author)
-                .WithMany(post => post.Posts)
-                .HasForeignKey(table => table.AuthorId);
-
-            modelBuilder.Entity<Post>()
-                .HasOne(table => table.Music)
-                .WithMany(post => post.Posts)
-                .HasForeignKey(table => table.MusicId);
-            
-            modelBuilder.Entity<Post>()
-                .HasOne(table => table.Video)
-                .WithMany(post => post.Posts)
-                .HasForeignKey(table => table.VideoId);
-
-            modelBuilder.Entity<PostStats>()
-                .HasKey(table => new { table.PostId, table.ValidityStart});
-
-            modelBuilder.Entity<PostStats>()
+            modelBuilder.Entity<Stats>()
                 .HasOne(table => table.Post)
                 .WithMany(post => post.Stats)
                 .HasForeignKey(table => table.PostId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Tag>()
-                .HasKey(table => new { table.HashtagId });
+                .HasKey(table => new { table.AweMeId });
 
             modelBuilder.Entity<Video>()
                 .HasKey(table => new { table.Id });
@@ -71,11 +50,11 @@ namespace DataLakeModels {
         public virtual DbSet<Author> Authors { get; set; }
         public virtual DbSet<AuthorStats> AuthorStats { get; set; }
         public virtual DbSet<Challenge> Challenges { get; set; }
-        public virtual DbSet<EffectSticker> EffectStickers { get; set; }
         public virtual DbSet<Music> Music { get; set; }
         public virtual DbSet<Post> Posts { get; set; }
-        public virtual DbSet<PostStats> Stats { get; set; }
+        public virtual DbSet<Stats> Stats { get; set; }
         public virtual DbSet<Tag> Tags { get; set; }
         public virtual DbSet<Video> Videos { get; set; }
     }
 }
+*/

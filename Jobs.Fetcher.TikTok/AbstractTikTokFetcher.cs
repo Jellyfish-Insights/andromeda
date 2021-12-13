@@ -6,21 +6,21 @@ using System.Collections.Generic;
 
 namespace Jobs.Fetcher.TikTok {
     public abstract class AbstractTikTokFetcher : AbstractJob {
-        protected List<string> Usernames { get; }
-        public AbstractTikTokFetcher(List<string> usernames) {
-            Usernames = usernames;
-        }
+        //protected Dictionary<string, ITwitterClient> Clients { get; }
+        /*public AbstractTwitterFetcher(Dictionary<string, ITwitterClient> clients) {
+            Clients = clients;
+        }*/
 
         protected override Logger GetLogger() {
             return LoggerFactory.GetLogger<DataLakeLoggingContext>(Id());
         }
 
         public override void Run() {
-            foreach (var username in Usernames) {
-                RunBody(username);
+            foreach (var client in Clients) {
+                RunBody(client);
             }
         }
 
-        abstract public void RunBody(string username);
+        abstract public void RunBody();
     }
 }

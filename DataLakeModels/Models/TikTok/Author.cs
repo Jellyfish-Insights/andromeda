@@ -11,10 +11,10 @@ namespace DataLakeModels.Models.TikTok {
         public string Nickname { get; set; }
         public string AvatarThumbnail { get; set; }
         public string AvatarMedium { get; set; }
-        public string AvatarLarge { get; set; }
+        public string AvatarLarger { get; set; }
         public string Signature { get; set; }
         public bool Verified { get; set; }
-        public string SecurityUId { get; set; }
+        public string SecurityUID { get; set; }
         public bool Secret { get; set; }
         public bool FTC  { get; set; }
         public int Relation { get; set; }
@@ -22,9 +22,7 @@ namespace DataLakeModels.Models.TikTok {
         public int CommentSetting { get; set; }
         public int DuetSetting { get; set; }
         public int StitchSetting { get; set; }
-        public bool PrivateAccount { get; set; }
-        public ICollection<AuthorStats> Stats { get; set; }
-        public ICollection<Post> Posts { get; set; }
+        public bool privateAccount { get; set; }
         
         bool IEquatable<Author>.Equals(Author other) {
             return Id == other.Id &&
@@ -32,7 +30,7 @@ namespace DataLakeModels.Models.TikTok {
                    Nickname == other.Nickname &&
                    Signature == other.Signature &&
                    Verified == other.Verified &&
-                   SecurityUId == other.SecurityUId &&
+                   SecurityUID == other.SecurityUID &&
                    Secret == other.Secret &&
                    FTC == other.FTC &&
                    Relation == other.Relation &&
@@ -40,7 +38,7 @@ namespace DataLakeModels.Models.TikTok {
                    CommentSetting == other.CommentSetting &&
                    DuetSetting == other.DuetSetting &&
                    StitchSetting == other.StitchSetting &&
-                   PrivateAccount == other.PrivateAccount;
+                   privateAccount == other.privateAccount;
         }
     }
 }

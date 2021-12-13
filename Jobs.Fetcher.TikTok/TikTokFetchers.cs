@@ -11,7 +11,6 @@ namespace Jobs.Fetcher.TikTok {
     public class TikTokFetchers : FetcherJobsFactory {
 
         public override JobScope Scope { get; } = JobScope.TikTok;
-        public string CredentialsDir = "./credentials/tiktok";
         //private string SecretsFile = "tiktok_credentials.json";
 
         public override IEnumerable<AbstractJob> GetJobs(
@@ -24,56 +23,67 @@ namespace Jobs.Fetcher.TikTok {
                 return NoJobs;
             }
 
-            var usernames = GetTikTokUsers();
-            var jobs = GetListOfJobs(usernames);
+            //Dictionary<string, TikTokCredentials> credentials = GetTikTokCredentials();
 
-            return FilterByName(jobs, names);
+            //Dictionary<string, ITikTokClient> dataClients = BuildTikTokDataClients(credentials);
+
+            return new List<AbstractJob>() {
+                       //new UserQuery(dataClients),
+            };
         }
+/*
+        private Dictionary<string, TwitterCredentials> GetTwitterCredentials() {
 
-        private List<string> GetTikTokUsers(){
-            var tiktokUsernames = new List<string>();
+            var Credentials = new Dictionary<string, TwitterCredentials>();
+
             try {
-                var usrDirs = Directory.GetDirectories("./credentials");
 
-                if (usrDirs.Any(dir => dir.Contains("youtube") || dir.Contains("facebook") || dir.Contains("instagram"))) {
-                    Console.WriteLine($"Detected old folder structure. Loading only the old structure credentials, where TikTok is not available. Please, consider changing to the new folder structure");
-                } else {
-                    foreach (var usrDir in usrDirs) {
-                        CredentialsDir = $"{usrDir}/tiktok";
+                foreach (var usrDir in Directory.GetDirectories("./credentials")) {
 
-                        if (!Directory.Exists(CredentialsDir)) {
-                            Console.WriteLine($"Missing or invalid TikTok channels!");
-                            Console.WriteLine($"Couldn't find any credential on folder '{CredentialsDir}'");
+                    foreach (var channel in Directory.GetDirectories($"{usrDir}/tiktok")) {
+
+                        var CredentialsFilePath = $"{channel}/{SecretsFile}";
+
+                        if (!File.Exists(CredentialsFilePath)) {
+                            Console.WriteLine($"Missing or invalid Twitter credentials!");
+                            Console.WriteLine($"Couldn't find any credential on folder '{usrDir}/tiktok'");
                             continue;
                         }
-                        foreach (var user in Directory.GetFiles(CredentialsDir)) {
-                            var text = File.ReadAllText($"{user}");
-                            var username = JsonConvert.DeserializeObject<TikTokUsers>(text);
 
-                            if (username.IsValid()) {
-                                tiktokUsernames.Add(username.Name);
-                            }
+                        var text = File.ReadAllText(CredentialsFilePath);
+
+                        var credential = JsonConvert.DeserializeObject<TwitterCredentials>(text);
+
+                        if (credential.IsValid()) {
+                            Credentials.Add(credential.Username, credential);
                         }
                     }
                 }
 
+                return Credentials;
+
+            } catch (Exception e) {
+
+                // TODO log the error
+                System.Console.WriteLine(e.ToString());
+                return new Dictionary<string, TwitterCredentials>();
             }
-            catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
-            {
-                string message = String.Format("Missing or invalid TikTok credentials!\n{0}", e.Message);
-                if (e is DirectoryNotFoundException) {
-                    message = String.Format("{0}\nCheck if the path above exists!", message);
-                }
-                Console.WriteLine(message);
-            };
-            return tiktokUsernames;
         }
-    
-        private List<AbstractJob> GetListOfJobs(List<String> tiktokAccountNames) {
-            return new List<AbstractJob>() {
-                new ScrapperAccountAdd(tiktokAccountNames),
-                new PostsQuery(tiktokAccountNames)
-            };
+
+        private Dictionary<string, ITwitterClient> BuildTwitterAdsClients(
+            Dictionary<string, TwitterCredentials> credentials) {
+
+            return credentials.ToDictionary(
+                kvp => kvp.Key, kvp => new TwitterAdsClient(new ReadOnlyTwitterCredentials(kvp.Value as IReadOnlyTwitterCredentials)) as ITwitterClient
+                );
         }
+
+        private Dictionary<string, ITwitterClient> BuildTwitterDataClients(
+            Dictionary<string, TwitterCredentials> credentials) {
+
+            return credentials.ToDictionary(
+                kvp => kvp.Key, kvp => new TwitterDataClient(new ReadOnlyTwitterCredentials(kvp.Value as IReadOnlyTwitterCredentials)) as ITwitterClient
+                );
+        }*/
     }
 }
