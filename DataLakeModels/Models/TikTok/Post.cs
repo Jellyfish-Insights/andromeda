@@ -28,7 +28,7 @@ namespace DataLakeModels.Models.TikTok {
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<Author> Author { get; set; }
+        public Author Author { get; set; }
         
         /// <summary>
         /// 
@@ -43,12 +43,12 @@ namespace DataLakeModels.Models.TikTok {
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<Stats> Stats { get; set; }
+        public ICollection<PostStats> Stats { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
-        public List<string> DuetInfo { get; set; }
+        public string DuetInfo { get; set; }
         
         /// <summary>
         /// 
@@ -104,11 +104,6 @@ namespace DataLakeModels.Models.TikTok {
         /// 
         /// </summary>
         public ICollection<EffectSticker> EffectStickers { get; set; }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        public ICollection<AuthorStats> AuthorStats { get; set; }
         
         /// <summary>
         /// 

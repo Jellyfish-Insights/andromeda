@@ -77,8 +77,6 @@ namespace Jobs.Fetcher.YouTube {
                 if (item.Lifetime > 0) {
                     var ratio = Math.Abs((double) item.Lifetime - item.Total) / ((double) item.Lifetime);
                     if (forceFetch || Math.Abs(ratio) > comparisonThreshold && item.Lifetime > comparisonMinLimit) {
-                        Console.WriteLine("Reprocessing video {0}: daily views {1} from {4} to {5}, lifetime views {2} at {6} and ratio {3}"
-                                           , item.Id.VideoId, item.Total, item.Lifetime, ratio, item.DailyStart, item.DailyEnd, item.LifetimeDate);
                         Logger.Information("Reprocessing video {0}: daily views {1} from {4} to {5}, lifetime views {2} at {6} and ratio {3}"
                                            , item.Id.VideoId, item.Total, item.Lifetime, ratio, item.DailyStart, item.DailyEnd, item.LifetimeDate);
                         DbWriter.Write(ApiDataFetcher.FetchDailyMetrics(AnalyticsService, channelId, item.Id, Logger, true));
