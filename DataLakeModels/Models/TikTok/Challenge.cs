@@ -11,10 +11,10 @@ namespace DataLakeModels.Models.TikTok {
         public string Description { get; set; }
         public string ProfileThumbnail { get; set; }
         public string ProfileMedium { get; set; }
-        public string ProfileLarger { get; set; }
+        public string ProfileLarge { get; set; }
         public string CoverThumbnail { get; set; }
         public string CoverMedium { get; set; }
-        public string CoverLarger { get; set; }
+        public string CoverLarge { get; set; }
         public bool IsCommerce { get; set; }
         
         bool IEquatable<Challenge>.Equals(Challenge other) {
