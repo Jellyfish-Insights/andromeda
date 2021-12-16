@@ -11,7 +11,7 @@ namespace DataLakeModels.Models.TikTok {
         public string PlayUrl { get; set; }
         public string CoverThumb { get; set; }
         public string CoverMedium { get; set; }
-        public string CoverLarger { get; set; }
+        public string CoverLarge { get; set; }
         public string AuthorName { get; set; }
         public bool Original { get; set; }
         public int Duration { get; set; }

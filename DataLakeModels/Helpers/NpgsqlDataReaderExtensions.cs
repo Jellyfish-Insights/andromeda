@@ -7,7 +7,7 @@ namespace DataLakeModels.Helpers {
         public static T Prim<T>(this NpgsqlDataReader reader, string name) {
             var ordinal = reader.GetOrdinal(name);
             if (reader.IsDBNull(ordinal)) {
-                throw new NullReferenceException("accessing non nullable fied");
+                throw new NullReferenceException("accessing non nullable field");
             } else {
                 return (T) reader.GetFieldValue<T>(ordinal);
             }

@@ -10,12 +10,12 @@ namespace DataLakeModels.Models.TikTok {
         public int Start { get; set; }
         public int End { get; set; }
         public string HashtagName { get; set; }
-        public string HashtagID { get; set; }
+        public string HashtagId { get; set; }
         public int Type { get; set; }
-        public string UserID { get; set; }
+        public string UserId { get; set; }
         public bool IsCommerce { get; set; }
-        public string UserUniqueID { get; set; }
-        public string SecureUID { get; set; }
+        public string UserUniqueId { get; set; }
+        public string SecureUId { get; set; }
         public int SubType  { get; set; }
 
         bool IEquatable<Tag>.Equals(Tag other) {
@@ -23,12 +23,12 @@ namespace DataLakeModels.Models.TikTok {
                    Start == other.Start &&
                    End == other.End &&
                    HashtagName == other.HashtagName &&
-                   HashtagID == other.HashtagID &&
+                   HashtagId == other.HashtagId &&
                    Type == other.Type &&
-                   UserID == other.UserID &&
+                   UserId == other.UserId &&
                    IsCommerce == other.IsCommerce &&
-                   UserUniqueID == other.UserUniqueID &&
-                   SecureUID == other.SecureUID &&
+                   UserUniqueId == other.UserUniqueId &&
+                   SecureUId == other.SecureUId &&
                    SubType == other.SubType;
         }
     }

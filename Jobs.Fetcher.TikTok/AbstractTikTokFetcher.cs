@@ -16,9 +16,10 @@ namespace Jobs.Fetcher.TikTok {
         }
 
         public override void Run() {
-            foreach (var client in Clients) {
+            RunBody();
+            /*foreach (var client in Clients) {
                 RunBody(client);
-            }
+            }*/
         }
 
         abstract public void RunBody();
