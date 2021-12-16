@@ -5,28 +5,70 @@ using Serilog.Core;
 using DataLakeModels;
 using DataLakeModels.Models;
 using DataLakeModels.Helpers;
-using DataLakeModels.Models.Twitter.Data;
+using DataLakeModels.Models.TikTok;
 
 using Andromeda.Common;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace Jobs.Fetcher.Twitter.Helpers {
+namespace Jobs.Fetcher.TikTok.Helpers {
 
     public static class DbWriter {
         //Functions to simplify writing information on DataLake for Tik Tok data. Have writers for every model or specific info when necessary
 
-        public static void WriteAuthor(Author newEntry, DataLakeTikTokDataContext dbContext, Logger logger){
-            var oldEntry = dbContext.Users.Find(newEntry.Id);
-            Upsert<User, DataLakeTikTokDataContext>(oldEntry, newEntry, dbContext, logger);
+        public static void WriteAuthor(Author newEntry, DataLakeTikTokContext dbContext, Logger logger){
+            var oldEntry = dbContext.Authors.Find(newEntry.Id);
+            Upsert<Author, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
             dbContext.SaveChanges();
         }
-
-        /*public static void WriteAuthor(Author newEntry, DataLakeTikTokDataContext dbContext, Logger logger){
-            var oldEntry = dbContext.Users.Find(newEntry.Id);
-            Upsert<User, DataLakeTikTokDataContext>(oldEntry, newEntry, dbContext, logger);
+        public static void WriteAuthorStats(AuthorStats newEntry, DataLakeTikTokContext dbContext, Logger logger){
+            var now = DateTime.UtcNow;
+            var oldEntry = dbContext.AuthorStats.SingleOrDefault(m => m.AuthorId == newEntry.AuthorId && m.ValidityStart <= now && m.ValidityEnd > now);
+            Insert<AuthorStats, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
             dbContext.SaveChanges();
-        }*/
+        }
+        public static void WriteChallenges(List<Challenge> newEntries, DataLakeTikTokContext dbContext, Logger logger){
+            foreach(var newEntry in newEntries){
+                var oldEntry = dbContext.Challenges.Find(newEntry.Id);
+                Upsert<Challenge, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
+            }
+            dbContext.SaveChanges();
+        }
+        public static void WriteEffectStickers(List<EffectSticker> newEntries, DataLakeTikTokContext dbContext, Logger logger){
+            foreach(var newEntry in newEntries){
+                var oldEntry = dbContext.EffectStickers.Find(newEntry.Id);
+                Upsert<EffectSticker, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
+            }
+            dbContext.SaveChanges();
+        }
+        public static void WriteMusic(Music newEntry, DataLakeTikTokContext dbContext, Logger logger){
+            var oldEntry = dbContext.Music.Find(newEntry.Id);
+            Upsert<Music, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
+            dbContext.SaveChanges();
+        }
+        public static void WritePost(Post newEntry, DataLakeTikTokContext dbContext, Logger logger){
+
+            var oldEntry = dbContext.Posts.Find(newEntry.Id);
+            Upsert<Post, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
+            dbContext.SaveChanges();
+        }
+        public static void WritePostStats(PostStats newEntry, DataLakeTikTokContext dbContext, Logger logger){
+            var now = DateTime.UtcNow;
+            var oldEntry = dbContext.Stats.SingleOrDefault(m => m.PostId == newEntry.PostId && m.ValidityStart <= now && m.ValidityEnd > now);
+            Insert<PostStats, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
+        }
+        public static void WriteTags(List<Tag> newEntries, DataLakeTikTokContext dbContext, Logger logger){
+            foreach(var newEntry in newEntries){
+                var oldEntry = dbContext.Tags.Find(newEntry.HashtagId);
+                Upsert<Tag, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
+            }
+            dbContext.SaveChanges();
+        }
+        public static void WriteVideo(Video newEntry, DataLakeTikTokContext dbContext, Logger logger){
+            var oldEntry = dbContext.Videos.Find(newEntry.Id);
+            Upsert<Video, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
+            dbContext.SaveChanges();
+        }
 
         private static void Upsert<T, Context>(
             T oldEntry,
