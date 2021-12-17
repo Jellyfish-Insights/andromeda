@@ -16,6 +16,7 @@ namespace DataLakeModels.Models.TikTok {
         public bool Original { get; set; }
         public int Duration { get; set; }
         public string Album { get; set; }
+        public ICollection<Post> Posts { get; set; }
         
         bool IEquatable<Music>.Equals(Music other) {
             return Id == other.Id &&
