@@ -23,22 +23,25 @@ namespace DataLakeModels.Models.TikTok {
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<Video> Video { get; set; }
+        public string VideoId { get; set; }
+        public Video Video { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
+        public string AuthorId { get; set; }
         public Author Author { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<Music> Music { get; set; }
+        public string MusicId { get; set; }
+        public Music Music { get; set; }
         
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<Challenge> Challenges { get; set; }
+        public List<string> ChallengeIds { get; set; }
         
         /// <summary>
         /// 
@@ -63,7 +66,7 @@ namespace DataLakeModels.Models.TikTok {
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<Tag> Tags { get; set; }
+        public List<string> TagIds { get; set; }
         
         /// <summary>
         /// 
@@ -103,7 +106,7 @@ namespace DataLakeModels.Models.TikTok {
         /// <summary>
         /// 
         /// </summary>
-        public ICollection<EffectSticker> EffectStickers { get; set; }
+        public List<string> EffectStickerIds { get; set; }
         
         /// <summary>
         /// 

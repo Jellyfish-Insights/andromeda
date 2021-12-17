@@ -37,6 +37,21 @@ namespace DataLakeModels {
             modelBuilder.Entity<Post>()
                 .HasKey(table => new { table.Id });
 
+            modelBuilder.Entity<Post>()
+                .HasOne(table => table.Author)
+                .WithMany(post => post.Posts)
+                .HasForeignKey(table => table.AuthorId);
+
+            modelBuilder.Entity<Post>()
+                .HasOne(table => table.Music)
+                .WithMany(post => post.Posts)
+                .HasForeignKey(table => table.MusicId);
+            
+            modelBuilder.Entity<Post>()
+                .HasOne(table => table.Video)
+                .WithMany(post => post.Posts)
+                .HasForeignKey(table => table.VideoId);
+
             modelBuilder.Entity<PostStats>()
                 .HasKey(table => new { table.PostId, table.ValidityStart});
 

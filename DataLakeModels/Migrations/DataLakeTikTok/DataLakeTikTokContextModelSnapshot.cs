@@ -103,8 +103,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<bool>("IsCommerce");
 
-                    b.Property<string>("PostId");
-
                     b.Property<string>("ProfileLarge");
 
                     b.Property<string>("ProfileMedium");
@@ -114,8 +112,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     b.Property<string>("Title");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PostId");
 
                     b.ToTable("Challenges");
                 });
@@ -127,11 +123,7 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<string>("Name");
 
-                    b.Property<string>("PostId");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("PostId");
 
                     b.ToTable("EffectStickers");
                 });
@@ -157,13 +149,9 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<string>("PlayUrl");
 
-                    b.Property<string>("PostId");
-
                     b.Property<string>("Title");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PostId");
 
                     b.ToTable("Music");
                 });
@@ -174,6 +162,8 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                         .ValueGeneratedOnAdd();
 
                     b.Property<string>("AuthorId");
+
+                    b.Property<List<string>>("ChallengeIds");
 
                     b.Property<DateTime>("CreateTime");
 
@@ -187,6 +177,8 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<string>("DuetInfo");
 
+                    b.Property<List<string>>("EffectStickerIds");
+
                     b.Property<bool>("ForFriend");
 
                     b.Property<bool>("IsAd");
@@ -194,6 +186,8 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     b.Property<int>("ItemCommentStatus");
 
                     b.Property<bool>("ItemMute");
+
+                    b.Property<string>("MusicId");
 
                     b.Property<bool>("OfficialItem");
 
@@ -211,11 +205,19 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<bool>("StitchEnabled");
 
+                    b.Property<List<string>>("TagIds");
+
                     b.Property<bool>("VL1");
+
+                    b.Property<string>("VideoId");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AuthorId");
+
+                    b.HasIndex("MusicId");
+
+                    b.HasIndex("VideoId");
 
                     b.ToTable("Posts");
                 });
@@ -254,8 +256,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<bool>("IsCommerce");
 
-                    b.Property<string>("PostId");
-
                     b.Property<string>("SecureUId");
 
                     b.Property<int>("Start");
@@ -269,8 +269,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     b.Property<string>("UserUniqueId");
 
                     b.HasKey("HashtagId");
-
-                    b.HasIndex("PostId");
 
                     b.ToTable("Tags");
                 });
@@ -306,8 +304,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<string>("PlayAddress");
 
-                    b.Property<string>("PostId");
-
                     b.Property<string>("Ratio");
 
                     b.Property<string>("ReflowCover");
@@ -320,8 +316,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PostId");
-
                     b.ToTable("Videos");
                 });
 
@@ -333,32 +327,19 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("DataLakeModels.Models.TikTok.Challenge", b =>
-                {
-                    b.HasOne("DataLakeModels.Models.TikTok.Post")
-                        .WithMany("Challenges")
-                        .HasForeignKey("PostId");
-                });
-
-            modelBuilder.Entity("DataLakeModels.Models.TikTok.EffectSticker", b =>
-                {
-                    b.HasOne("DataLakeModels.Models.TikTok.Post")
-                        .WithMany("EffectStickers")
-                        .HasForeignKey("PostId");
-                });
-
-            modelBuilder.Entity("DataLakeModels.Models.TikTok.Music", b =>
-                {
-                    b.HasOne("DataLakeModels.Models.TikTok.Post")
-                        .WithMany("Music")
-                        .HasForeignKey("PostId");
-                });
-
             modelBuilder.Entity("DataLakeModels.Models.TikTok.Post", b =>
                 {
                     b.HasOne("DataLakeModels.Models.TikTok.Author", "Author")
                         .WithMany("Posts")
                         .HasForeignKey("AuthorId");
+
+                    b.HasOne("DataLakeModels.Models.TikTok.Music", "Music")
+                        .WithMany("Posts")
+                        .HasForeignKey("MusicId");
+
+                    b.HasOne("DataLakeModels.Models.TikTok.Video", "Video")
+                        .WithMany("Posts")
+                        .HasForeignKey("VideoId");
                 });
 
             modelBuilder.Entity("DataLakeModels.Models.TikTok.PostStats", b =>
@@ -367,20 +348,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                         .WithMany("Stats")
                         .HasForeignKey("PostId")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("DataLakeModels.Models.TikTok.Tag", b =>
-                {
-                    b.HasOne("DataLakeModels.Models.TikTok.Post")
-                        .WithMany("Tags")
-                        .HasForeignKey("PostId");
-                });
-
-            modelBuilder.Entity("DataLakeModels.Models.TikTok.Video", b =>
-                {
-                    b.HasOne("DataLakeModels.Models.TikTok.Post")
-                        .WithMany("Video")
-                        .HasForeignKey("PostId");
                 });
 #pragma warning restore 612, 618
         }
