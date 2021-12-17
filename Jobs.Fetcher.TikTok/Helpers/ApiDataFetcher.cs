@@ -18,7 +18,7 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             JObject allPosts = JObject.Parse(File.ReadAllText(@"test.json"));
             return allPosts["itemList"];
         }
-        public static Video GetTikTokVideoFromJSON(JToken videoJSON){
+        public static Video GetTikTokVideoFromJSON(JToken videoJSON, string postId){
             var shareCovers = new List<string>();
             foreach(var shareCover in videoJSON["shareCover"]){
                 shareCovers.Add(shareCover.ToString());
@@ -144,7 +144,7 @@ namespace Jobs.Fetcher.TikTok.Helpers {
                     Author = author
                 };
         }
-        public static Post GetTikTokPostFromJSON(JToken postJSON, Author author){
+        public static Post GetTikTokPostFromJSON(JToken postJSON, Author author, Video video, Music music, List<string> challengeIds, List<string> tagIds, List<string> effectStickerIds){
             return new Post() {
                 Id = postJSON["id"].ToString(),
                 CreateTime = new DateTime(1970,1,1,0,0,0,0,System.DateTimeKind.Utc).AddSeconds( postJSON["createTime"].ToObject<int>() ),
@@ -165,7 +165,15 @@ namespace Jobs.Fetcher.TikTok.Helpers {
                 IsAd = postJSON["isAd"].ToObject<bool>(),
                 DuetDisplay = postJSON["duetDisplay"].ToObject<int>(),
                 StitchDisplay = postJSON["stitchDisplay"].ToObject<int>(),
-                Author = author
+                AuthorId = author.Id,
+                Author = author,
+                VideoId = video.Id,
+                Video = video,
+                MusicId = music.Id,
+                Music = music,
+                ChallengeIds = challengeIds,
+                TagIds = tagIds,
+                EffectStickerIds = effectStickerIds
             };
         }
         public static PostStats GetTikTokPostStatsJSON(JToken postStatsJSON, Post post, DateTime fetchTime){
