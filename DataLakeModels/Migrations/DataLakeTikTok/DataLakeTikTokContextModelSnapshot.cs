@@ -71,6 +71,8 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<long>("DiggCount");
 
+                    b.Property<DateTime>("EventDate");
+
                     b.Property<long>("FollowerCount");
 
                     b.Property<long>("FollowingCount");
@@ -209,6 +211,10 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<bool>("VL1");
 
+                    b.Property<DateTime>("ValidityEnd");
+
+                    b.Property<DateTime>("ValidityStart");
+
                     b.Property<string>("VideoId");
 
                     b.HasKey("Id");
@@ -231,6 +237,8 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     b.Property<long>("CommentCount");
 
                     b.Property<long>("DiggCount");
+
+                    b.Property<DateTime>("EventDate");
 
                     b.Property<long>("PlayCount");
 
