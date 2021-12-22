@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace DataLakeModels.Models.TikTok {
 
-    public class Post : IEquatable<Post> {
+    public class Post : IEquatable<Post>, IValidityRange {
 
         /// <summary>
         /// Unique identifier of the post.
@@ -142,6 +142,9 @@ namespace DataLakeModels.Models.TikTok {
         /// 
         /// </summary>
         public int StitchDisplay { get; set; }
+        
+        public DateTime ValidityStart { get; set; }
+        public DateTime ValidityEnd { get; set; }
 
         /************* METRICS ************/
 

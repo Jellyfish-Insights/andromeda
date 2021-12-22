@@ -158,6 +158,7 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     VideoCount = table.Column<long>(nullable: false),
                     DiggCount = table.Column<long>(nullable: false),
                     Heart = table.Column<long>(nullable: false),
+                    EventDate = table.Column<DateTime>(nullable: false),
                     ValidityStart = table.Column<DateTime>(nullable: false),
                     ValidityEnd = table.Column<DateTime>(nullable: false)
                 },
@@ -203,7 +204,9 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     ShareEnabled = table.Column<bool>(nullable: false),
                     IsAd = table.Column<bool>(nullable: false),
                     DuetDisplay = table.Column<int>(nullable: false),
-                    StitchDisplay = table.Column<int>(nullable: false)
+                    StitchDisplay = table.Column<int>(nullable: false),
+                    ValidityStart = table.Column<DateTime>(nullable: false),
+                    ValidityEnd = table.Column<DateTime>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -240,6 +243,7 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     ShareCount = table.Column<long>(nullable: false),
                     CommentCount = table.Column<long>(nullable: false),
                     PlayCount = table.Column<long>(nullable: false),
+                    EventDate = table.Column<DateTime>(nullable: false),
                     ValidityStart = table.Column<DateTime>(nullable: false),
                     ValidityEnd = table.Column<DateTime>(nullable: false),
                     PostId = table.Column<string>(nullable: false)
