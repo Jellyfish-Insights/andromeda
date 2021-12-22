@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+    pgdocker:
+        image: postgres
+        ports:
+          - '5433:5432'
+        environment:
+          POSTGRES_PASSWORD: 'root'
+
+    tiktok-dev:
+        build:
+          context: .
+          dockerfile: tiktok.prod.Dockerfile
+        image: tiktok-core
+        environment:
+        #
+        # This is the program's usage. If you don't want to use flags, leave
+        # variable empty. Otherwise, write "--flag"
+        # usage: server.py [-h] [--scroll_limit SCROLL_LIMIT] [--timeout TIMEOUT]
+        #          [--scraping_interval SCRAPING_INTERVAL]
+        #          [--db_conn_string DB_CONN_STRING]
+        #          [--keep_logs] [--slow_mode] [--quiet]
+        #          account_name
+        #
+          
+          scroll_limit: "1500"
+          timeout: "600"
+          scraping_interval: "900"
+          db_conn_string: 'postgresql://postgres:root@pgdocker:5432'
+
+          # Accepted options are 0, 10, 20, 30, 40, 50, corresponding to
+          # NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
+          # https://docs.python.org/3/library/logging.html#levels
+          
+          logging: "10"
+
+          # Flags
+          keep_logs: ""
+          slow_mode: ""
+          quiet: ""
+
+          # Positional argument
+          navigator_name: "TikTok"
+
+          # Enable development mode
+          development: "development"
+        ports:
+          - '5900:5900'
+          - '5050:5000'
+        user: apps
+        privileged: true
+        depends_on:
+          - pgdocker
