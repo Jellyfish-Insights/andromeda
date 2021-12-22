@@ -10,6 +10,7 @@ namespace DataLakeModels.Models.TikTok {
         public long ShareCount { get; set; }
         public long CommentCount { get; set; }
         public long PlayCount { get; set; }
+        public DateTime EventDate { get; set; }
         public DateTime ValidityStart { get; set; }
         public DateTime ValidityEnd { get; set; }
         public Post Post { get; set; }
@@ -20,7 +21,8 @@ namespace DataLakeModels.Models.TikTok {
                    DiggCount == other.DiggCount &&
                    ShareCount == other.ShareCount &&
                    CommentCount == other.CommentCount &&
-                   PlayCount == other.PlayCount;
+                   PlayCount == other.PlayCount &&
+                   EventDate == other.EventDate;
         }
     }
 }

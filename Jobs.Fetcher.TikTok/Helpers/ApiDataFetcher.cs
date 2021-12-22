@@ -130,7 +130,7 @@ namespace Jobs.Fetcher.TikTok.Helpers {
                 PrivateAccount = authorJSON["privateAccount"].ToObject<bool>()
             };
         }
-        public static AuthorStats GetTikTokAuthorStatsFromJSON(JToken authorStatsJSON, Author author, DateTime fetchTime){
+        public static AuthorStats GetTikTokAuthorStatsFromJSON(JToken authorStatsJSON, Author author, DateTime postTime){
             return new AuthorStats() {
                     FollowingCount =  authorStatsJSON["followingCount"].ToObject<long>(),
                     FollowerCount =  authorStatsJSON["followerCount"].ToObject<long>(),
@@ -138,7 +138,8 @@ namespace Jobs.Fetcher.TikTok.Helpers {
                     VideoCount =  authorStatsJSON["videoCount"].ToObject<long>(),
                     DiggCount =  authorStatsJSON["diggCount"].ToObject<long>(),
                     Heart =  authorStatsJSON["heart"].ToObject<long>(),
-                    ValidityStart = fetchTime,
+                    EventDate = postTime,
+                    ValidityStart = DateTime.UtcNow,
                     ValidityEnd = DateTime.MaxValue,
                     AuthorId = author.Id,
                     Author = author
@@ -148,6 +149,7 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             return new Post() {
                 Id = postJSON["id"].ToString(),
                 CreateTime = new DateTime(1970,1,1,0,0,0,0,System.DateTimeKind.Utc).AddSeconds( postJSON["createTime"].ToObject<int>() ),
+                Description = postJSON["desc"].ToString(),
                 DuetInfo = postJSON["duetInfo"]["duetFromId"].ToString(),
                 OriginalItem = postJSON["originalItem"].ToObject<bool>(),
                 OfficialItem = postJSON["officalItem"].ToObject<bool>(),
@@ -165,6 +167,8 @@ namespace Jobs.Fetcher.TikTok.Helpers {
                 IsAd = postJSON["isAd"].ToObject<bool>(),
                 DuetDisplay = postJSON["duetDisplay"].ToObject<int>(),
                 StitchDisplay = postJSON["stitchDisplay"].ToObject<int>(),
+                ValidityStart = DateTime.UtcNow,
+                ValidityEnd = DateTime.MaxValue,
                 AuthorId = author.Id,
                 Author = author,
                 VideoId = video.Id,
@@ -176,13 +180,14 @@ namespace Jobs.Fetcher.TikTok.Helpers {
                 EffectStickerIds = effectStickerIds
             };
         }
-        public static PostStats GetTikTokPostStatsJSON(JToken postStatsJSON, Post post, DateTime fetchTime){
+        public static PostStats GetTikTokPostStatsJSON(JToken postStatsJSON, Post post, DateTime postTime){
             return new PostStats() {
                     DiggCount = postStatsJSON["diggCount"].ToObject<long>(),
                     ShareCount = postStatsJSON["shareCount"].ToObject<long>(),
                     CommentCount = postStatsJSON["commentCount"].ToObject<long>(),
                     PlayCount = postStatsJSON["playCount"].ToObject<long>(),
-                    ValidityStart = fetchTime,
+                    EventDate = postTime,
+                    ValidityStart = DateTime.UtcNow,
                     ValidityEnd = DateTime.MaxValue,
                     PostId = post.Id,
                     Post = post

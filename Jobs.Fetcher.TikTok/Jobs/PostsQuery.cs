@@ -10,13 +10,13 @@ namespace Jobs.Fetcher.TikTok {
 
     public class PostsQuery : AbstractTikTokFetcher {
 
-        //public UserQuery(Dictionary<string, ITwitterClient> clients): base(clients) {}
+        public PostsQuery(List<string> userIds): base(clients) {}
 
         public override List<string> Dependencies() {
             return new List<string>();
         }
 
-        public override void RunBody() {
+        public override void RunBody(string userId) {
             using (var dbContext = new DataLakeTikTokContext()) {
                 //Create a second loop for each TikTok client. Check with Erik and Victor if the Get option will receive an ID or username
                 var logger = GetLogger();
