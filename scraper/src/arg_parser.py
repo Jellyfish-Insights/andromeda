@@ -7,6 +7,7 @@ DEFAULT_LOGGING_LEVEL = 10
 def parse() -> Options:
 	navigators_dict = ScraperMiddleWare.get_available_navigators()
 
+def parse() -> Options:
 	parser = argparse.ArgumentParser(
 		description="Scrapes data from social media. Not all the options are "
 		"valid for all the navigators (implementations). In doubt, please "
@@ -39,6 +40,120 @@ def parse() -> Options:
 		'-s',
 		action='store_true',
 		help='Scrapes social media around 2 times slower'
+	)
+
+	# action="store_const", const=True or False
+	parser.add_argument(
+		'--use_clean_profile',
+		action='store_const',
+		const=True,
+		help='Does not reset data from last use when starting Chrome.'
+	)
+	parser.add_argument(
+		'--no_clean_profile',
+		action='store_const',
+		dest="use_clean_profile",
+		const=False,
+		help='Resets data from last use when starting Chrome.'
+	)
+
+
+	parser.add_argument(
+		'--use_fake_user_agent',
+		action='store_const',
+		const=True,
+		help='Uses a fake user agent to avoid bot detection.'
+	)
+	parser.add_argument(
+		'--no_fake_user_agent',
+		action='store_const',
+		dest="use_fake_user_agent",
+		const=False,
+		help="Don't use a fake user agent."
+	)
+
+	parser.add_argument(
+		'--use_random_window_size',
+		action='store_const',
+		const=True,
+		help='Uses random window size to avoid detection.'
+	)
+	parser.add_argument(
+		'--no_random_window_size',
+		action='store_const',
+		dest="use_random_window_size",
+		const=False,
+		help="Don't use random window size to avoid detection. Start maximized."
+	)
+
+
+	parser.add_argument(
+		'--use_random_locale',
+		action='store_const',
+		const=True,
+		help='Uses random locale to avoid detection.'
+	)
+	parser.add_argument(
+		'--no_random_locale',
+		action='store_const',
+		dest="use_random_locale",
+		const=False,
+		help="Don't use a random locale."
+	)
+
+
+	parser.add_argument(
+		'--use_random_timezone',
+		action='store_const',
+		const=True,
+		help='Uses random timezone to avoid detection.'
+	)
+	parser.add_argument(
+		'--no_random_timezone',
+		action='store_const',
+		dest="use_random_timezone",
+		const=False,
+		help="Don't use a random timezone."
+	)
+
+
+	parser.add_argument(
+		'--force_logout',
+		action='store_const',
+		const=True,
+		help='Forces logging out from accounts, in case a logged in account is detected.'
+	)
+	parser.add_argument(
+		'--no_force_logout',
+		action='store_const',
+		dest="force_logout",
+		const=False,
+		help="Don't log out of accounts if signed in."
+	)
+
+	# Bulk options, will set the above if they are unset
+	parser.add_argument(
+		'--use_anonymous',
+		'-a',
+		action='store_const',
+		const=True,
+		help="Use all anonymous options which haven't been set as a CLI option."
+	)
+	parser.add_argument(
+		'--no_use_anonymous',
+		action='store_const',
+		dest="use_anonymous",
+		const=False,
+		help="Disable all anonymous options which haven't been set as a CLI option."
+	)
+
+	# Optional arguments
+	parser.add_argument(
+		'--scroll_limit',
+		'-l',
+		action='store',
+		type=int,
+		help='Defines how far down the scraper should scroll at most. '
 	)
 
 	# action="store_const", const=True or False

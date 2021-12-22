@@ -76,6 +76,22 @@ def write_append(*args, **kwargs):
 			sole_argument = args[0] + '\n'
 			fp.write(sole_argument)
 
+def write(*args, **kwargs):
+	if DEBUG:
+		print(*args, **kwargs)
+	else:
+		with open(SCHEDULER_SHELL_SCRIPT, "w") as fp:
+			sole_argument = args[0] + '\n'
+			fp.write(sole_argument)
+
+def write_append(*args, **kwargs):
+	if DEBUG:
+		print(*args, **kwargs)
+	else:
+		with open(SCHEDULER_SHELL_SCRIPT, "a") as fp:
+			sole_argument = args[0] + '\n'
+			fp.write(sole_argument)
+
 def parse() -> SchedulerOptions:
 	parser = argparse.ArgumentParser(
 		description="Schedules jobs for scraping social media. Reads from .env "
