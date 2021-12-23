@@ -1,0 +1,4 @@
+*.pyc
+*.log
+src/chrome_profile
+src/json/*.json
