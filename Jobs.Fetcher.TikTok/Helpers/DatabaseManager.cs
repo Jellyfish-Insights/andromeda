@@ -2,12 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DataLakeModels.Models;
-using DataLakeModels;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Npgsql;
-
-using Microsoft.EntityFrameworkCore;
 
 namespace Jobs.Fetcher.TikTok {
 
@@ -16,7 +13,7 @@ namespace Jobs.Fetcher.TikTok {
         private static HashSet<string> reserved = new HashSet<string> { "from" };
 
 
-        public static List<string> GetPayload(string username, DateTime last_fetch) {
+        public static List<string> GetPayload(DateTime last_fetch) {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -26,11 +23,9 @@ namespace Jobs.Fetcher.TikTok {
                         FROM
                             video_info
                         WHERE
-                            saved_time > @last_fetch AND
-                            account_name = @username
+                            saved_time > @last_fetch
                         ");
                     cmd.Parameters.AddWithValue("last_fetch", last_fetch);
-                    cmd.Parameters.AddWithValue("username", username);
                     var payloadStrings = new List<string>();
                     using (var reader = cmd.ExecuteReader()) {
                         while (reader.Read()) {
@@ -44,104 +39,19 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
-        public static TikTokUsers GetTikTokUser(string account_name, NpgsqlConnection connection) {
-            using (var cmd = connection.CreateCommand()) {
+        public static void Transactional(Action<NpgsqlConnection> action) {
+            using (var connection = new NpgsqlConnection(ConnectionString())) {
                 connection.Open();
-                cmd.CommandText = String.Format(@"
-                    SELECT
-                        id,
-                        account_name
-                    FROM
-                        account_name
-                    WHERE
-                        account_name > @account_name
-                ");
-                cmd.Parameters.AddWithValue("account_name", account_name);
-                TikTokUsers tiktokUser = null;
-                using (var reader = cmd.ExecuteReader()) {
-                    if (reader.Read()) {
-                        tiktokUser = new TikTokUsers(){
-                            //UserId = reader.GetString(0),
-                            Name = reader.GetString(1)
-                        };
+                using (var transaction = connection.BeginTransaction()) {
+                    try {
+                        action(connection);
+                        transaction.Commit();
+                    }catch (Exception e) {
+                        transaction.Rollback();
+                        throw e;
                     }
                 }
-                return tiktokUser;
             }
-        }
-
-        public static string GetTikTokId(string username){
-            using (var connection = new NpgsqlConnection(ConnectionString()))
-                using (var cmd = connection.CreateCommand()) {
-                    connection.Open();
-                    cmd.CommandText = String.Format(@"
-                        SELECT
-                            tiktok_id::text
-                        FROM
-                            video_info
-                        WHERE
-                            account_name = @username
-                        ");
-                    cmd.Parameters.AddWithValue("username", username);
-                    var payloadStrings = new List<string>();
-                    using (var reader = cmd.ExecuteReader()) {
-                        if (reader.Read()) {
-                            return reader.GetString(0);
-                        }
-                    }
-                    return null;
-                }
-        }
-
-        public static bool TikTokUserExists(string username){
-            using (var connection = new NpgsqlConnection(ConnectionString()))
-                using (var cmd = connection.CreateCommand()) {
-                    connection.Open();
-                    cmd.CommandText = String.Format(@"
-                        SELECT
-                            COUNT(*)
-                        FROM
-                            account_name
-                        WHERE
-                            account_name = @username
-                        ");
-                    cmd.Parameters.AddWithValue("username", username);
-                    using (var reader = cmd.ExecuteReader()) {
-                        if (reader.Read()) {
-                            return reader.GetDecimal(0) > 0;
-                        }
-                    }
-                    return false;
-                }
-        }
-
-        public static bool TikTokScraperTablesExist(){
-            using (var connection = new NpgsqlConnection(ConnectionString()))
-                using (var cmd = connection.CreateCommand()) {
-                    connection.Open();
-                    cmd.CommandText = String.Format(@"
-                        SELECT EXISTS (
-                            SELECT FROM information_schema.tables 
-                            WHERE table_name   = 'video_info'
-                        );");
-                    using (var reader = cmd.ExecuteReader()) {
-                        if (reader.Read()) {
-                            var returnValue = reader.GetBoolean(0);
-                            return returnValue;
-                        }
-                    }
-                    Console.WriteLine("No value return");
-                    return false;
-                }
-        }
-
-        public static DateTime GetLastFetch(string authorId, DataLakeTikTokContext dbContext){
-            //var oldEntry = dbContext.Posts.Find(newEntry.Id);
-            var now = DateTime.UtcNow;
-            return dbContext.Posts.Where(m => m.Id == authorId && m.ValidityStart <= now && m.ValidityEnd > now)
-                                    .OrderByDescending(m => m.ValidityStart)
-                                    .Select(m => m.ValidityStart)
-                                    .FirstOrDefault();
         }
     }
 }
