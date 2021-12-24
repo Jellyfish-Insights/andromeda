@@ -20,6 +20,7 @@ from navigators.abstract import AbstractNavigator
 UC_LOG_FILE = "uc.log"
 
 # Options for our ChromeDriver
+PROFILE_DIR = "chrome_profile"
 
 CHROMEDRIVER_OPTIONS = [
 	# Hopefully, using the settings below will disable other popups that could
@@ -130,10 +131,8 @@ class Scraper:
 		logger.info("Starting Undetected Chrome Driver...")
 
 		options = uc.ChromeOptions()
-		PROFILE_DIR = "chrome_profile"
 
 		# We want to start with a fresh profile
-		
 		if os.path.isdir(PROFILE_DIR):
 			shutil.rmtree(PROFILE_DIR)
 		
@@ -281,7 +280,7 @@ def main(options: dict):
 
 	def sigterm_handle(signal_received, frame):
 		logger.info(f"Process received signal = {signal_received}. Cleaning up and exiting.")
-		scraper.cleanup()
+		scraper.cleanup(signal_received)
 
 	signal.signal(signal.SIGINT, sigterm_handle)
 	signal.signal(signal.SIGTERM, sigterm_handle)

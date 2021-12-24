@@ -21,7 +21,7 @@ services:
         #                   [--scraping_interval SCRAPING_INTERVAL]
         #                   [--db_conn_string DB_CONN_STRING]
         #                   [--logging {0,10,20,30,40,50}] [--keep_logs]
-        #                   [--slow_mode] [--quiet]
+        #                   [--slow_mode]
         #                   account_name {TikTok,YouTube}
         #
           
@@ -39,7 +39,6 @@ services:
           # Flags
           keep_logs: "--keep_logs"
           slow_mode: "--slow_mode"
-          quiet: ""
 
           # Positional argument
           navigator_name: 'TikTok'

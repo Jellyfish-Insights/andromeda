@@ -11,6 +11,13 @@ using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTubeAnalytics.v2;
+<<<<<<< HEAD
+=======
+using Google.Apis.Http;
+using Google.Apis.Services;
+using Andromeda.Common.Jobs;
+using Andromeda.Common;
+>>>>>>> feature/scraper/web_elements
 
 namespace Jobs.Fetcher.YouTube {
 
@@ -28,6 +35,7 @@ namespace Jobs.Fetcher.YouTube {
             var jobs = new List<AbstractJob>();
             var youtubeServices = new List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)>();
             try {
+<<<<<<< HEAD
                 var usrDirs = Directory.GetDirectories("./credentials");
 
                 if (usrDirs.Any(dir => dir.Contains("youtube") || dir.Contains("facebook") || dir.Contains("instagram"))) {
@@ -42,6 +50,28 @@ namespace Jobs.Fetcher.YouTube {
                             Console.WriteLine($"Couldn't find any credential on folder '{CredentialsDir}'");
                             continue;
                         }
+=======
+                foreach (var directory in Directory.GetDirectories(CredentialsDir)) {
+                    try {
+                        youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
+                    } catch {
+                        CredentialHelpers.GetCredentials(directory, SecretsFile);
+                        youtubeServices.Add(GetServicesCredential(SecretsFile, directory));
+                    }
+                }
+
+                if (youtubeServices.Count == 0) {
+                    Console.WriteLine("Missing YouTube credentials.");
+                    Console.WriteLine("Do you want to add an Youtube credential? (Y/n)");
+                    var op = Console.ReadLine();
+                    if(op != "n") { 
+                        var path = $"{CredentialsDir}/channel_1";
+                        Directory.CreateDirectory(path);
+                        CredentialHelpers.GetCredentials(path, SecretsFile);
+                        youtubeServices.Add(GetServicesCredential(SecretsFile, path));
+                    }
+                }
+>>>>>>> feature/scraper/web_elements
 
                         jobs.AddRange(GetListOfJobs(youtubeServices, jobConfiguration.ForceFetch));
                     }

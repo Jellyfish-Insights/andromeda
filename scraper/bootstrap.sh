@@ -31,7 +31,7 @@ main() {
 	cd "$directory"
 
 	# This needs to go unquoted in the command
-	unquoted="$keep_logs $slow_mode $quiet"
+	unquoted="$keep_logs $slow_mode"
 
 	while true ; do
 		log_i "Running scheduler script..."

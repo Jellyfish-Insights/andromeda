@@ -76,12 +76,6 @@ def parse() -> dict:
 		help='Scrapes social media around 2 times slower'
 	)
 	parser.add_argument(
-		'--quiet',
-		'-q',
-		action='store_true',
-		help="Don't print logging messages to the screen"
-	)
-	parser.add_argument(
 		'--account_name',
 		'-a',
 		action='store',

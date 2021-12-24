@@ -19,6 +19,13 @@ You need:
   - [Docker](#Running-Andromeda-with-Docker)
   - [Docker-compose](#Running-Andromeda-with-Docker)
 
+### Minimum requirements to run on a cloud
+  - vCPU: 1
+  - Mem (GiB): 2
+  - Network Performance: Low to Moderate
+
+*Note. Recommend to run on AWS instance `t2.small` or higher.*
+
 ## System Bootstrap
 
 You'll need to setup a few things before running Andromeda:

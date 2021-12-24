@@ -3,12 +3,10 @@ from sqlalchemy import Column, String, BigInteger, DateTime, select
 from sqlalchemy.exc import IntegrityError, PendingRollbackError
 from sqlalchemy.orm.exc import NoResultFound
 
-from db import base, session, Inexistent, SCHEMA_NAME
+from db import base, session, Inexistent
 
 class AccountName(base):
 	__tablename__ = "account_name"
-	__table_args__ = {'schema': SCHEMA_NAME}
-	
 	id = Column(BigInteger, primary_key=True)
 	account_name = Column(String, nullable=False, unique=True)
 	updated_time = Column(DateTime, nullable=False, default=datetime.datetime.now)
