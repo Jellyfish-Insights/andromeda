@@ -104,30 +104,20 @@ class XPath:
 		if visible:
 			filters.append(XPath.visible())
 
-		print(f"visible {filters=}")
-
 		if attributes is not None:
 			filters.append(XPath.attributes(attributes))
-
-		print(f"attributes {filters=}")
 
 		if contains_classes is not None:
 			filters.append(XPath.contains_classes(contains_classes))
 
-		print(f"contains_classes {filters=}")
-
 		if id is not None:
 			filters.append(XPath.id(id))
-
-		print(f"id {filters=}")
 
 		if text is not None:
 			if text_exact:
 				filters.append(XPath.text_exact(text, case_insensitive))
 			else:
 				filters.append(XPath.text_contains(text, case_insensitive))
-
-		print(f"text_match {filters=}")
 
 		if len(filters) == 0:
 			use_filters = ""

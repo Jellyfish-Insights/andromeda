@@ -219,6 +219,7 @@ class AbstractNavigator(ABC):
 
 		return nNodes;
 		"""
+		self.logger.debug(f"We will now run:\n{js_code}")
 		nodes_hovered = self.run(js_code)
 		if nodes_hovered < max_elem_to_hover:
 			self.logger.warning(f"You expected to hover {max_elem_to_hover}, "

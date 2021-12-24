@@ -81,10 +81,17 @@ class YouTube(AbstractNavigator):
 		self.click(content_button)
 		self.wait_load()
 
+		self.wait(5)
 		items_to_hover = self.find(
 			tag="div",
 			id="hover-items"
 		)
+
+		self.logger.debug(items_to_hover)
+		for item in items_to_hover:
+			self.logger.debug(item)
+		self.logger.debug("We will now hover the items!")
+
 		for i in range(len(items_to_hover)):
 			xpath = XPath.xpath(
 				tag = "div",
