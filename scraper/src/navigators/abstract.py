@@ -5,7 +5,7 @@ from typing import List
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, JavascriptException, \
+from selenium.common.exceptions import JavascriptException, InvalidSelectorException, \
 	ElementNotInteractableException
 from selenium.webdriver.remote.webelement import WebElement
 
@@ -119,35 +119,59 @@ class AbstractNavigator(ABC):
 
 	def find(
 				self,
-				/
+				/,
 				tag: str = "*",
 				text: str = None,
 				text_exact: bool = True,
 				case_insensitive: bool = True,
 				visible: bool = True,
-				attributes: dict = {}) -> List[WebElement]:
+				attributes: dict = None,
+				contains_classes: list = None,
+				id: str = None) -> List[WebElement]:
 
 		filters = []
 
 		if visible:
 			filters.append(XPath.visible())
 
-		if len(attributes):
+		self.logger.debug(f"visible {filters=}")
+
+		if attributes is not None:
 			filters.append(XPath.attributes(attributes))
 
-		if text_exact:
-			filters.append(XPath.text_exact(text, case_insensitive))
-		else:
-			filters.append(XPath.text_contains(text, case_insensitive))
+		self.logger.debug(f"attributes {filters=}")
+
+		if contains_classes is not None:
+			filters.append(XPath.contains_classes(contains_classes))
+
+		self.logger.debug(f"contains_classes {filters=}")
+
+		if id is not None:
+			filters.append(XPath.id(id))
+
+		self.logger.debug(f"id {filters=}")
+
+		if text is not None:
+			if text_exact:
+				filters.append(XPath.text_exact(text, case_insensitive))
+			else:
+				filters.append(XPath.text_contains(text, case_insensitive))
+
+		self.logger.debug(f"text_match {filters=}")
 
 		if len(filters) == 0:
-			use_filters = 0
+			use_filters = ""
 		else:
-			use_filters = " and ".join(filters)
+			use_filters = f"[{' and '.join(filters)}]"
 
-		return self.driver.find_elements(
-				By.XPATH,
-				f"/html/body//{tag}{use_filters}")
+		xpath = f"/html/body//{tag}{use_filters}"
+		self.logger.debug(f"Looking for elements at xpath = {xpath}")
+
+		try:
+			return self.driver.find_elements(By.XPATH, xpath)
+		except InvalidSelectorException:
+			self.logger.critical("Bad xpath selector!")
+			raise
 
 	def one(self, result):
 		"""From a list of results, returns the first result or raises an error"""
@@ -159,19 +183,25 @@ class AbstractNavigator(ABC):
 
 	def find_one(
 				self,
-				/
+				/,
 				tag: str = "*",
 				text: str = None,
 				text_exact: bool = True,
 				case_insensitive: bool = True,
-				visible: bool = True) -> List[WebElement]:
+				visible: bool = True,
+				attributes: dict = None,
+				contains_classes: list = None,
+				id: str = None) -> List[WebElement]:
 		
 		elements = self.find(
 			tag=tag,
 			text=text,
 			text_exact=text_exact,
 			case_insensitive=case_insensitive,
-			visible=visible)
+			visible=visible,
+			attributes=attributes,
+			contains_classes=contains_classes,
+			id=id)
 		
 		return self.one(elements)
 

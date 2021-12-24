@@ -5,9 +5,6 @@ class XPath:
 	def text_exact(
 				text: str,
 				case_insensitive: bool = True) -> str:
-		if text is None:
-			return ""
-		
 		if case_insensitive:
 			text_to_search = text.lower()
 			xpath = """
@@ -30,9 +27,6 @@ class XPath:
 	def text_contains(
 				text: str,
 				case_insensitive: bool = True) -> str:
-		if text is None:
-			return ""
-
 		if case_insensitive:
 			text_to_search = text.lower()
 			xpath = """
@@ -70,6 +64,17 @@ class XPath:
 	@staticmethod
 	def attributes(attr_dict: dict):
 		selectors = []
-		for key, value in attr_dict:
-			selectors.append(f"@{key}={value}")
+		for key, value in attr_dict.items():
+			selectors.append(f"@{key}='{value}'")
 		return " and ".join(selectors)
+
+	@staticmethod
+	def contains_classes(class_list: list):
+		selectors = []
+		for cl in class_list:
+			selectors.append(f"contains(concat(' ', normalize-space(@class), ' '), ' {cl} ')")
+		return " and ".join(selectors)
+
+	@staticmethod
+	def id(id_name):
+		return f"@id='{id_name}'"
