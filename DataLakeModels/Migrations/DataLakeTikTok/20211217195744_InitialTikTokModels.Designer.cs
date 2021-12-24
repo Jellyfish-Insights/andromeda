@@ -4,15 +4,17 @@ using System.Collections.Generic;
 using DataLakeModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace DataLakeModels.Migrations.DataLakeTikTok
 {
     [DbContext(typeof(DataLakeTikTokContext))]
-    partial class DataLakeTikTokContextModelSnapshot : ModelSnapshot
+    [Migration("20211217195744_InitialTikTokModels")]
+    partial class InitialTikTokModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -70,8 +72,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     b.Property<DateTime>("ValidityStart");
 
                     b.Property<long>("DiggCount");
-
-                    b.Property<DateTime>("EventDate");
 
                     b.Property<long>("FollowerCount");
 
@@ -211,11 +211,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<bool>("VL1");
 
-
-                    b.Property<DateTime>("ValidityEnd");
-
-                    b.Property<DateTime>("ValidityStart");
-
                     b.Property<string>("VideoId");
 
                     b.HasKey("Id");
@@ -238,8 +233,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     b.Property<long>("CommentCount");
 
                     b.Property<long>("DiggCount");
-
-                    b.Property<DateTime>("EventDate");
 
                     b.Property<long>("PlayCount");
 
