@@ -10,16 +10,18 @@ namespace Jobs.Fetcher.TikTok {
 
     public class PostsQuery : AbstractTikTokFetcher {
 
-        public PostsQuery(List<string> userIds): base(clients) {}
+        public PostsQuery(List<string> userIds): base(userIds) {}
 
         public override List<string> Dependencies() {
             return new List<string>();
         }
 
         public override void RunBody(string userId) {
+            Console.WriteLine("Start of the runBody");
             using (var dbContext = new DataLakeTikTokContext()) {
                 //Create a second loop for each TikTok client. Check with Erik and Victor if the Get option will receive an ID or username
                 var logger = GetLogger();
+                Console.WriteLine("Before GetPosts()");
                 foreach(var post in ApiDataFetcher.GetPosts()){
                     var newAuthor = ApiDataFetcher.GetTikTokAuthorFromJSON(post["author"]);
                     DbWriter.WriteAuthor(newAuthor, dbContext, logger);
