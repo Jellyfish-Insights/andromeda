@@ -32,7 +32,7 @@ class YouTube(AbstractNavigator):
 			self.logger.critical("Could not find credentials!")
 			raise
 
-		sign_in = self.find_text_node("sign in")
+		sign_in = self.find_one("sign in")
 		self.click(sign_in)
 		self.wait_load()
 
@@ -80,24 +80,6 @@ class YouTube(AbstractNavigator):
 	@throttle(THROTTLE_EXECUTION_TIME, THROTTLE_AT_LEAST)
 	def natural_type(self, elem: WebElement, text: str):
 		return super().natural_type(elem, text)
-
-	@throttle(THROTTLE_EXECUTION_TIME, THROTTLE_AT_LEAST)
-	def find(
-				self,
-				query_selector: str,
-				timeout: float = None,
-				clickable: bool = False
-				) -> WebElement:
-		return super().find(query_selector, timeout, clickable)
-
-	@throttle(THROTTLE_EXECUTION_TIME, THROTTLE_AT_LEAST)
-	def find_text_node(
-				self,
-				text: str,
-				case_sensitive: bool = False,
-				narrow_by_css: str = None
-				) -> WebElement:
-		return super().find_text_node(text, case_sensitive, narrow_by_css)
 
 	@throttle(THROTTLE_EXECUTION_TIME, THROTTLE_AT_LEAST)
 	def wait_load(self, timeout: float = None, poll_freq: float = None):

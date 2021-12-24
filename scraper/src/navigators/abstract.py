@@ -1,5 +1,6 @@
 import logging, random, time, json
 from abc import ABC, abstractmethod
+from typing import List
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -11,6 +12,7 @@ from selenium.webdriver.remote.webelement import WebElement
 import browsermobproxy
 import undetected_chromedriver.v2 as uc
 
+from navigators.helpers.xpath import XPath
 from libs.kill_handle import KillHandle
 
 class EndOfPage(Exception):
@@ -111,7 +113,87 @@ class AbstractNavigator(ABC):
 		return wrap
 
 	############################################################################
-	# METHODS
+	# METHODS FOR LOCATING
+	############################################################################
+	"""It is probably undesirable to change or override these"""
+
+	def find(
+				self,
+				/
+				tag: str = "*",
+				text: str = None,
+				text_exact: bool = True,
+				case_insensitive: bool = True,
+				visible: bool = True) -> List[WebElement]:
+
+		filters = []
+
+		if visible:
+			filters.append(XPath.visible())
+
+		if text_exact:
+			filters.append(XPath.text_exact(text, case_insensitive))
+		else:
+			filters.append(XPath.text_contains(text, case_insensitive))
+
+		if len(filters) == 0:
+			use_filters = 0
+		else:
+			use_filters = " and ".join(filters)
+
+		return self.driver.find_elements(
+				By.XPATH,
+				f"/html/body//{tag}{use_filters}")
+
+	def one(self, result):
+		"""From a list of results, returns the first result or raises an error"""
+		if len(result) != 1:
+			self.logger.critical("A wrong number of elements was returned. "
+				f"Expected 1, received {len(result)}")
+			raise ValueError
+		return result[0]
+
+	def find_one(
+				self,
+				/
+				tag: str = "*",
+				text: str = None,
+				text_exact: bool = True,
+				case_insensitive: bool = True,
+				visible: bool = True) -> List[WebElement]:
+		
+		elements = self.find(
+			tag=tag,
+			text=text,
+			text_exact=text_exact,
+			case_insensitive=case_insensitive,
+			visible=visible)
+		
+		return self.one(elements)
+
+	############################################################################
+	# METHODS FOR CHECKING DOM STATE / DELAYING ACTION
+	############################################################################
+	"""It is probably undesirable to change or override these"""
+	def wait_load(self, timeout: float = None, poll_freq: float = None):
+		# Waits a bit, to guarantee last action, triggering the change of
+		# document.readyState, was processed
+		time.sleep(2.0)
+		
+		timeout = timeout or self.WAIT_UNTIL_TIMEOUT
+		poll_freq = poll_freq or self.POLL_FREQUENCY
+
+		wait = WebDriverWait(self.driver, timeout, poll_frequency=poll_freq)
+
+		def page_has_loaded(_):
+			return self.driver.execute_script("""
+				return document.readyState === "complete";
+			""")
+
+		wait.until(page_has_loaded)
+
+	############################################################################
+	# METHODS FOR INTERACTION
 	############################################################################
 	"""Subclasses are encouraged to reuse these, by wrapping with decorators
 	if necessary"""
@@ -132,169 +214,6 @@ class AbstractNavigator(ABC):
 			self.logger.critical("There is an error in your code:")
 			self.logger.critical(js_code)
 			raise
-
-	def find_all(
-				self,
-				css_query_selector: str,
-				starting_element: WebElement = None
-				) -> WebElement:
-		if starting_element is None:
-			return self.driver.find_elements(By.CSS_SELECTOR, css_query_selector)
-		else:
-			starting_element.find_elements(By.CSS_SELECTOR, css_query_selector)
-
-	def find_one(
-				self,
-				css_query_selector: str,
-				starting_element: WebElement = None
-				) -> WebElement:
-		result = self.find_all(css_query_selector, starting_element)
-		if len(result) != 1:
-			self.logger.critical("A wrong number of elements was returned. "
-				f"Expected 1, received {len(result)}")
-			raise ValueError
-		return result[0]
-
-	def find_by_text_all(
-				self,
-				text: str,
-				case_sensitive: bool = False,
-				narrow_by_css: str = None
-				) -> WebElement:
-		"""
-		Finds all nodes containing the text given and nothing more.
-		
-		Search can be narrowed down by providing a CSS selector to a parent
-		element.
-		"""
-		text_to_match = text if case_sensitive else text.upper()
-		use_upper_case = "" if case_sensitive else ".toUpperCase()"
-
-		selector = narrow_by_css or ""
-
-		script = f"""
-			window.findTextNode = function(selector, text)
-			{{
-				let ret = null;
-				Array.from(document.querySelectorAll(`${{CSS.escape(selector)}} *`)).every(elem =>
-				{{
-					if (elem.innerHTML{use_upper_case} === text
-							&& elem.innerText{use_upper_case} === text)
-					{{
-						ret = elem;
-						return false;
-					}}
-					return true;
-				}});
-				return ret;
-			}}
-			return findTextNode("{selector}", "{text_to_match}");
-		"""
-		node = self.run(script)
-
-		if node is None:
-			raise ElementNotFound
-		
-		return node
-
-	def find_text_exact(
-				self,
-				text: str,
-				case_sensitive: bool = False,
-				narrow_by_css: str = None
-				) -> WebElement:
-		"""
-		Finds one node containing the text given and nothing more.
-		
-		Search can be narrowed down by providing a CSS selector to a parent
-		element.
-		"""
-		text_to_match = text if case_sensitive else text.upper()
-		use_upper_case = "" if case_sensitive else ".toUpperCase()"
-
-		selector = narrow_by_css or ""
-
-		script = f"""
-			window.findTextNode = function(selector, text)
-			{{
-				let ret = null;
-				Array.from(document.querySelectorAll(`${{CSS.escape(selector)}} *`)).every(elem =>
-				{{
-					if (elem.innerHTML{use_upper_case} === text
-							&& elem.innerText{use_upper_case} === text)
-					{{
-						ret = elem;
-						return false;
-					}}
-					return true;
-				}});
-				return ret;
-			}}
-			return findTextNode("{selector}", "{text_to_match}");
-		"""
-		node = self.run(script)
-
-		if node is None:
-			raise ElementNotFound
-		
-		return node
-
-	def find_text_node(
-				self,
-				text: str,
-				case_sensitive: bool = False,
-				narrow_by_css: str = None
-				) -> WebElement:
-		"""
-		Finds one node containing the text given and nothing more.
-		
-		Search can be narrowed down by providing a CSS selector to a parent
-		element.
-		"""
-		text_to_match = text if case_sensitive else text.upper()
-		use_upper_case = "" if case_sensitive else ".toUpperCase()"
-
-		selector = narrow_by_css or ""
-
-		script = f"""
-			window.findTextNode = function(selector, text)
-			{{
-				let ret = null;
-				Array.from(document.querySelectorAll(`${{CSS.escape(selector)}} *`)).every(elem =>
-				{{
-					if (elem.innerHTML{use_upper_case} === text
-							&& elem.innerText{use_upper_case} === text)
-					{{
-						ret = elem;
-						return false;
-					}}
-					return true;
-				}});
-				return ret;
-			}}
-			return findTextNode("{selector}", "{text_to_match}");
-		"""
-		node = self.run(script)
-
-		if node is None:
-			raise ElementNotFound
-		
-		return node
-
-	def wait_load(self, timeout: float = None, poll_freq: float = None):
-		time.sleep(2.0)
-		
-		timeout = timeout or self.WAIT_UNTIL_TIMEOUT
-		poll_freq = poll_freq or self.POLL_FREQUENCY
-
-		wait = WebDriverWait(self.driver, timeout, poll_frequency=poll_freq)
-
-		def page_has_loaded(_):
-			return self.driver.execute_script("""
-				return document.readyState === "complete";
-			""")
-
-		wait.until(page_has_loaded)
 
 	def short_pause(self, slow_mode: bool = False):
 		pause_length = self.SHORT_PAUSE_LENGTH
