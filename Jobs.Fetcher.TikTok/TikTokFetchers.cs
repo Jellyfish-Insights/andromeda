@@ -11,6 +11,7 @@ namespace Jobs.Fetcher.TikTok {
     public class TikTokFetchers : FetcherJobsFactory {
 
         public override JobScope Scope { get; } = JobScope.TikTok;
+        public string CredentialsDir = "./credentials/tiktok";
         //private string SecretsFile = "tiktok_credentials.json";
 
         public override IEnumerable<AbstractJob> GetJobs(
@@ -37,7 +38,7 @@ namespace Jobs.Fetcher.TikTok {
                         CredentialsDir = $"{usrDir}/tiktok";
 
                         if (!Directory.Exists(CredentialsDir)) {
-                            Console.WriteLine($"Missing or invalid Youtube credentials!");
+                            Console.WriteLine($"Missing or invalid TikTok channels!");
                             Console.WriteLine($"Couldn't find any credential on folder '{CredentialsDir}'");
                             continue;
                         }
@@ -48,7 +49,7 @@ namespace Jobs.Fetcher.TikTok {
             }
             catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
             {
-                string message = String.Format("Missing or invalid YouTube credentials!\n{0}", e.Message);
+                string message = String.Format("Missing or invalid TikTok credentials!\n{0}", e.Message);
                 if (e is DirectoryNotFoundException) {
                     message = String.Format("{0}\nCheck if the path above exists!", message);
                 }
@@ -60,8 +61,9 @@ namespace Jobs.Fetcher.TikTok {
         }
     
         private List<AbstractJob> GetListOfJobs(List<string> tiktokUserIds) {
-            foreach (var directory in Directory.GetDirectories(CredentialsDir)) {
-                var text = File.ReadAllText(CredentialsFilePath);
+            var tiktokAccountIds = new List<string>();
+            foreach (var user in Directory.GetFiles(CredentialsDir)) {
+                var text = File.ReadAllText($"{user}");
                 var credential = JsonConvert.DeserializeObject<TikTokUsers>(text);
 
                 if (credential.IsValid()) {
