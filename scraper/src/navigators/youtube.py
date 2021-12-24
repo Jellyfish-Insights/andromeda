@@ -21,7 +21,7 @@ class YouTube(AbstractNavigator):
 		return f"https://www.youtube.com"
 
 	def action_load(self):
-		breakpoint()
+		# breakpoint()
 
 		os.chdir(os.path.dirname(os.path.realpath(__file__)))
 		yt_credentials = dotenv_values("../credentials/youtube.env")
