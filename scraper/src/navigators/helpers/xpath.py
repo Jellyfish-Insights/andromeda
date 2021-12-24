@@ -78,3 +78,65 @@ class XPath:
 	@staticmethod
 	def id(id_name):
 		return f"@id='{id_name}'"
+
+	@staticmethod
+	def xpath(
+
+				tag: str = "*",
+				text: str = None,
+				text_exact: bool = True,
+				case_insensitive: bool = True,
+				visible: bool = True,
+				attributes: dict = None,
+				contains_classes: list = None,
+				id: str = None,
+				n_th: str = None
+
+			) -> str:
+		"""
+		Remember that in xpath, indices start with 1, not 0. However, to make it
+		easier to communicate with Python, n_th = 0 will correspond to the first
+		element returned, we will do the conversion inside this function.
+		"""
+		
+		filters = []
+
+		if visible:
+			filters.append(XPath.visible())
+
+		print(f"visible {filters=}")
+
+		if attributes is not None:
+			filters.append(XPath.attributes(attributes))
+
+		print(f"attributes {filters=}")
+
+		if contains_classes is not None:
+			filters.append(XPath.contains_classes(contains_classes))
+
+		print(f"contains_classes {filters=}")
+
+		if id is not None:
+			filters.append(XPath.id(id))
+
+		print(f"id {filters=}")
+
+		if text is not None:
+			if text_exact:
+				filters.append(XPath.text_exact(text, case_insensitive))
+			else:
+				filters.append(XPath.text_contains(text, case_insensitive))
+
+		print(f"text_match {filters=}")
+
+		if len(filters) == 0:
+			use_filters = ""
+		else:
+			use_filters = f"[{' and '.join(filters)}]"
+
+		if n_th is not None:
+			n_th_filter = f"[{n_th + 1}]"
+		else:
+			n_th_filter = ""
+
+		return f"(/html/body//{tag}{use_filters}){n_th_filter}"

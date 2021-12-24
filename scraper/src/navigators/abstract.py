@@ -117,54 +117,8 @@ class AbstractNavigator(ABC):
 	############################################################################
 	"""It is probably undesirable to change or override these"""
 
-	def find(
-				self,
-				/,
-				tag: str = "*",
-				text: str = None,
-				text_exact: bool = True,
-				case_insensitive: bool = True,
-				visible: bool = True,
-				attributes: dict = None,
-				contains_classes: list = None,
-				id: str = None) -> List[WebElement]:
-
-		filters = []
-
-		if visible:
-			filters.append(XPath.visible())
-
-		self.logger.debug(f"visible {filters=}")
-
-		if attributes is not None:
-			filters.append(XPath.attributes(attributes))
-
-		self.logger.debug(f"attributes {filters=}")
-
-		if contains_classes is not None:
-			filters.append(XPath.contains_classes(contains_classes))
-
-		self.logger.debug(f"contains_classes {filters=}")
-
-		if id is not None:
-			filters.append(XPath.id(id))
-
-		self.logger.debug(f"id {filters=}")
-
-		if text is not None:
-			if text_exact:
-				filters.append(XPath.text_exact(text, case_insensitive))
-			else:
-				filters.append(XPath.text_contains(text, case_insensitive))
-
-		self.logger.debug(f"text_match {filters=}")
-
-		if len(filters) == 0:
-			use_filters = ""
-		else:
-			use_filters = f"[{' and '.join(filters)}]"
-
-		xpath = f"/html/body//{tag}{use_filters}"
+	def find(self, **kwargs) -> List[WebElement]:
+		xpath = XPath.xpath(**kwargs)
 		self.logger.debug(f"Looking for elements at xpath = {xpath}")
 
 		try:
@@ -173,7 +127,7 @@ class AbstractNavigator(ABC):
 			self.logger.critical("Bad xpath selector!")
 			raise
 
-	def one(self, result):
+	def one(self, result: List[WebElement]) -> WebElement:
 		"""From a list of results, returns the first result or raises an error"""
 		if len(result) != 1:
 			self.logger.critical("A wrong number of elements was returned. "
@@ -181,38 +135,23 @@ class AbstractNavigator(ABC):
 			raise ValueError
 		return result[0]
 
-	def find_one(
-				self,
-				/,
-				tag: str = "*",
-				text: str = None,
-				text_exact: bool = True,
-				case_insensitive: bool = True,
-				visible: bool = True,
-				attributes: dict = None,
-				contains_classes: list = None,
-				id: str = None) -> List[WebElement]:
-		
-		elements = self.find(
-			tag=tag,
-			text=text,
-			text_exact=text_exact,
-			case_insensitive=case_insensitive,
-			visible=visible,
-			attributes=attributes,
-			contains_classes=contains_classes,
-			id=id)
-		
+	def find_one(self, **kwargs) -> WebElement:
+		elements = self.find(**kwargs)
 		return self.one(elements)
 
 	############################################################################
 	# METHODS FOR CHECKING DOM STATE / DELAYING ACTION
 	############################################################################
 	"""It is probably undesirable to change or override these"""
+	def wait(self, timeout: float):
+		"""Selenium has an inbuilt for this, I'm not sure what advantage it
+		brings over using time.sleep"""
+		time.sleep(timeout)
+
 	def wait_load(self, timeout: float = None, poll_freq: float = None):
 		# Waits a bit, to guarantee last action, triggering the change of
 		# document.readyState, was processed
-		time.sleep(2.0)
+		self.wait(2.0)
 		
 		timeout = timeout or self.WAIT_UNTIL_TIMEOUT
 		poll_freq = poll_freq or self.POLL_FREQUENCY
@@ -248,6 +187,42 @@ class AbstractNavigator(ABC):
 			self.logger.critical("There is an error in your code:")
 			self.logger.critical(js_code)
 			raise
+
+	def hover(self, xpath: str, max_elem_to_hover: int = 1) -> None:
+		"""
+		Use max_elem_to_hover = 0 to hover as many as matched.
+		"""
+		js_code = f"""
+		const result = document.evaluate(
+			"{xpath}",
+			document,
+			null,
+			XPathResult.ANY_TYPE,
+			null
+		);
+
+		const hoverEvent = new MouseEvent('mouseover', {{
+			'view': window,
+			'bubbles': true,
+			'cancelable': true
+		}});
+
+		const hoverMax = {max_elem_to_hover};
+
+		let node = result.iterateNext();
+		let nNodes = 0;
+		while (node !== null && (hoverMax === 0 || nNodes < hoverMax)) {{
+			nNodes++;
+			node.dispatchEvent(hoverEvent);
+			let node = result.iterateNext();
+		}}
+
+		return nNodes;
+		"""
+		nodes_hovered = self.run(js_code)
+		if nodes_hovered < max_elem_to_hover:
+			self.logger.warning(f"You expected to hover {max_elem_to_hover}, "
+					f"we only hovered {nodes_hovered}.")
 
 	def short_pause(self, slow_mode: bool = False):
 		pause_length = self.SHORT_PAUSE_LENGTH
