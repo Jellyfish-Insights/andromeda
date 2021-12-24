@@ -170,17 +170,21 @@ class Scraper:
 		logger.info(f"Using window resolution = {resolution}")
 
 	def navigate_to_content(self) -> None:
-		navigator = self.nav_class(
-				self.options,
-				self.driver,
-				self.proxy,
-				logger,
-				self.kill_handle
-		)
+		try:
+			navigator = self.nav_class(
+					self.options,
+					self.driver,
+					self.proxy,
+					logger,
+					self.kill_handle
+			)
+		except (ValueError, AttributeError):
+			self.cleanup(1)
+		
 		try:
 			url = navigator.build_url()
 		except ValueError:
-			sys.exit(1)
+			self.cleanup(1)
 
 		logger.info(f"Loading page {url}...")		
 		self.driver.get(url)
@@ -188,12 +192,12 @@ class Scraper:
 		try:
 			continue_scraping = navigator.action_load()
 		except KillHandleTriggered:
-			self.cleanup()
+			self.cleanup(1)
 		except Exception as err:
 			logger.critical("An unknown error happened:")
 			logger.critical(err)
 			traceback.print_exc()
-			sys.exit(1)
+			self.cleanup(1)
 
 		if not continue_scraping:
 			return
@@ -206,7 +210,7 @@ class Scraper:
 			logger.critical("An unknown exception was raised.")
 			logger.critical(err)
 			traceback.print_exc()
-			sys.exit(1)
+			self.cleanup(1)
 
 	def use_timeout(self):
 		timeout_seconds = self.options.timeout
@@ -234,7 +238,7 @@ class Scraper:
 		)
 		t.start()
 
-	def cleanup(self) -> None:
+	def cleanup(self, exit_code: int = 0) -> None:
 		logger.info("Cleaning...")
 		try:
 			self.server.stop()
@@ -255,7 +259,7 @@ class Scraper:
 					os.unlink(file)
 
 		logger.info("Exiting...")
-		sys.exit(0)
+		sys.exit(exit_code)
 
 ################################################################################
 # MAIN / DRIVER CODE
@@ -292,7 +296,7 @@ def main(options: dict):
 		logger.critical("An unknown exception was raised.")
 		logger.critical(err)
 		traceback.print_exc()
-		sys.exit(1)
+		scraper.cleanup(1)
 
 if __name__ == "__main__":
 	options = parse()

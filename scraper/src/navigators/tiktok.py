@@ -63,7 +63,7 @@ class TikTok(AbstractNavigator):
 				kill_handle
 				):
 		
-		if not hasattr(options, "account_name"):
+		if not hasattr(options, "account_name") or options.account_name is None:
 			logger.critical("Account name must be provided to run the scraper.")
 			raise AttributeError
 		
