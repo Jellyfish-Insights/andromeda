@@ -1,53 +1,28 @@
-version: '3'
+version: '3.4'
 
 services:
-    pgdocker:
-        image: postgres
-        ports:
-          - '5433:5432'
-        environment:
-          POSTGRES_PASSWORD: 'root'
-
-    scraper-prod:
+    data_lake:
         build:
           context: .
-          dockerfile: scraper.prod.Dockerfile
-        shm_size: '2gb'
-        image: scraper-prod
+          dockerfile: data_lake.Dockerfile
+        ports:
+          - '5433:5433'
+
+    scraper_prod:
+        build:
+          context: .
+          dockerfile: scraper.Dockerfile
+          target: scraper_prod
         environment:
-        #
-        # This is the program's usage. If you don't want to use flags, leave
-        # variable empty. Otherwise, write "--flag"
-        # usage: scraper.py [-h] [--scroll_limit SCROLL_LIMIT] [--timeout TIMEOUT]
-        #                   [--scraping_interval SCRAPING_INTERVAL]
-        #                   [--db_conn_string DB_CONN_STRING]
-        #                   [--logging {0,10,20,30,40,50}] [--keep_logs]
-        #                   [--slow_mode] [--quiet]
-        #                   account_name {TikTok,YouTube}
-        #
-          
-          scroll_limit: "99999"
-          timeout: "3600"
-          scraping_interval: "21600"
-          db_conn_string: 'postgresql://postgres:root@pgdocker:5432'
-
-          # Accepted options are 0, 10, 20, 30, 40, 50, corresponding to
-          # NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
-          # https://docs.python.org/3/library/logging.html#levels
-          
-          logging: "30"
-
-          # Flags
-          keep_logs: "--keep_logs"
-          slow_mode: "--slow_mode"
-          quiet: ""
-
-          # Positional argument
-          navigator_name: 'TikTok'
+          sleep_interval: "60"
+          random_order: ""
 
           # Enables development mode. Leave empty for production
           development: ''
-        user: apps
+        user: app
         privileged: true
         depends_on:
-          - pgdocker
+          - data_lake
+        volumes:
+          - ./src/extracted_data:/opt/scraper/extracted_data
+          - ./logs:/var/log/scraper

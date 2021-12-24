@@ -1,9 +1,12 @@
-import datetime, time
+import datetime
+import time
+import os
+import json
 from sqlalchemy import Column, String, Integer, BigInteger, DateTime, select, and_
 from sqlalchemy.dialects.postgresql import JSONB
 
-from logger import logger
-from db import DBError, session, base, SCHEMA_NAME
+from logger import log
+from db import DBException, session, base, SCHEMA_NAME
 
 class VideoInfo(base):
 	__tablename__ = "video_info"
@@ -34,7 +37,7 @@ class VideoInfo(base):
 	create_time = Column(DateTime, nullable=False)
 
 	@staticmethod
-	def add(account_name: str, item: dict, save_in_fs: bool = False):
+	def add(account_name: str, item: dict, save_in_fs: bool = True):
 		vid_info = VideoInfo(
 			# Metadata
 			account_name = account_name,
@@ -45,21 +48,21 @@ class VideoInfo(base):
 			# Destructured data
 			tiktok_id = int(item["id"]),
 			description = item["desc"],
-			comment_count = item["stats"]["commentCount"],
-			digg_count = item["stats"]["diggCount"],
-			play_count = item["stats"]["playCount"],
-			share_count = item["stats"]["shareCount"],
-			create_time = datetime.datetime.fromtimestamp(item["createTime"])
+			comment_count = int(item["stats"]["commentCount"]),
+			digg_count = int(item["stats"]["diggCount"]),
+			play_count = int(item["stats"]["playCount"]),
+			share_count = int(item["stats"]["shareCount"]),
+			create_time = datetime.datetime.fromtimestamp(int(item["createTime"]))
 		)
-		logger.info(f"Saving tiktok_id={vid_info.tiktok_id} to database...")
+		log.info(f"Saving tiktok_id={vid_info.tiktok_id} to database...")
 
 		try:
 			session.add(vid_info)
 			session.commit()
-		except BaseException as err:
-			logger.error("An unknown error happened!")
-			logger.error(err)
-			raise DBError
+		except Exception as err:
+			log.error("An unknown error happened!")
+			log.error(err)
+			raise DBException
 
 		if save_in_fs:
 			vid_info.to_json()
@@ -82,8 +85,10 @@ class VideoInfo(base):
 		return [x[0] for x in videos]
 
 	def to_json(self):
-		with open(f"json/{int(time.time() * 10 ** 6)}.json", "w") as fp:
-			fp.write(self.json_payload)
+		filename = f"{self.account_name}___{self.tiktok_id}___{int(time.time() * 10 ** 6)}.json"
+		full_path = os.path.join("extracted_data", filename)
+		with open(full_path, "w") as fp:
+			fp.write(json.dumps(self.json_payload))
 
 	def __str__(self):
 		return str(self.__dict__)

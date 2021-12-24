@@ -10,17 +10,27 @@ namespace Jobs.Fetcher.TikTok {
 
     public class PostsQuery : AbstractTikTokFetcher {
 
-        public PostsQuery(List<string> userIds): base(clients) {}
+        public PostsQuery(List<string> userIds): base(userIds) {}
 
         public override List<string> Dependencies() {
-            return new List<string>();
+            return new List<string>() { IdOf<ScrapperAccountAdd>() };
         }
 
-        public override void RunBody(string userId) {
+        public override void RunBody(string username) {
             using (var dbContext = new DataLakeTikTokContext()) {
                 //Create a second loop for each TikTok client. Check with Erik and Victor if the Get option will receive an ID or username
                 var logger = GetLogger();
-                foreach(var post in ApiDataFetcher.GetPosts()){
+                if(!DatabaseManager.TikTokScraperTablesExist()){
+                    Logger.Warning($"TikTok Scraper tables do not exist.");
+                    return;
+                }
+                var authorId = DatabaseManager.GetTikTokId(username);
+                if(authorId == null){
+                    Logger.Error($"Could not find TikTok's AuthorID for ({username})");
+                    return;
+                }
+                var lastFetch = DatabaseManager.GetLastFetch(authorId, dbContext);
+                foreach(var post in ApiDataFetcher.GetPosts(username, lastFetch)){
                     var newAuthor = ApiDataFetcher.GetTikTokAuthorFromJSON(post["author"]);
                     DbWriter.WriteAuthor(newAuthor, dbContext, logger);
 
@@ -61,6 +71,22 @@ namespace Jobs.Fetcher.TikTok {
                     DbWriter.WritePostStats(newPostStats, dbContext, logger);
 
                 }
+            }
+        }
+
+    }
+
+    public class ScrapperAccountAdd : AbstractTikTokFetcher {
+
+        public ScrapperAccountAdd(List<string> userIds): base(userIds) {}
+
+        public override List<string> Dependencies() {
+            return new List<string>();
+        }
+
+        public override void RunBody(string username) {
+            if(!DatabaseManager.TikTokUserExists(username)){
+                DbWriter.InsertUsernameOnScraper(username, GetLogger());
             }
         }
 

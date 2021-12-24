@@ -14,10 +14,14 @@ using Andromeda.Common.Extensions;
 namespace Jobs.Fetcher.TikTok.Helpers {
 
     public static class ApiDataFetcher {
-        public static JToken GetPosts() {
-            JObject allPosts = JObject.Parse(File.ReadAllText(@"test.json"));
-            return allPosts["itemList"];
+        public static List<JObject> GetPosts(string username, DateTime lastFetch) {
+            var allPosts = new List<JObject>();
+            foreach(var payload in DatabaseManager.GetPayload(username, lastFetch)){
+                allPosts.Add(JObject.Parse(payload));
+            }
+            return allPosts;
         }
+        
         public static Video GetTikTokVideoFromJSON(JToken videoJSON, string postId){
             var shareCovers = new List<string>();
             foreach(var shareCover in videoJSON["shareCover"]){
@@ -100,6 +104,9 @@ namespace Jobs.Fetcher.TikTok.Helpers {
         }
         public static List<EffectSticker> GetTikTokEffectStickersFromJSON(JToken effectStickersJSON){
             var effectStickers = new List<EffectSticker>();
+            if(effectStickersJSON == null){
+                return effectStickers;
+            }
             foreach(var sticker in effectStickersJSON){
                 var newEffectSticker = new EffectSticker() {
                     Name = sticker["name"].ToString(),

@@ -6,6 +6,8 @@
 # This script should NOT be run as root, as it is not advisable to run Chrome
 # with root privileges.
 
+log_file="/var/log/scraper/$(date +%s).log"
+
 main() {
     log_i "Starting xvfb virtual display..."
     launch_xvfb
@@ -21,33 +23,24 @@ main() {
 	# Run our app
 	############################################################################
 	directory="/opt/scraper/"
-	scheduler_script="scheduler.py"
-	scraping_instructions="to_scrape.sh"
-	sleep_time=10
-
-	log_i "Sleeping for $sleep_time seconds to allow Postgres to init"
-	sleep $sleep_time
+	scheduler_script="scripts/scheduler.py"
+	
+	log_i "Sleeping for 10 seconds to allow Postgres to init"
+	sleep 10
 
 	cd "$directory"
+	find -maxdepth 1 -regex '.*chrome_profile.*' -type d -exec rm -rf {} +
 
 	# This needs to go unquoted in the command
-	unquoted="$keep_logs $slow_mode $quiet"
+	unquoted="$random_order"
 
 	while true ; do
 		log_i "Running scheduler script..."
-		python3 "$scheduler_script" \
-			--scroll_limit "$scroll_limit" \
-			--timeout "$timeout" \
-			--scraping_interval "$scraping_interval" \
-			--db_conn_string "$db_conn_string" \
+		python3 -m scripts.scheduler \
+			--sleep_interval "$sleep_interval" \
 			$unquoted \
-			"$navigator_name"
-
-		log_i "Running scraper on instructions set by scheduler..."
-		bash "$scraping_instructions"
-
-		log_i "Sleeping for $sleep_time seconds before restarting loop..."
-		sleep $sleep_time
+			2>&1 | tee -a "$log_file"
+		sleep 10
 	done
 }
 
@@ -142,7 +135,7 @@ log_e() {
 }
 
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [BOOTSTRAP] ${@}"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [BOOTSTRAP] ${@}" 2>&1 | tee -a "$log_file"
 }
 
 control_c() {
