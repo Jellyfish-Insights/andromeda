@@ -13,6 +13,7 @@ namespace DataLakeModels.Models.TikTok {
         public long VideoCount { get; set; }
         public long DiggCount { get; set; }
         public long Heart { get; set; }
+        public DateTime EventDate { get; set; }
         public DateTime ValidityStart { get; set; }
         public DateTime ValidityEnd { get; set; }
         public Author Author { get; set; }
@@ -24,7 +25,8 @@ namespace DataLakeModels.Models.TikTok {
                    HeartCount == other.HeartCount &&
                    VideoCount == other.VideoCount &&
                    DiggCount == other.DiggCount &&
-                   Heart == other.Heart;
+                   Heart == other.Heart &&
+                   EventDate == other.EventDate;
         }
     }
 }
