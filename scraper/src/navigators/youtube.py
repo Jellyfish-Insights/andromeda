@@ -32,7 +32,8 @@ class YouTube(AbstractNavigator):
 			self.logger.critical("Could not find credentials!")
 			raise
 
-		sign_in = self.find_one("sign in")
+		sign_in = self.find_one(text="sign in", case_insensitive=True)
+			"sign in")
 		self.click(sign_in)
 		self.wait_load()
 

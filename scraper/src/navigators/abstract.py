@@ -124,12 +124,16 @@ class AbstractNavigator(ABC):
 				text: str = None,
 				text_exact: bool = True,
 				case_insensitive: bool = True,
-				visible: bool = True) -> List[WebElement]:
+				visible: bool = True,
+				attributes: dict = {}) -> List[WebElement]:
 
 		filters = []
 
 		if visible:
 			filters.append(XPath.visible())
+
+		if len(attributes):
+			filters.append(XPath.attributes(attributes))
 
 		if text_exact:
 			filters.append(XPath.text_exact(text, case_insensitive))

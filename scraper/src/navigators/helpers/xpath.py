@@ -69,4 +69,7 @@ class XPath:
 
 	@staticmethod
 	def attributes(attr_dict: dict):
-		for key, value in
+		selectors = []
+		for key, value in attr_dict:
+			selectors.append(f"@{key}={value}")
+		return " and ".join(selectors)
