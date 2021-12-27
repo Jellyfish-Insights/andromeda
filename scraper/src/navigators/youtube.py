@@ -22,15 +22,6 @@ class YouTube(AbstractNavigator):
 		return f"https://www.youtube.com"
 
 	def action_load(self):
-		self.logger.debug("moving around aimlessly...")
-		self.move_around()
-
-		self.logger.debug("moving around aimlessly...")
-		self.move_around()
-
-		self.logger.debug("moving around aimlessly...")
-		self.move_around()
-
 		os.chdir(os.path.dirname(os.path.realpath(__file__)))
 		yt_credentials = dotenv_values("../credentials/youtube.env")
 		try:
@@ -90,7 +81,9 @@ class YouTube(AbstractNavigator):
 		self.click(content_button)
 		self.wait_load()
 
-		self.wait(5)
+		self.logger.debug("moving around aimlessly...")
+		self.move_around()
+
 		items_to_hover = self.find(
 			tag="div",
 			id="hover-items"
@@ -101,13 +94,8 @@ class YouTube(AbstractNavigator):
 			self.logger.debug(item)
 		self.logger.debug("We will now hover the items!")
 
-		for i in range(len(items_to_hover)):
-			xpath = XPath.xpath(
-				tag = "div",
-				id="hover-items",
-				nth=i
-			)
-			self.hover(xpath, max_elem_to_hover=1)
+		for el in items_to_hover:
+			self.hover(el)
 			self.wait(0.5)
 			analytics_button = self.find_one(
 				tag="ytcp-icon-button",

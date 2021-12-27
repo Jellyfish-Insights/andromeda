@@ -6,8 +6,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import JavascriptException, InvalidSelectorException, \
-	ElementNotInteractableException
+	ElementNotInteractableException, StaleElementReferenceException
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.action_chains import ActionChains
 
 import browsermobproxy
 import undetected_chromedriver.v2 as uc
@@ -16,7 +17,15 @@ from navigators.helpers.xpath import XPath
 from navigators.helpers.trim import trim
 from libs.kill_handle import KillHandle
 
+################################################################################
+# GLOBALS
+################################################################################
+
 T = TypeVar("T")
+
+################################################################################
+# CUSTOM EXCEPTIONS
+################################################################################
 
 class EndOfPage(Exception):
 	pass
@@ -31,6 +40,10 @@ class WrongNumberOfElements(Exception):
 	returned, we issue an exception
 	"""
 	pass
+
+################################################################################
+# CLASS DEFINITION
+################################################################################
 
 class AbstractNavigator(ABC):
 	"""
@@ -65,6 +78,7 @@ class AbstractNavigator(ABC):
 
 	MOVE_AROUND_MAX_HOVERS = 10
 	MOVE_AROUND_PROB_SCROLL_ON_HOVER = 0.25
+	MOVE_AROUND_UPSCROLL_PROPORTION = 0.10
 
 	def __init__(
 				self,
@@ -80,6 +94,7 @@ class AbstractNavigator(ABC):
 		self.proxy = proxy
 		self.logger = logger
 		self.kill_handle = kill_handle
+		self.action = ActionChains(driver)
 
 	############################################################################
 	# NON-IMPLEMENTED METHODS
@@ -218,7 +233,7 @@ class AbstractNavigator(ABC):
 		"""
 		return self.run(js_code)
 
-	def is_in_view(self, xpath_str: str) -> bool:
+	def is_in_view_by_xpath(self, xpath_str: str) -> bool:
 		"""
 		Only one element should be returned by xpath_str, please use appropriate
 		filter in XPath if more than one result is returned
@@ -253,6 +268,33 @@ class AbstractNavigator(ABC):
 		return isInView(elem);
 		"""
 		return self.run(js_code)
+
+	def is_in_view(self, elem: WebElement) -> bool:
+		window_inner_height = self.run("return window.innerHeight;")
+		window_inner_width = self.run("return window.innerWidth;")
+
+		try:
+			height = elem.rect["height"]
+			width = elem.rect["width"]
+			top = elem.rect["x"]
+			left = elem.rect["y"]
+			bottom = top + height
+			right = left + width
+		except StaleElementReferenceException:
+			return False
+
+		return (
+			height > 0 and width > 0
+			and (
+				top > 0 and top < window_inner_height
+				or bottom > 0 and bottom < window_inner_height
+			)
+			and (
+				left > 0 and left < window_inner_width
+				or right > 0 and right < window_inner_width
+			)
+		)
+
 
 	############################################################################
 	# METHODS FOR NAVIGATION AND INTERACTION
@@ -290,7 +332,7 @@ class AbstractNavigator(ABC):
 		self.logger.debug(f"Code after trimming <<< {trimmed_code} >>>")
 		return self.run(trimmed_code)
 
-	def hover(self, xpath_str: str) -> None:
+	def hover_event_dispatch(self, xpath_str: str) -> None:
 		"""
 		Only one element should be returned by xpath_str, please use appropriate
 		filter in XPath if more than one result is returned
@@ -313,6 +355,10 @@ class AbstractNavigator(ABC):
 		elem.dispatchEvent(hoverEvent);
 		"""
 		self.run(js_code)
+
+	def hover(self, elem: WebElement) -> None:
+		self.action.move_to_element(elem)
+		self.action.perform()
 
 	def short_pause(self, slow_mode: bool = False):
 		pause_length = self.SHORT_PAUSE_LENGTH
@@ -359,8 +405,9 @@ class AbstractNavigator(ABC):
 
 	def move_around(
 				self,
-				max_hovers = None,
-				prob_of_scroll_on_hover = None
+				max_hovers: int = None,
+				prob_of_scroll_on_hover: float = None,
+				upscroll_proportion: float = 0.5
 				) -> None:
 		"""
 		This will move around the page aimlessly. The purpose is to look like
@@ -371,16 +418,22 @@ class AbstractNavigator(ABC):
 		"""
 		max_hovers = max_hovers or self.MOVE_AROUND_MAX_HOVERS
 		prob_of_scroll_on_hover = prob_of_scroll_on_hover or self.MOVE_AROUND_PROB_SCROLL_ON_HOVER
-		self.scroll_random()
-		
-		xpath_list = XPath.xpath()
+		upscroll_proportion = upscroll_proportion or self.MOVE_AROUND_UPSCROLL_PROPORTION
+
+		self.scroll_random(upscroll_proportion=upscroll_proportion)
+
 		hovered = 0
-		for elem in self.get_xpath_iterator(xpath_list, random_order=True):
+		elements = self.find()
+		random.shuffle(elements)
+		for elem in elements:
 			if self.is_in_view(elem):
-				self.hover(elem)
+				try:
+					self.hover(elem)
+				except ElementNotInteractableException:
+					continue
 				hovered += 1
 				if random.random() < prob_of_scroll_on_hover:
-					self.scroll_random()
+					self.scroll_random(upscroll_proportion=upscroll_proportion)
 				if hovered >= max_hovers:
 					break
 
