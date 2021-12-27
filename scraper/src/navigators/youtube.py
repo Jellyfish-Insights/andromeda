@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os
+import os, re
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from dotenv import dotenv_values
@@ -31,6 +31,7 @@ class YouTube(AbstractNavigator):
 			self.logger.critical("Could not find credentials!")
 			raise
 
+		self.wait_load()
 		sign_in_buttons = self.find(
 				text="sign in",
 				text_exact=True,
@@ -81,8 +82,35 @@ class YouTube(AbstractNavigator):
 		self.click(content_button)
 		self.wait_load()
 
-		self.logger.debug("moving around aimlessly...")
-		self.move_around()
+		self.logger.debug("Pressing tab a bunch of times to load content...")
+		self.press_tab()
+
+		js_code = """
+			let arr = [];
+			document.querySelectorAll("a[href*='watch?v='").forEach(el => {
+				arr.push(el.getAttribute("href"));
+			});
+			return arr;
+		"""
+		links = self.run(js_code)
+		self.logger.debug(f"{links=}")
+		if len(links) == 0:
+			self.logger.critical("Could not find links to videos!")
+			raise ElementNotFound
+
+		regex = re.compile(r"v=(.+)$")
+		video_ids = [regex.search(x)[1] for x in links]
+		self.logger.debug(video_ids)
+		
+		breakpoint()
+
+		content_section = self.driver.find_element(
+				By.XPATH,
+				"/html/body/ytcp-app/ytcp-entity-page/div/div/main/div/ytcp-animatable[3]/ytcp-content-section/ytcp-video-section/ytcp-video-section-content"
+		)
+		self.logger.debug("moving mouse around content section")
+		for _ in range(10):
+			self.move_mouse_around_elem(content_section)
 
 		items_to_hover = self.find(
 			tag="div",
@@ -95,9 +123,10 @@ class YouTube(AbstractNavigator):
 		self.logger.debug("We will now hover the items!")
 
 		for el in items_to_hover:
+			self.move_mouse_around_elem(content_section)
 			self.hover(el)
 			self.wait(0.5)
-			analytics_button = self.find_one(
+			analytics_button = el.find_one(
 				tag="ytcp-icon-button",
 				attributes={"aria-label":'Analytics'}
 			)

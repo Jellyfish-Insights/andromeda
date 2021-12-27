@@ -1,4 +1,4 @@
-import logging, random, time, json
+import logging, random, time, json, math
 from abc import ABC, abstractmethod
 from typing import Iterator, List, TypeVar, Any
 
@@ -6,9 +6,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import JavascriptException, InvalidSelectorException, \
-	ElementNotInteractableException, StaleElementReferenceException
+	ElementNotInteractableException, StaleElementReferenceException, \
+	MoveTargetOutOfBoundsException
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 
 import browsermobproxy
 import undetected_chromedriver.v2 as uc
@@ -79,6 +81,9 @@ class AbstractNavigator(ABC):
 	MOVE_AROUND_MAX_HOVERS = 10
 	MOVE_AROUND_PROB_SCROLL_ON_HOVER = 0.25
 	MOVE_AROUND_UPSCROLL_PROPORTION = 0.10
+
+	# For performing a sequence of actions as a single block (avoids overhead)
+	BATCH_ACTION_SIZE = 10
 
 	def __init__(
 				self,
@@ -295,6 +300,133 @@ class AbstractNavigator(ABC):
 			)
 		)
 
+	############################################################################
+	# LOADERS
+	############################################################################
+	"""
+	Some websites load content dynamically as some events are triggered.
+	Some of the events they listen to is scrolling, waiting for elements to
+	be focused, and element mouse-over. These functions provide some dummy
+	interaction in order to load the elements that really interest us
+	"""
+	def press_tab(self, n_times = 500, timeout = 0.05):
+		nodes_visited = set()
+		for i in range(n_times):
+			self.action.send_keys(Keys.TAB)
+			self.action.pause(timeout)
+			self.action.perform()
+
+			node_focused = self.run("return document.activeElement ;")
+			if node_focused in nodes_visited:
+				self.logger.debug(f"After {i} TABs, we have visited every focusable node")
+				return
+			nodes_visited.add(node_focused)
+
+	def hover_event_dispatch(self, xpath_str: str) -> None:
+		"""
+		Only one element should be returned by xpath_str, please use appropriate
+		filter in XPath if more than one result is returned
+		"""
+
+		if not self.xpath_one(xpath_str):
+			self.logger.critical(f"xpath returned {self.xpath_len(xpath_str)} "
+					"results, expected one.")
+			self.logger.critical(f"xpath_str is <<< {xpath_str} >>>")
+			raise WrongNumberOfElements
+
+		js_code = f"""
+		const hoverEvent = new MouseEvent('mouseover', {{
+			'view': window,
+			'bubbles': true,
+			'cancelable': true
+		}});
+
+		const elem = {XPath.get_one_element_js(xpath_str)} ;
+		elem.dispatchEvent(hoverEvent);
+		"""
+		self.run(js_code)
+
+	def hover(self, elem: WebElement) -> None:
+		self.action.move_to_element(elem)
+		self.action.perform()
+
+	def move_aimlessly(
+				self,
+				max_hovers: int = None,
+				prob_of_scroll_on_hover: float = None,
+				upscroll_proportion: float = 0.5
+				) -> None:
+		max_hovers = max_hovers or self.MOVE_AROUND_MAX_HOVERS
+		prob_of_scroll_on_hover = prob_of_scroll_on_hover or self.MOVE_AROUND_PROB_SCROLL_ON_HOVER
+		upscroll_proportion = upscroll_proportion or self.MOVE_AROUND_UPSCROLL_PROPORTION
+
+		self.scroll_random(upscroll_proportion=upscroll_proportion)
+
+		hovered = 0
+		elements = self.find()
+		random.shuffle(elements)
+		for elem in elements:
+			if self.is_in_view(elem):
+				try:
+					self.hover(elem)
+				except ElementNotInteractableException:
+					continue
+				hovered += 1
+				if random.random() < prob_of_scroll_on_hover:
+					self.scroll_random(upscroll_proportion=upscroll_proportion)
+				if hovered >= max_hovers:
+					break
+
+	def move_mouse_spiral_center_of_screen(self, max_steps = 200, batch=True):
+		window_inner_width = self.run("return window.innerWidth;")
+		window_inner_height = self.run("return window.innerHeight;")
+		
+		center_of_screen = (window_inner_width / 2, window_inner_height / 2)
+		self.logger.debug(f"{center_of_screen=}")
+		self.action.move_by_offset(*center_of_screen)
+
+		# It will take us 24 steps to go full-circle
+		DELTA_T = math.pi / 12
+		# Every 360 degrees (24 steps), we will be 50 pixels further from center
+		SPIRAL_FACTOR = 50 / (2 * math.pi)
+
+		get_coords = lambda t: (math.cos(t) * SPIRAL_FACTOR * t, math.sin(t) * SPIRAL_FACTOR * t)
+
+		t = 0
+		initial_point = last_point = get_coords(t * DELTA_T)
+		self.action.move_by_offset(*initial_point)
+
+		for t in range(1, max_steps):
+			next_point = get_coords(t * DELTA_T)
+			delta = (next_point[0] - last_point[0], next_point[1] - last_point[1])
+			self.logger.debug(f"Moving mouse by offset of {delta=}")
+			self.action.move_by_offset(*delta)
+			self.action.pause(0.01)
+
+			if not batch or t % self.BATCH_ACTION_SIZE == 0:
+				try:
+					self.action.perform()
+				except MoveTargetOutOfBoundsException:
+					self.logger.debug(f"Iteration {t}: mouse would move out of screen, breaking.")
+					return
+
+			last_point = next_point
+
+		self.action.perform()
+
+	def move_mouse_around_elem(
+				self,
+				elem: WebElement,
+				min_offset: int = 5,
+				max_offset: int = 100
+				) -> None:
+		offset_x = random.randint(min_offset, max_offset)
+		offset_y = random.randint(min_offset, max_offset)
+
+		self.action.move_to_element(elem)
+		self.action.pause(0.1)
+		self.action.move_by_offset(offset_x, offset_y)
+		self.action.perform()
 
 	############################################################################
 	# METHODS FOR NAVIGATION AND INTERACTION
@@ -332,33 +464,6 @@ class AbstractNavigator(ABC):
 		self.logger.debug(f"Code after trimming <<< {trimmed_code} >>>")
 		return self.run(trimmed_code)
 
-	def hover_event_dispatch(self, xpath_str: str) -> None:
-		"""
-		Only one element should be returned by xpath_str, please use appropriate
-		filter in XPath if more than one result is returned
-		"""
-
-		if not self.xpath_one(xpath_str):
-			self.logger.critical(f"xpath returned {self.xpath_len(xpath_str)} "
-					"results, expected one.")
-			self.logger.critical(f"xpath_str is <<< {xpath_str} >>>")
-			raise WrongNumberOfElements
-
-		js_code = f"""
-		const hoverEvent = new MouseEvent('mouseover', {{
-			'view': window,
-			'bubbles': true,
-			'cancelable': true
-		}});
-
-		const elem = {XPath.get_one_element_js(xpath_str)} ;
-		elem.dispatchEvent(hoverEvent);
-		"""
-		self.run(js_code)
-
-	def hover(self, elem: WebElement) -> None:
-		self.action.move_to_element(elem)
-		self.action.perform()
 
 	def short_pause(self, slow_mode: bool = False):
 		pause_length = self.SHORT_PAUSE_LENGTH
@@ -390,8 +495,6 @@ class AbstractNavigator(ABC):
 			min_amount_of_scrolling: int = None,
 			upscroll_proportion: float = 0.50):
 		"""
-		Navigates down in the page, trying not to go too fast and emulate a human
-		usage.
 		"upscroll_proportion" means how much of the scrollings should be upscrolls
 		"""
 		min_amount_of_scrolling = min_amount_of_scrolling or self.MIN_AMOUNT_OF_SCROLLING
@@ -403,39 +506,7 @@ class AbstractNavigator(ABC):
 		
 		self.scroll_exact(amount)
 
-	def move_around(
-				self,
-				max_hovers: int = None,
-				prob_of_scroll_on_hover: float = None,
-				upscroll_proportion: float = 0.5
-				) -> None:
-		"""
-		This will move around the page aimlessly. The purpose is to look like
-		a normal user and get unloaded elements to load.
 
-		Please use throttlers in the concrete implementation, or this could go
-		too fast and look too robotic.
-		"""
-		max_hovers = max_hovers or self.MOVE_AROUND_MAX_HOVERS
-		prob_of_scroll_on_hover = prob_of_scroll_on_hover or self.MOVE_AROUND_PROB_SCROLL_ON_HOVER
-		upscroll_proportion = upscroll_proportion or self.MOVE_AROUND_UPSCROLL_PROPORTION
-
-		self.scroll_random(upscroll_proportion=upscroll_proportion)
-
-		hovered = 0
-		elements = self.find()
-		random.shuffle(elements)
-		for elem in elements:
-			if self.is_in_view(elem):
-				try:
-					self.hover(elem)
-				except ElementNotInteractableException:
-					continue
-				hovered += 1
-				if random.random() < prob_of_scroll_on_hover:
-					self.scroll_random(upscroll_proportion=upscroll_proportion)
-				if hovered >= max_hovers:
-					break
 
 if __name__ == "__main__":
 	AbstractNavigator.select_navigator()
