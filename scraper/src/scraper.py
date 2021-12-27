@@ -3,7 +3,7 @@
 import os, sys, time, shutil, threading, signal, random, traceback
 
 import browsermobproxy, undetected_chromedriver.v2 as uc
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import WebDriverException, NoSuchWindowException
 
 from logger import logger, change_logger_level
 from arg_parser import parse
@@ -190,6 +190,11 @@ class Scraper:
 
 		try:
 			continue_scraping = navigator.action_load()
+		except NoSuchWindowException as err:
+			logger.critical("Chrome window was closed from an outside agent!")
+			logger.critical(err)
+			traceback.print_exc()
+			self.cleanup(1)
 		except KillHandleTriggered:
 			self.cleanup(1)
 		except Exception as err:
@@ -203,6 +208,11 @@ class Scraper:
 
 		try:
 			navigator.action_interact()
+		except NoSuchWindowException as err:
+			logger.critical("Chrome window was closed from an outside agent!")
+			logger.critical(err)
+			traceback.print_exc()
+			self.cleanup(1)
 		except (KillHandleTriggered, DBError):
 			self.cleanup()
 		except Exception as err:

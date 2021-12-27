@@ -6,6 +6,7 @@ from dotenv import dotenv_values
 
 from navigators.abstract import AbstractNavigator, ElementNotFound
 from libs.throttling import throttle
+from navigators.helpers.xpath import XPath
 
 class YouTube(AbstractNavigator):
 	############################################################################
@@ -80,24 +81,40 @@ class YouTube(AbstractNavigator):
 		self.click(content_button)
 		self.wait_load()
 
-		analytics_button = self.find_one(
-			tag="ytcp-icon-button",
-			attributes={"aria-label":'Analytics'}
+		self.wait(5)
+		items_to_hover = self.find(
+			tag="div",
+			id="hover-items"
 		)
-		self.click(analytics_button)
-		self.wait_load()
 
-		see_more_button = self.find_one(
-				tag="yta-key-metric-card",
-				text="see more",
-				text_exact=True,
-				case_insensitive=True
-		)
-		self.click(see_more_button)
-		self.wait_load()
+		self.logger.debug(items_to_hover)
+		for item in items_to_hover:
+			self.logger.debug(item)
+		self.logger.debug("We will now hover the items!")
 
-		breakpoint()
-		pass
+		for i in range(len(items_to_hover)):
+			xpath = XPath.xpath(
+				tag = "div",
+				id="hover-items",
+				n_th=i
+			)
+			self.hover(xpath, max_elem_to_hover=1)
+			self.wait(0.5)
+			analytics_button = self.find_one(
+				tag="ytcp-icon-button",
+				attributes={"aria-label":'Analytics'}
+			)
+			self.click(analytics_button)
+			self.wait_load()
+			see_more_button = self.find_one(
+					tag="yta-key-metric-card",
+					text="see more",
+					text_exact=True,
+					case_insensitive=True
+			)
+			self.click(see_more_button)
+			self.wait_load()
+			breakpoint()
 
 	def action_interact(self):
 		pass
