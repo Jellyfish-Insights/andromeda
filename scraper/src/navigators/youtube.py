@@ -1,12 +1,51 @@
 #!/usr/bin/env python3
 import os, re
+from collections import OrderedDict
+from urllib.parse import urlencode
+
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
 from dotenv import dotenv_values
 
 from navigators.abstract import AbstractNavigator, ElementNotFound
 from libs.throttling import throttle
-from navigators.helpers.xpath import XPath
+
+################################################################################
+# CONSTANTS
+################################################################################
+
+# Convert from query string to python tuples:
+# sed -nr "s/&(.+)=(.+)/\('\1', '\2'\),/p" <FILE>
+
+ANALYTICS_QUERY_STRING_LIST = [
+	('entity_type', 'VIDEO'),
+	('entity_id', 'lkGSGsHHE1Q'),
+	# You won't be able to export to CSV if you choose "since_publish"
+	('time_period', '4_weeks'),
+	('explore_type', 'TABLE_AND_CHART'),
+	('metric', 'VIEWS'),
+	('granularity', 'DAY'),
+	('t_metrics', 'VIEWS'),
+	('t_metrics', 'WATCH_TIME'),
+	('t_metrics', 'SUBSCRIBERS_NET_CHANGE'),
+	('t_metrics', 'VIDEO_THUMBNAIL_IMPRESSIONS'),
+	('t_metrics', 'VIDEO_THUMBNAIL_IMPRESSIONS_VTR'),
+	('v_metrics', 'VIEWS'),
+	('v_metrics', 'WATCH_TIME'),
+	('v_metrics', 'SUBSCRIBERS_NET_CHANGE'),
+	('v_metrics', 'VIDEO_THUMBNAIL_IMPRESSIONS'),
+	('v_metrics', 'VIDEO_THUMBNAIL_IMPRESSIONS_VTR'),
+	('dimension', 'VIDEO'),
+	('o_column', 'VIEWS'),
+	('o_direction', 'ANALYTICS_ORDER_DIRECTION_DESC'),
+]
+
+ANALYTICS_QUERY_STRING_DICT = OrderedDict(ANALYTICS_QUERY_STRING_LIST)
+ANALYTICS_QUERY_STRING_ENCODED = urlencode(ANALYTICS_QUERY_STRING_DICT)
+
+################################################################################
+# CLASS DEFINITION
+################################################################################
 
 class YouTube(AbstractNavigator):
 	############################################################################
@@ -99,48 +138,25 @@ class YouTube(AbstractNavigator):
 			raise ElementNotFound
 
 		regex = re.compile(r"v=(.+)$")
-		video_ids = [regex.search(x)[1] for x in links]
+		video_ids = set(regex.search(x)[1] for x in links)
 		self.logger.debug(video_ids)
+
+		for video_id in video_ids:
+			self.driver.get(f"https://studio.youtube.com/video/{video_id}/analytics/tab-overview/period-default/explore?{ANALYTICS_QUERY_STRING_ENCODED}")
+			self.wait_load()
+
+			download_button = self.find_one(attributes={"icon": "icons:file-download"})
+			self.click(download_button)
+
+			csv_button = self.find_one(
+				text="comma-separated values (.csv)",
+				text_exact=True,
+				case_insensitive=True
+			)
+			self.click(csv_button)
+			self.wait_load()
 		
 		breakpoint()
-
-		content_section = self.driver.find_element(
-				By.XPATH,
-				"/html/body/ytcp-app/ytcp-entity-page/div/div/main/div/ytcp-animatable[3]/ytcp-content-section/ytcp-video-section/ytcp-video-section-content"
-		)
-		self.logger.debug("moving mouse around content section")
-		for _ in range(10):
-			self.move_mouse_around_elem(content_section)
-
-		items_to_hover = self.find(
-			tag="div",
-			id="hover-items"
-		)
-
-		self.logger.debug(items_to_hover)
-		for item in items_to_hover:
-			self.logger.debug(item)
-		self.logger.debug("We will now hover the items!")
-
-		for el in items_to_hover:
-			self.move_mouse_around_elem(content_section)
-			self.hover(el)
-			self.wait(0.5)
-			analytics_button = el.find_one(
-				tag="ytcp-icon-button",
-				attributes={"aria-label":'Analytics'}
-			)
-			self.click(analytics_button)
-			self.wait_load()
-			see_more_button = self.find_one(
-					tag="yta-key-metric-card",
-					text="see more",
-					text_exact=True,
-					case_insensitive=True
-			)
-			self.click(see_more_button)
-			self.wait_load()
-			breakpoint()
 
 	def action_interact(self):
 		pass
