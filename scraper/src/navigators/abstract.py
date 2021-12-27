@@ -434,6 +434,10 @@ class AbstractNavigator(ABC):
 	"""Subclasses are encouraged to reuse these, by wrapping with decorators
 	if necessary"""
 
+	def go(self, url: str) -> None:
+		self.logger.debug(f"Navigating to {url}")
+		self.driver.get(url)
+
 	@try_to_interact
 	def click(self, elem: WebElement):
 		elem.click()
