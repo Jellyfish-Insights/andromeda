@@ -3,10 +3,11 @@ from sqlalchemy import Column, String, Integer, BigInteger, DateTime, select, an
 from sqlalchemy.dialects.postgresql import JSONB
 
 from logger import logger
-from db import DBError, session, base
+from db import DBError, session, base, SCHEMA_NAME
 
 class VideoInfo(base):
 	__tablename__ = "video_info"
+	__table_args__ = {'schema': SCHEMA_NAME}
 
 	# Metadata
 	internal_id = Column(BigInteger, primary_key=True)
