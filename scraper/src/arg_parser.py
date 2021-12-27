@@ -97,8 +97,8 @@ def parse() -> dict:
 
 	args = parser.parse_args()
 	
-	if args.scroll_limit <= 0:
-		logger.critical("scroll_limit must be a strictly positive integer")
+	if args.scroll_limit < 0:
+		logger.critical("scroll_limit must be a non-negative integer")
 		exit(1)
 
 	if args.timeout < 0:

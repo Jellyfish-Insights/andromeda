@@ -8,7 +8,7 @@ from navigators.abstract import AbstractNavigator, EndOfPage
 from models.account_name import AccountName
 from models.video_info import VideoInfo
 from db import DBError
-from scraper import LOCALE_OPTIONS
+from libs.throttling import throttle
 
 class TikTok(AbstractNavigator):
 	"""
@@ -51,6 +51,13 @@ class TikTok(AbstractNavigator):
 		('&is_copy_url=1',''),
 		('&is_from_webapp=v1','')
 	]
+
+	THROTTLE_EXECUTION_TIME = 2.00
+	THROTTLE_AT_LEAST = 2.00
+
+	THROTTLE_HOVER = 0.25
+
+	UPSCROLL_PROPORTION = 0.20
 
 	############################################################################
 	# CONSTRUCTOR
@@ -122,42 +129,55 @@ class TikTok(AbstractNavigator):
 		return True
 
 	def action_interact(self):
-		account_name = self.options.account_name
-
 		self.logger.info("Now let's scroll down to get more data... will scroll " +
 			f"down up to {self.options.scroll_limit} times")
 
+		stop = False
 		scrolled = 0
-		while scrolled < self.options.scroll_limit:
+		while (not stop 
+				and (self.options.scroll_limit == 0 
+				or scrolled < self.options.scroll_limit)):
 			self.kill_handle.check()
 
-			will_scroll = min(self.options.scroll_limit - scrolled, self.PARTIAL_SCROLL_SIZE)
-			self.logger.info(f"We will now scroll a bit ({will_scroll} times)")
-			try:
-				self.scroll_down(
-					max_times = will_scroll,
-					slow_mode = self.options.slow_mode
-				)
-				scrolled += will_scroll
-			except EndOfPage:
-				scrolled = self.options.scroll_limit
+			self.logger.debug(f"Scrolling down")
+			self.scroll_random(upscroll_proportion=self.UPSCROLL_PROPORTION)
+			scrolled += 1
+			if self.was_end_of_page_reached():
+				stop = True
+			self.process_har()
 
-			for ent in self.proxy.har['log']['entries']:
-				url = ent['request']['url']
-				if re.search(r'^.+/item_list/\?.*msToken=.*$',url):
-					try:
-						response_payload = json.loads(ent['response']['content']['text'])
-						if type(response_payload) == dict:
-							items = response_payload["itemList"]
-							for it in items:
-								try:
-									VideoInfo.add(account_name, it)
-								except DBError:
-									self.logger.critical("Error interacting with database!")
-									raise
+	def process_har(self):
+		account_name = self.options.account_name
 
-					except KeyError:
-						self.logger.warning("Could not fetch information from GET request")
+		for ent in self.proxy.har['log']['entries']:
+			url = ent['request']['url']
+			if re.search(r'^.+/item_list/\?.*msToken=.*$',url):
+				try:
+					response_payload = json.loads(ent['response']['content']['text'])
+					if type(response_payload) == dict:
+						items = response_payload["itemList"]
+						for it in items:
+							try:
+								VideoInfo.add(account_name, it)
+							except DBError:
+								self.logger.critical("Error interacting with database!")
+								raise
 
-			# Reset the HAR
-			self.proxy.new_har(options=self.HAR_OPTIONS)
+				except KeyError:
+					self.logger.warning("Could not fetch information from GET request")
+
+		# Reset the HAR
+		self.proxy.new_har(options=self.HAR_OPTIONS)
+
+
+	############################################################################
+	# METHODS FOR NAVIGATION AND INTERACTION
+	############################################################################
+
+	@throttle(THROTTLE_EXECUTION_TIME, THROTTLE_AT_LEAST)
+	def scroll_random(self, *args, **kwargs):
+		return super().scroll_random(*args, **kwargs)
+
+	@throttle(THROTTLE_HOVER)
+	def hover(self, xpath_str: str) -> None:
+		return super().hover(xpath_str)

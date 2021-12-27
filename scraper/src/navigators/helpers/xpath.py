@@ -1,6 +1,7 @@
 import re
+from navigators.helpers.trim import trim
 
-class XPath:
+class XPath:	
 	@staticmethod
 	def text_exact(
 				text: str,
@@ -80,6 +81,14 @@ class XPath:
 		return f"@id='{id_name}'"
 
 	@staticmethod
+	def nth(xpath_str: str, index: int) -> str:
+		"""
+		Indices start with zero, as in normal Python, we take care of the
+		conversion.
+		"""
+		return f"({xpath_str})[{index + 1}]"
+
+	@staticmethod
 	def xpath(
 
 				tag: str = "*",
@@ -90,12 +99,12 @@ class XPath:
 				attributes: dict = None,
 				contains_classes: list = None,
 				id: str = None,
-				n_th: str = None
+				nth: str = None
 
 			) -> str:
 		"""
 		Remember that in xpath, indices start with 1, not 0. However, to make it
-		easier to communicate with Python, n_th = 0 will correspond to the first
+		easier to communicate with Python, nth = 0 will correspond to the first
 		element returned, we will do the conversion inside this function.
 		"""
 		
@@ -124,9 +133,42 @@ class XPath:
 		else:
 			use_filters = f"[{' and '.join(filters)}]"
 
-		if n_th is not None:
-			n_th_filter = f"[{n_th + 1}]"
-		else:
-			n_th_filter = ""
+		base_xpath = f"/html/body//{tag}{use_filters}"
 
-		return f"(/html/body//{tag}{use_filters}){n_th_filter}"
+		if nth is not None:
+			return XPath.nth(base_xpath, nth)
+		else:
+			return base_xpath
+
+	@staticmethod
+	def get_list_of_elements_js(xpath_str: str) -> str:
+		"""
+		Beware that the evaluation of xpath_str will result in a list of elements.
+
+		Use it like this:
+		(Python)
+		js_code = "const listOfElements = {XPath.get_list_of_elements_js(xpath)} ;"
+		"""
+		return trim(f"""
+			document.evaluate(
+				"{xpath_str}",
+				document,
+				null,
+				XPathResult.ANY_TYPE,
+				null
+		)
+		""")
+
+	@staticmethod
+	def get_one_element_js(xpath_str: str) -> str:
+		"""
+		Beware the evaluation of xpath_str will result in a single element.
+
+		Use it like this:
+		(Python)
+		js_code = "const elem = {XPath.get_one_element_js(xpath)} ;"
+		"""
+		return trim(f"""
+			{XPath.get_list_of_elements_js(xpath_str)}
+			.iterateNext()
+		""")
