@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 import json, re, random
-from os import kill
-from typing import Any, Dict
-from selenium.webdriver.common.by import By
 
 from arg_parser import Options
-from libs.kill_handle import KillHandleTriggered
-from navigators.abstract import AbstractNavigator, EndOfPage
+from navigators.abstract import AbstractNavigator
 from models.account_name import AccountName
 from models.video_info import VideoInfo
 from db import DBError
@@ -87,9 +83,13 @@ class TikTok(AbstractNavigator):
 	############################################################################
 	# METHODS
 	############################################################################
-	def build_url(self):
+	def main(self):
+		url = self.build_url()
+		self.handle_initial_data(url)
+		self.scroll_down_handle_more_data()
+	
+	def build_url(self) -> str:
 		account_name = self.options.account_name
-
 		try:
 			AccountName.test(account_name)
 		except ValueError:
@@ -103,11 +103,9 @@ class TikTok(AbstractNavigator):
 
 		return url
 
-	def action_load(self):
-		try:
-			self.kill_handle.check()
-		except KillHandleTriggered:
-			raise
+	def handle_initial_data(self, url: str):
+		self.go(url)
+		self.kill_handle.check()
 
 		self.move_aimlessly(timeout = 20.0)
 
@@ -126,11 +124,14 @@ class TikTok(AbstractNavigator):
 				self.logger.critical("Error interacting with database!")
 				raise
 
-		return True
-
-	def action_interact(self):
+	def scroll_down_handle_more_data(self):
+		self.kill_handle.check()
+		if self.options.scroll_limit != 0:
+			scroll_limit_string = f"up to {self.options.scroll_limit} times"
+		else:
+			scroll_limit_string = "until the end of the page or timeout"
 		self.logger.info("Now let's scroll down to get more data... will scroll " +
-			f"down up to {self.options.scroll_limit} times")
+			f"down {scroll_limit_string}")
 
 		stop = False
 		scrolled = 0
@@ -168,7 +169,6 @@ class TikTok(AbstractNavigator):
 
 		# Reset the HAR
 		self.proxy.new_har(options=self.HAR_OPTIONS)
-
 
 	############################################################################
 	# METHODS FOR NAVIGATION AND INTERACTION

@@ -9,8 +9,8 @@ from logger import logger, change_logger_level
 from arg_parser import Options, parse
 from libs.kill_handle import KillHandle, KillHandleTriggered
 
-from db import DBError, base, db
-from navigators.abstract import AbstractNavigator
+from db import DBError, setup_db
+from navigators.abstract import AbstractNavigator, YouProbablyGotBlocked
 
 ################################################################################
 # CONSTANTS
@@ -179,44 +179,18 @@ class Scraper:
 			)
 		except (ValueError, AttributeError):
 			self.cleanup(1)
-		
-		try:
-			url = navigator.build_url()
-		except ValueError:
-			self.cleanup(1)
-
-		logger.info(f"Loading page {url}...")		
-		self.driver.get(url)
 
 		try:
-			continue_scraping = navigator.action_load()
+			navigator.main()
 		except NoSuchWindowException as err:
 			logger.critical("Chrome window was closed from an outside agent!")
 			logger.critical(err)
 			traceback.print_exc()
 			self.cleanup(1)
-		except KillHandleTriggered:
+		except (KillHandleTriggered, YouProbablyGotBlocked, DBError):
 			self.cleanup(1)
 		except Exception as err:
 			logger.critical("An unknown error happened:")
-			logger.critical(err)
-			traceback.print_exc()
-			self.cleanup(1)
-
-		if not continue_scraping:
-			return
-
-		try:
-			navigator.action_interact()
-		except NoSuchWindowException as err:
-			logger.critical("Chrome window was closed from an outside agent!")
-			logger.critical(err)
-			traceback.print_exc()
-			self.cleanup(1)
-		except (KillHandleTriggered, DBError):
-			self.cleanup()
-		except Exception as err:
-			logger.critical("An unknown exception was raised.")
 			logger.critical(err)
 			traceback.print_exc()
 			self.cleanup(1)
@@ -275,10 +249,7 @@ class Scraper:
 ################################################################################
 
 def main():
-	# Start database
-	import models.account_name, models.video_info
-	base.metadata.create_all(db)
-
+	setup_db()
 	options = parse()
 
 	# Configure logger

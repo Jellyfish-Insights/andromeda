@@ -24,3 +24,7 @@ if not db.dialect.has_schema(db, SCHEMA_NAME):
 
 Session = sessionmaker(db)
 session = Session()
+
+def setup_db():
+	import models.account_name, models.video_info
+	base.metadata.create_all(db)

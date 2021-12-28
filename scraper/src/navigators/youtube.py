@@ -74,25 +74,25 @@ class YouTube(AbstractNavigator):
 		super().__init__(options, driver, proxy, logger, kill_handle)
 
 	############################################################################
-	# METHODS NOT IMPLEMENTED IN ABSTRACT CLASS
+	# METHODS
 	############################################################################
-	def build_url(self):
-		return f"https://www.youtube.com"
-
-	def action_load(self):
+	def main(self):
+		url = self.build_url()
+		self.go(url)
 		account, password = self.get_credentials()
 		self.sign_in(account, password)
 		video_ids = self.get_video_ids()
 		for video_id in video_ids:
 			self.get_data_for_video(video_id)
 
-	def action_interact(self):
-		pass
+	def build_url(self):
+		return f"https://www.youtube.com"
 
 	############################################################################
 	# CUSTOM METHODS
 	############################################################################
 	def get_credentials(self) -> Tuple[str, str]:
+		self.kill_handle.check()
 		self.logger.debug(f"Reading credentials file at '{self.options.credentials_file}'")
 		yt_credentials = dotenv_values(self.options.credentials_file)
 		account = yt_credentials.get("account")
@@ -103,6 +103,7 @@ class YouTube(AbstractNavigator):
 		return account, password
 
 	def sign_in(self, account: str, password: str) -> None:
+		self.kill_handle.check()
 		self.wait_load()
 		self.move_aimlessly(
 			timeout=5.0,
@@ -166,6 +167,7 @@ class YouTube(AbstractNavigator):
 		self.click(next_button)
 
 	def get_video_ids(self) -> Set[str]:
+		self.kill_handle.check()
 		self.wait_load()
 		self.move_aimlessly(
 			timeout=20.0,
@@ -208,6 +210,7 @@ class YouTube(AbstractNavigator):
 
 	@throttle(THROTTLE_GET_DATA_FOR_VIDEO)
 	def get_data_for_video(self, video_id: str) -> None:
+		self.kill_handle.check()
 		url_dict = ANALYTICS_QUERY_STRING_DICT
 		url_dict["entity_id"] = video_id
 		url_encoded = urlencode(ANALYTICS_QUERY_STRING_DICT)

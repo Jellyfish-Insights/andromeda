@@ -1,6 +1,4 @@
-import logging
 import re
-from navigators.abstract import WrongNumberOfElements
 from navigators.helpers.trim import trim
 
 class XPath:	

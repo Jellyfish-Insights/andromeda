@@ -104,15 +104,7 @@ class AbstractNavigator(ABC):
 	############################################################################
 
 	@abstractmethod
-	def build_url(self):
-		pass
-
-	@abstractmethod
-	def action_load(self):
-		pass
-
-	@abstractmethod
-	def action_interact(self):
+	def main(self):
 		pass
 
 	############################################################################
