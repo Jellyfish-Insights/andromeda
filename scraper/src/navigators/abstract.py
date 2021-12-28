@@ -1,6 +1,6 @@
 import logging, random, time, json, math, os, datetime
 from abc import ABC, abstractmethod
-from typing import Iterator, List, TypeVar, Any
+from typing import List, TypeVar, Any
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -16,7 +16,6 @@ import undetected_chromedriver.v2 as uc
 from arg_parser import Options
 
 from navigators.helpers.xpath import XPath
-from navigators.helpers.trim import trim
 from navigators.helpers.try_to_interact import try_to_interact
 from libs.kill_handle import KillHandle
 
@@ -34,14 +33,6 @@ class EndOfPage(Exception):
 	pass
 
 class ElementNotFound(Exception):
-	pass
-
-class WrongNumberOfElements(Exception):
-	"""
-	Some of our functions can only take an xpath returning exactly ONE
-	page element. If more than that is returned, or if zero elements are
-	returned, we issue an exception
-	"""
 	pass
 
 class YouProbablyGotBlocked(Exception):
@@ -164,26 +155,6 @@ class AbstractNavigator(ABC):
 		elements = self.find(**kwargs)
 		return self.one(elements)
 
-	def get_xpath_iterator(
-				self,
-				xpath_str: str,
-				expected: int = None,
-				random_order: bool = False
-				) -> Iterator:
-		elements = self.driver.find_elements(By.XPATH, xpath_str)
-		len_elements = len(elements)
-
-		if expected is not None and expected != len_elements:
-			self.logger.warning(f"You were expecting to iterate over {expected} elements, "
-				f"but selector returned {len_elements} elements.")
-
-		indices = list(range(len_elements))
-		if random_order:
-			random.shuffle(indices)
-
-		for i in indices:
-			yield XPath.nth(xpath_str, i)
-
 	############################################################################
 	# METHODS FOR CHECKING DOM STATE / DELAYING ACTION
 	############################################################################
@@ -220,25 +191,6 @@ class AbstractNavigator(ABC):
 	def was_end_of_page_reached(self):
 		js_code = """
 			return ((window.innerHeight + window.scrollY) >= document.body.offsetHeight);
-		"""
-		return self.run(js_code)
-
-	def is_in_view_by_xpath(self, xpath_str: str) -> bool:
-		"""
-		Only one element should be returned by xpath_str, please use appropriate
-		filter in XPath if more than one result is returned
-		"""
-		elements = self.driver.find_elements(By.XPATH, xpath_str)
-		if xpath_len := len(elements) != 1:
-			raise WrongNumberOfElements(""
-				f"xpath <<< {xpath_str} >>> returned {xpath_len} "
-				"results, expected one."
-			)
-
-		self.injection("isInView.js")
-		js_code = f"""
-			const elem = {XPath.get_one_element_js(xpath_str)} ;
-			return isInView(elem);
 		"""
 		return self.run(js_code)
 
@@ -319,25 +271,6 @@ class AbstractNavigator(ABC):
 				self.driver.close()
 
 		self.driver.switch_to.window(parent)
-
-	def hover_event_dispatch(self, xpath_str: str) -> None:
-		"""
-		Only one element should be returned by xpath_str, please use appropriate
-		filter in XPath if more than one result is returned
-		"""
-		elements = self.driver.find_elements(By.XPATH, xpath_str)
-		if xpath_len := len(elements) != 1:
-			raise WrongNumberOfElements(""
-				f"xpath <<< {xpath_str} >>> returned {xpath_len} "
-				"results, expected one."
-			)
-		
-		self.injection("hoverElement.js")
-		js_code = f"""
-			const elem = {XPath.get_one_element_js(xpath_str)} ;
-			hoverElement(elem);
-		"""
-		self.run(js_code)
 
 	def hover(self, elem: WebElement) -> None:
 		self.action.move_to_element(elem)
