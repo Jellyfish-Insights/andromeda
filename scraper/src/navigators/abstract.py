@@ -4,7 +4,6 @@ from typing import Iterator, List, TypeVar, Any
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import JavascriptException, InvalidSelectorException, \
 	ElementNotInteractableException, StaleElementReferenceException, \
 	MoveTargetOutOfBoundsException
@@ -42,6 +41,14 @@ class WrongNumberOfElements(Exception):
 	Some of our functions can only take an xpath returning exactly ONE
 	page element. If more than that is returned, or if zero elements are
 	returned, we issue an exception
+	"""
+	pass
+
+class YouProbablyGotBlocked(Exception):
+	"""
+	We are as careful as possible not to get blocked, but sometimes it happens.
+	Workarounds can be accessing through a proxy, waiting until you are unblocked
+	or changing your scraping routine.
 	"""
 	pass
 
@@ -157,19 +164,6 @@ class AbstractNavigator(ABC):
 		elements = self.find(**kwargs)
 		return self.one(elements)
 
-	def xpath_len(self, xpath_str: str) -> int:
-		"""
-		Returns how many elements are pointed by the given xpath string.
-		"""
-		elements = self.driver.find_elements(By.XPATH, xpath_str)
-		return len(elements)
-
-	def xpath_one(self, xpath_str: str) -> bool:
-		"""
-		Does the given xpath point to exactly one element?
-		"""
-		return self.xpath_len(xpath_str) == 1
-
 	def get_xpath_iterator(
 				self,
 				xpath_str: str,
@@ -224,7 +218,6 @@ class AbstractNavigator(ABC):
 		wait.until(page_has_loaded)
 
 	def was_end_of_page_reached(self):
-		# Scrolling by 1 doesn't work well, so we are using a larger value
 		js_code = """
 			return ((window.innerHeight + window.scrollY) >= document.body.offsetHeight);
 		"""
@@ -235,34 +228,17 @@ class AbstractNavigator(ABC):
 		Only one element should be returned by xpath_str, please use appropriate
 		filter in XPath if more than one result is returned
 		"""
+		elements = self.driver.find_elements(By.XPATH, xpath_str)
+		if xpath_len := len(elements) != 1:
+			raise WrongNumberOfElements(""
+				f"xpath <<< {xpath_str} >>> returned {xpath_len} "
+				"results, expected one."
+			)
 
-		if not self.xpath_one(xpath_str):
-			self.logger.critical(f"xpath returned {self.xpath_len(xpath_str)} "
-					"results, expected one.")
-			self.logger.critical(f"xpath_str is <<< {xpath_str} >>>")
-			raise WrongNumberOfElements
-
+		self.injection("isInView.js")
 		js_code = f"""
-		window.isInView = function(elem)
-		{{
-			const rect = elem.getBoundingClientRect();
-			const innerHeight = window.innerHeight;
-			const innerWidth = window.innerWidth;
-			return (
-				rect.height > 0 && rect.width > 0 
-				&& (
-					rect.top > 0 && rect.top < innerHeight
-					|| rect.bottom > 0 && rect.bottom < innerHeight
-				)
-				&& (
-					rect.left > 0 && rect.left < innerWidth
-					|| rect.right > 0 && rect.right < innerWidth
-				)
-			);
-		}}
-
-		const elem = {XPath.get_one_element_js(xpath_str)} ;
-		return isInView(elem);
+			const elem = {XPath.get_one_element_js(xpath_str)} ;
+			return isInView(elem);
 		"""
 		return self.run(js_code)
 
@@ -349,22 +325,17 @@ class AbstractNavigator(ABC):
 		Only one element should be returned by xpath_str, please use appropriate
 		filter in XPath if more than one result is returned
 		"""
-
-		if not self.xpath_one(xpath_str):
-			self.logger.critical(f"xpath returned {self.xpath_len(xpath_str)} "
-					"results, expected one.")
-			self.logger.critical(f"xpath_str is <<< {xpath_str} >>>")
-			raise WrongNumberOfElements
-
+		elements = self.driver.find_elements(By.XPATH, xpath_str)
+		if xpath_len := len(elements) != 1:
+			raise WrongNumberOfElements(""
+				f"xpath <<< {xpath_str} >>> returned {xpath_len} "
+				"results, expected one."
+			)
+		
+		self.injection("hoverElement.js")
 		js_code = f"""
-		const hoverEvent = new MouseEvent('mouseover', {{
-			'view': window,
-			'bubbles': true,
-			'cancelable': true
-		}});
-
-		const elem = {XPath.get_one_element_js(xpath_str)} ;
-		elem.dispatchEvent(hoverEvent);
+			const elem = {XPath.get_one_element_js(xpath_str)} ;
+			hoverElement(elem);
 		"""
 		self.run(js_code)
 
@@ -495,19 +466,6 @@ class AbstractNavigator(ABC):
 			self.logger.critical("There is an error in your code:")
 			self.logger.critical(js_code)
 			raise
-
-	def trim_and_run(self, js_code: str) -> Any:
-		"""
-		ChromeDriver seems to have no issue with receiving code with a lot of
-		blank space.
-		
-		But in case you want to trim code for debugging purposes, here's an
-		option for that.
-		"""
-		trimmed_code = trim(js_code)
-		self.logger.debug(f"Code before trimming <<< {js_code} >>>")
-		self.logger.debug(f"Code after trimming <<< {trimmed_code} >>>")
-		return self.run(trimmed_code)
 
 	def injection(self, filename: str) -> Any:
 		"""Use filename with extension (normally .js)"""

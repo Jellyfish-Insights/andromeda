@@ -1,4 +1,4 @@
-import argparse
+import argparse, os
 from typing import Optional
 from logger import logger
 
@@ -19,6 +19,7 @@ class Options:
 	scraping_interval: Optional[int]
 	db_conn_string: Optional[str]
 	account_name: Optional[str]
+	credentials_file: Optional[str]
 
 	def __init__(self, argparse_options: argparse.Namespace):
 		options_dict = vars(argparse_options)
@@ -99,11 +100,21 @@ def parse() -> Options:
 		'-a',
 		action='store',
 		type=str,
-		# The scheduler can run without this option. For the scrapers, though,
-		# it is needed and should be checked
+		# The scheduler can run without this option. For some of the scrapers,
+		# though, it is needed
 		required=False,
-		help="Name of the social media account to be scraped. Accounts must "
-			"start with an '@' in the services that use it."
+		help="Name of the social media account to be scraped, if appliable."
+			"Accounts must start with an '@' in the services that use it."
+	)
+	parser.add_argument(
+		'--credentials_file',
+		'-c',
+		action='store',
+		type=str,
+		# The scheduler can run without this option. For some of the scrapers,
+		# though, it is needed
+		required=False,
+		help="Credentials file for authenticating to social media, if appliable."
 	)
 
 	# Positional argument
@@ -127,6 +138,14 @@ def parse() -> Options:
 	if args.scraping_interval < 10:
 		logger.critical("You can't run the scraper more often than every 60 seconds!")
 		exit(1)
+
+	if args.credentials_file:
+		if not (os.path.isfile(args.credentials_file)
+				and os.access(args.credentials_file, os.R_OK)):
+			logger.critical("File name is not a file to which you have read permissions.")
+			exit(1)
+		else:
+			args.credentials_file = os.path.realpath(args.credentials_file)
 
 	return Options(args)
 

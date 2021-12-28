@@ -1,4 +1,6 @@
+import logging
 import re
+from navigators.abstract import WrongNumberOfElements
 from navigators.helpers.trim import trim
 
 class XPath:	
@@ -99,7 +101,7 @@ class XPath:
 				attributes: dict = None,
 				contains_classes: list = None,
 				id: str = None,
-				nth: str = None
+				nth: int = None
 
 			) -> str:
 		"""

@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
-import os, re
+import re
 from collections import OrderedDict
 from typing import Set, Tuple
 from urllib.parse import urlencode
 
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.common.by import By
 from dotenv import dotenv_values
 
-from navigators.abstract import AbstractNavigator, ElementNotFound
+from arg_parser import Options
+from navigators.abstract import AbstractNavigator, ElementNotFound, YouProbablyGotBlocked
 from libs.throttling import throttle
 
 ################################################################################
@@ -56,6 +56,24 @@ class YouTube(AbstractNavigator):
 	THROTTLE_GET_DATA_FOR_VIDEO = 60
 
 	############################################################################
+	# CONSTRUCTOR
+	############################################################################
+
+	def __init__(self,
+				options: Options,
+				driver,
+				proxy,
+				logger,
+				kill_handle
+				):
+		
+		if options.credentials_file is None:
+			logger.critical("Credentials file must be provided to run the scraper.")
+			raise AttributeError
+		
+		super().__init__(options, driver, proxy, logger, kill_handle)
+
+	############################################################################
 	# METHODS NOT IMPLEMENTED IN ABSTRACT CLASS
 	############################################################################
 	def build_url(self):
@@ -75,8 +93,8 @@ class YouTube(AbstractNavigator):
 	# CUSTOM METHODS
 	############################################################################
 	def get_credentials(self) -> Tuple[str, str]:
-		os.chdir(os.path.dirname(os.path.realpath(__file__)))
-		yt_credentials = dotenv_values("../credentials/youtube.env")
+		self.logger.debug(f"Reading credentials file at '{self.options.credentials_file}'")
+		yt_credentials = dotenv_values(self.options.credentials_file)
 		account = yt_credentials.get("account")
 		password = yt_credentials.get("password")
 		if account is None or password is None:
@@ -128,11 +146,17 @@ class YouTube(AbstractNavigator):
 			allow_scrolling=False,
 			allow_new_windows=False
 		)
-
-		password_field = self.find_one(
-			tag="input",
-			attributes={"type":"password"}
-		)
+		try:
+			password_field = self.find_one(
+				tag="input",
+				attributes={"type":"password"}
+			)
+		except ValueError:
+			self.logger.critical("Could not find 'password' field. Check if you "
+					"are getting the message 'This browser or app may not be secure.' "
+					"Unfortunately, there is no simple workaround.")
+			raise YouProbablyGotBlocked
+		
 		next_button = self.find_one(
 			text="next",
 			text_exact=True,
