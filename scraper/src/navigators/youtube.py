@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os, re
 from collections import OrderedDict
-from typing import List, Tuple
+from typing import Set, Tuple
 from urllib.parse import urlencode
 
 from selenium.webdriver.remote.webelement import WebElement
@@ -77,13 +77,12 @@ class YouTube(AbstractNavigator):
 	def get_credentials(self) -> Tuple[str, str]:
 		os.chdir(os.path.dirname(os.path.realpath(__file__)))
 		yt_credentials = dotenv_values("../credentials/youtube.env")
-		try:
-			account = yt_credentials["account"]
-			password = yt_credentials["password"]
-			return account, password
-		except KeyError:
+		account = yt_credentials.get("account")
+		password = yt_credentials.get("password")
+		if account is None or password is None:
 			self.logger.critical("Could not find credentials!")
-			raise
+			raise KeyError
+		return account, password
 
 	def sign_in(self, account: str, password: str) -> None:
 		self.wait_load()
@@ -126,7 +125,7 @@ class YouTube(AbstractNavigator):
 		self.natural_type(password_field, password)
 		self.click(next_button)
 
-	def get_video_ids(self) -> List[str]:
+	def get_video_ids(self) -> Set[str]:
 		self.wait_load()
 		self.go("https://studio.youtube.com")
 		self.wait_load()
@@ -158,12 +157,13 @@ class YouTube(AbstractNavigator):
 			raise ElementNotFound
 
 		regex = re.compile(r"v=(.+)$")
-		video_ids = set(regex.search(x)[1] for x in links)
+		matches = set(regex.search(x) for x in links)
+		video_ids = set(x[1] for x in matches if x is not None)
 		self.logger.debug(video_ids)
 		return video_ids
 
 	@throttle(THROTTLE_GET_DATA_FOR_VIDEO)
-	def get_data_for_video(self, video_id):
+	def get_data_for_video(self, video_id: str) -> None:
 		url_dict = ANALYTICS_QUERY_STRING_DICT
 		url_dict["entity_id"] = video_id
 		url_encoded = urlencode(ANALYTICS_QUERY_STRING_DICT)

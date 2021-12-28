@@ -14,13 +14,15 @@ from selenium.webdriver.common.keys import Keys
 
 import browsermobproxy
 import undetected_chromedriver.v2 as uc
+from arg_parser import Options
 
 from navigators.helpers.xpath import XPath
 from navigators.helpers.trim import trim
+from navigators.helpers.try_to_interact import try_to_interact
 from libs.kill_handle import KillHandle
 
 ################################################################################
-# GLOBALS
+# CONSTANTS
 ################################################################################
 
 T = TypeVar("T")
@@ -75,9 +77,6 @@ class AbstractNavigator(ABC):
 
 	SLOW_TYPE_SLEEP_INTERVAL = 0.15
 
-	NOT_INTERACTABLE_SLEEP = 0.5
-	NOT_INTERACTABLE_RETRY = 10
-
 	MOVE_AROUND_MAX_HOVERS = 10
 	MOVE_AROUND_PROB_SCROLL_ON_HOVER = 0.25
 	MOVE_AROUND_UPSCROLL_PROPORTION = 0.10
@@ -87,7 +86,7 @@ class AbstractNavigator(ABC):
 
 	def __init__(
 				self,
-				options: dict,
+				options: Options,
 				driver: uc.Chrome,
 				proxy: browsermobproxy.client.Client,
 				logger: logging.Logger,
@@ -129,21 +128,6 @@ class AbstractNavigator(ABC):
 			return navigator_classes[name]
 		except KeyError:
 			raise
-
-	############################################################################
-	# DECORATORS / HIGHER ORDER FUNCTIONS
-	############################################################################
-	def try_to_interact(func):
-		def wrap(*args, **kwargs):
-			times = AbstractNavigator.NOT_INTERACTABLE_RETRY
-			for _ in range(times):
-				try:
-					return func(*args, **kwargs)
-				except ElementNotInteractableException:
-					time.sleep(AbstractNavigator.NOT_INTERACTABLE_SLEEP)
-			print(f"Tried {times} times but could not interact with element!")
-			raise ElementNotInteractableException
-		return wrap
 
 	############################################################################
 	# METHODS FOR LOCATING
@@ -509,8 +493,3 @@ class AbstractNavigator(ABC):
 			amount *= -1
 		
 		self.scroll_exact(amount)
-
-
-
-if __name__ == "__main__":
-	AbstractNavigator.select_navigator()

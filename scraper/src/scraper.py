@@ -6,7 +6,7 @@ import browsermobproxy, undetected_chromedriver.v2 as uc
 from selenium.common.exceptions import WebDriverException, NoSuchWindowException
 
 from logger import logger, change_logger_level
-from arg_parser import parse
+from arg_parser import Options, parse
 from libs.kill_handle import KillHandle, KillHandleTriggered
 
 from db import DBError, base, db
@@ -96,7 +96,7 @@ LOCALE_OPTIONS = [
 class Scraper:
 	def __init__(
 			self,
-			options: dict,
+			options: Options,
 			nav_class: type
 			):
 		self.options = options
@@ -180,7 +180,7 @@ class Scraper:
 
 	def navigate_to_content(self) -> None:
 		try:
-			navigator = self.nav_class(
+			navigator: AbstractNavigator = self.nav_class(
 					self.options,
 					self.driver,
 					self.proxy,
@@ -284,10 +284,12 @@ class Scraper:
 # MAIN / DRIVER CODE
 ################################################################################
 
-def main(options: dict):
+def main():
 	# Start database
 	import models.account_name, models.video_info
 	base.metadata.create_all(db)
+
+	options = parse()
 
 	# Configure logger
 	change_logger_level(options.logging)
@@ -318,8 +320,4 @@ def main(options: dict):
 		scraper.cleanup(1)
 
 if __name__ == "__main__":
-	options = parse()
-	if not hasattr(options, "account_name"):
-		logger.critical("Account name must be provided to run the scraper.")
-		raise AttributeError
-	main(options)
+	main()

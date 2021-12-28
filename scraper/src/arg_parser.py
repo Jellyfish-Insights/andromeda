@@ -1,5 +1,5 @@
 import argparse
-
+from typing import Optional
 from logger import logger
 
 DEFAULT_SCROLL_LIMIT = 5
@@ -8,8 +8,27 @@ DEFAULT_SCRAPING_INTERVAL = 600
 DEFAULT_DB_CONN_STR = "postgresql://brab:brickabode@localhost:5432"
 DEFAULT_LOGGING_LEVEL = 10
 
-def parse() -> dict:
+class Options:
+	scroll_limit: int
+	timeout: int
+	logging: int
+	keep_logs: bool
+	slow_mode: bool
+	navigator_name: str
 
+	scraping_interval: Optional[int]
+	db_conn_string: Optional[str]
+	account_name: Optional[str]
+
+	def __init__(self, argparse_options: argparse.Namespace):
+		options_dict = vars(argparse_options)
+		for key, value in options_dict.items():
+			setattr(self, key, value)
+
+	def __str__(self):
+		return str(vars(self))
+
+def parse() -> Options:
 	parser = argparse.ArgumentParser(
 		description="Scrapes data from social media.",
 		epilog="Please observe the Terms and Conditions of the platform(s) before running this software."
@@ -109,4 +128,6 @@ def parse() -> dict:
 		logger.critical("You can't run the scraper more often than every 60 seconds!")
 		exit(1)
 
-	return args
+	return Options(args)
+
+parse()

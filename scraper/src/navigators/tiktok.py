@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import json, re, random
 from os import kill
+from typing import Any, Dict
 from selenium.webdriver.common.by import By
 
+from arg_parser import Options
 from libs.kill_handle import KillHandleTriggered
 from navigators.abstract import AbstractNavigator, EndOfPage
 from models.account_name import AccountName
@@ -63,14 +65,14 @@ class TikTok(AbstractNavigator):
 	# CONSTRUCTOR
 	############################################################################
 	def __init__(self,
-				options: dict,
+				options: Options,
 				driver,
 				proxy,
 				logger,
 				kill_handle
 				):
 		
-		if not hasattr(options, "account_name") or options.account_name is None:
+		if options.account_name is None:
 			logger.critical("Account name must be provided to run the scraper.")
 			raise AttributeError
 		
