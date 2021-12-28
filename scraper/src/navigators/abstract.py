@@ -1,4 +1,4 @@
-import logging, random, time, json, math
+import logging, random, time, json, math, os, datetime
 from abc import ABC, abstractmethod
 from typing import Iterator, List, TypeVar, Any
 
@@ -66,6 +66,8 @@ class AbstractNavigator(ABC):
 	############################################################################
 	# CONSTANTS FOR NAVIGATION
 	############################################################################
+	WAIT_RANDOM_FACTOR = 0.15
+
 	MIN_AMOUNT_OF_SCROLLING = 200
 	SHORT_PAUSE_LENGTH = 1.0
 	LONG_PAUSE_LENGTH = 5.0
@@ -77,9 +79,8 @@ class AbstractNavigator(ABC):
 
 	SLOW_TYPE_SLEEP_INTERVAL = 0.15
 
-	MOVE_AROUND_MAX_HOVERS = 10
-	MOVE_AROUND_PROB_SCROLL_ON_HOVER = 0.25
-	MOVE_AROUND_UPSCROLL_PROPORTION = 0.10
+	MOVE_AROUND_MOVE_MOUSE_TIMES = 5
+	MOVE_AROUND_VISIT_LINK_PROB = 0.01
 
 	# For performing a sequence of actions as a single block (avoids overhead)
 	BATCH_ACTION_SIZE = 10
@@ -193,10 +194,17 @@ class AbstractNavigator(ABC):
 	# METHODS FOR CHECKING DOM STATE / DELAYING ACTION
 	############################################################################
 	"""It is probably undesirable to change or override these"""
-	def wait(self, timeout: float):
+	def wait(
+			self,
+			timeout: float,
+			fuzzy: bool = True) -> None:
 		"""Selenium has an inbuilt for this, I'm not sure what advantage it
 		brings over using time.sleep"""
-		time.sleep(timeout)
+		if fuzzy:
+			r = (1.0 - self.WAIT_RANDOM_FACTOR) + 2.0 * self.WAIT_RANDOM_FACTOR * random.random()
+		else:
+			r = 1.0
+		time.sleep(timeout * r)
 
 	def wait_load(self, timeout: float = None, poll_freq: float = None):
 		# Waits a bit, to guarantee last action, triggering the change of
@@ -306,6 +314,36 @@ class AbstractNavigator(ABC):
 				return
 			nodes_visited.add(node_focused)
 
+	def visit_any_link(self, timeout: float):
+		anchors = self.find(tag="a")
+		visible_anchors = [x for x in anchors if self.is_in_view(x)]
+		try:
+			anchor = random.choice(visible_anchors)
+		except IndexError:
+			return
+		
+		self.action.key_down(Keys.CONTROL)
+		self.action.move_to_element(anchor)
+		self.action.click(anchor)
+		try:
+			self.action.perform()
+			self.logger.debug(f"Visiting {anchor.get_attribute('href')} briefly...")
+		except (ElementNotInteractableException, MoveTargetOutOfBoundsException):
+			self.logger.debug("Element is not interactable or is out of screen.")
+			return
+
+		parent = self.driver.current_window_handle
+		children = self.driver.window_handles
+
+		for window in children:
+			if window != parent :
+				self.driver.switch_to.window(window)
+				self.wait_load()
+				self.move_aimlessly(timeout, allow_new_windows=False)
+				self.driver.close()
+
+		self.driver.switch_to.window(parent)
+
 	def hover_event_dispatch(self, xpath_str: str) -> None:
 		"""
 		Only one element should be returned by xpath_str, please use appropriate
@@ -336,31 +374,50 @@ class AbstractNavigator(ABC):
 
 	def move_aimlessly(
 				self,
-				max_hovers: int = None,
-				prob_of_scroll_on_hover: float = None,
-				upscroll_proportion: float = 0.5
+				timeout: float,
+				allow_new_windows: bool = True,
+				allow_scrolling: bool = True,
+				restore_scrolling: bool = False
 				) -> None:
-		max_hovers = max_hovers or self.MOVE_AROUND_MAX_HOVERS
-		prob_of_scroll_on_hover = prob_of_scroll_on_hover or self.MOVE_AROUND_PROB_SCROLL_ON_HOVER
-		upscroll_proportion = upscroll_proportion or self.MOVE_AROUND_UPSCROLL_PROPORTION
+		scroll_x = self.run("return window.scrollX;")
+		scroll_y = self.run("return window.scrollY;")
 
-		self.scroll_random(upscroll_proportion=upscroll_proportion)
+		start = datetime.datetime.now()
+		while (datetime.datetime.now() - start).total_seconds() < timeout:
+			self.move_mouse_lattice(self.MOVE_AROUND_MOVE_MOUSE_TIMES)
+			if allow_scrolling:
+				self.scroll_random()
+			if allow_new_windows and random.random() < self.MOVE_AROUND_VISIT_LINK_PROB:
+				self.visit_any_link(timeout / 2)
+			if random.random() < self.LONG_PAUSE_PROBABILITY:
+				self.long_pause()
+			self.short_pause()
 
-		hovered = 0
-		elements = self.find()
-		random.shuffle(elements)
-		for elem in elements:
-			if self.is_in_view(elem):
-				try:
-					self.hover(elem)
-				except ElementNotInteractableException:
-					continue
-				hovered += 1
-				if random.random() < prob_of_scroll_on_hover:
-					self.scroll_random(upscroll_proportion=upscroll_proportion)
-				if hovered >= max_hovers:
-					break
+		if restore_scrolling:
+			self.run(f"window.scrollTo({scroll_x}, {scroll_y})")
 
+	def move_mouse_lattice(self, number_of_moves: int):
+		window_inner_width = self.run("return window.innerWidth;")
+		window_inner_height = self.run("return window.innerHeight;")
+		coords = [
+				(x, y)
+				for x in range(0, window_inner_width, 10)
+				for y in range(0, window_inner_height, 10)
+		]
+		random.shuffle(coords)
+		for i in range(number_of_moves):
+			coord = coords[i]
+			self.action.move_by_offset(*coord)
+			self.action.pause(0.10)
+			# Go back to (0, 0)
+			self.action.move_by_offset(-coord[0], -coord[1])
+			self.action.pause(0.10)
+			try:
+				self.action.perform()
+			except MoveTargetOutOfBoundsException:
+				self.logger.debug(f"Mouse would move out of screen, breaking.")
+				return
+			
 	def move_mouse_spiral_center_of_screen(self, max_steps = 200, batch=True):
 		window_inner_width = self.run("return window.innerWidth;")
 		window_inner_height = self.run("return window.innerHeight;")
@@ -391,7 +448,7 @@ class AbstractNavigator(ABC):
 				try:
 					self.action.perform()
 				except MoveTargetOutOfBoundsException:
-					self.logger.debug(f"Iteration {t}: mouse would move out of screen, breaking.")
+					self.logger.debug(f"Mouse would move out of screen, breaking.")
 					return
 
 			last_point = next_point
@@ -452,17 +509,33 @@ class AbstractNavigator(ABC):
 		self.logger.debug(f"Code after trimming <<< {trimmed_code} >>>")
 		return self.run(trimmed_code)
 
+	def injection(self, filename: str) -> Any:
+		"""Use filename with extension (normally .js)"""
+		self.logger.debug(f"Sending JS injection from file '{filename}'")
+		os.chdir(os.path.dirname(os.path.realpath(__file__)))
+		try:
+			with open(f"./injections/{filename}", "r") as fp:
+				js_code = fp.read()
+		except (FileNotFoundError, IsADirectoryError) as e:
+			self.logger.critical("File does not exist or is a directory.")
+			self.logger.critical(e)
+			raise
+		except PermissionError as e:
+			self.logger.critical("You do not have permissions to open file.")
+			self.logger.critical(e)
+			raise
+		return self.run(js_code)
 
-	def short_pause(self, slow_mode: bool = False):
+	def short_pause(self):
 		pause_length = self.SHORT_PAUSE_LENGTH
-		if slow_mode:
+		if self.options.slow_mode:
 			pause_length *= self.SLOW_MODE_MULTIPLIER
 		time.sleep(pause_length + pause_length * random.random())
 
-	def long_pause(self, slow_mode: bool = False):
+	def long_pause(self):
 		if random.random() < self.LONG_PAUSE_PROBABILITY:
 			pause_length = self.LONG_PAUSE_LENGTH
-			if slow_mode:
+			if self.options.slow_mode:
 				pause_length *= self.SLOW_MODE_MULTIPLIER
 			time.sleep(pause_length + pause_length * random.random())
 

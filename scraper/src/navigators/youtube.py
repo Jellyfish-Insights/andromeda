@@ -86,6 +86,10 @@ class YouTube(AbstractNavigator):
 
 	def sign_in(self, account: str, password: str) -> None:
 		self.wait_load()
+		self.move_aimlessly(
+			timeout=5.0,
+			allow_scrolling=False
+		)
 		sign_in_buttons = self.find(
 				text="sign in",
 				text_exact=True,
@@ -94,11 +98,17 @@ class YouTube(AbstractNavigator):
 		if sign_in_buttons == 0:
 			raise ElementNotFound
 		else:
-			# Click any of the buttons, we don't care
+			# Click any of the buttons
 			sign_in = sign_in_buttons[0]
 		
 		self.click(sign_in)
+
 		self.wait_load()
+		self.move_aimlessly(
+			timeout=5.0,
+			allow_scrolling=False,
+			allow_new_windows=False
+		)
 
 		email_field = self.find_one(
 			tag="input",
@@ -111,7 +121,13 @@ class YouTube(AbstractNavigator):
 		)
 		self.natural_type(email_field, account)
 		self.click(next_button)
+
 		self.wait_load()
+		self.move_aimlessly(
+			timeout=5.0,
+			allow_scrolling=False,
+			allow_new_windows=False
+		)
 
 		password_field = self.find_one(
 			tag="input",
@@ -127,6 +143,10 @@ class YouTube(AbstractNavigator):
 
 	def get_video_ids(self) -> Set[str]:
 		self.wait_load()
+		self.move_aimlessly(
+			timeout=20.0,
+			restore_scrolling=True
+		)
 		self.go("https://studio.youtube.com")
 		self.wait_load()
 
@@ -167,17 +187,22 @@ class YouTube(AbstractNavigator):
 		url_dict = ANALYTICS_QUERY_STRING_DICT
 		url_dict["entity_id"] = video_id
 		url_encoded = urlencode(ANALYTICS_QUERY_STRING_DICT)
+
 		self.go(f"https://studio.youtube.com/video/{video_id}/analytics/tab-overview/period-default/explore?{url_encoded}")
 		self.wait_load()
+		self.move_aimlessly(timeout=5.0)
 
 		download_button = self.find_one(attributes={"icon": "icons:file-download"})
 		self.click(download_button)
+
+		self.wait(1.0)
 
 		csv_button = self.find_one(
 			text="comma-separated values (.csv)",
 			text_exact=True,
 			case_insensitive=True
 		)
+		self.logger.info(f"Downloading CSV file for '{video_id}'")
 		self.click(csv_button)
 		self.wait_load()
 

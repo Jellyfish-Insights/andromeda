@@ -109,24 +109,22 @@ class TikTok(AbstractNavigator):
 		except KillHandleTriggered:
 			raise
 
+		self.move_aimlessly(timeout = 20.0)
+
 		account_name = self.options.account_name
+		self.wait_load()
+		self.logger.info("First page load was successful.")
+		self.move_aimlessly(timeout = 5.0)
 
-		self.logger.info("First page load was successful. Printing initial data...")
-		next_data = json.loads(
-			self.driver.find_element(
-				By.ID, "__NEXT_DATA__").get_attribute('innerHTML'))
-		try:
-			items = next_data["props"]["pageProps"]["items"]
-
-			for it in items:
-				try:
-					VideoInfo.add(account_name, it)
-				except DBError:
-					self.logger.critical("Error interacting with database!")
-					raise
-
-		except KeyError:
-			self.logger.warning("Could not fetch information from __NEXT_DATA__")
+		items = self.injection("tiktok.js")
+		if len(items) == 0:
+			self.logger.warning("We could not retrieve initial data! You might want to check if you were blocked.")
+		for it in items:
+			try:
+				VideoInfo.add(account_name, it)
+			except DBError:
+				self.logger.critical("Error interacting with database!")
+				raise
 
 		return True
 
@@ -140,7 +138,7 @@ class TikTok(AbstractNavigator):
 				and (self.options.scroll_limit == 0 
 				or scrolled < self.options.scroll_limit)):
 			self.kill_handle.check()
-
+			self.move_aimlessly(timeout = 1.0)
 			self.logger.debug(f"Scrolling down")
 			self.scroll_random(upscroll_proportion=self.UPSCROLL_PROPORTION)
 			scrolled += 1

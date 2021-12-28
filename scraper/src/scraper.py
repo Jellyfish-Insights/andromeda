@@ -40,11 +40,6 @@ CHROMEDRIVER_OPTIONS = [
 
 	# For disabling cache
 	"--disk-cache-size=0",
-
-	# Maybe Google will allow us to access if we pass these flags?
-	'--disable-web-security',
-	'--user-data-dir', 
-	'--allow-running-insecure-content' ,
 ]
 
 CHROMEDRIVER_SERVICEARGS = ["--verbose", f"--log-path={UC_LOG_FILE}"]
@@ -148,11 +143,6 @@ class Scraper:
 
 		# Connecting driver to BrowserMob proxy
 		options.add_argument(f'--proxy-server=localhost:{self.proxy.port}')
-
-		# options.add_experimental_option("useAutomationExtension", False)
-
-		# will cause it to crash
-		# options.add_experimental_option("excludeSwitches", "enable-automation")
 
 		try:
 			self.driver = uc.Chrome(
