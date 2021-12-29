@@ -1,0 +1,148 @@
+{
+    "name": "adaccount",
+    "threads": 1,
+    "delay": 2,
+    "page_size": 100,
+    "columns":[
+        ["id", "bigint"]
+    ],
+    "edges": [{
+        "name": "ads",
+        "time": ["created_time", "updated_time"],
+        "columns": [
+            ["id", "bigint"],
+            ["name", "text"],
+            ["account_id", "text"],
+            ["adlabels", "text"],
+            ["adset_id", "bigint"],
+            ["bid_amount", "bigint"],
+            ["bid_info", "jsonb"],
+            ["campaign", "jsonb", "", "{start_time,stop_time}"],
+            ["campaign_id", "bigint"],
+            ["status", "text"],
+            ["adcreatives", "jsonb", "", "{id,video_id,object_story_spec,body,object_story_id}"],
+            ["created_time", "timestamp without time zone"],
+            ["updated_time", "timestamp without time zone"]
+        ],
+        "edges": [],
+        "insights": [{
+            "name": "insights",
+            "bounds": [
+                ["created_time"],
+                ["campaign", "stop_time"]
+            ],
+            "granularity": "maximum",
+            "columns": [
+                ["impressions", "integer"],
+                ["cpm", "double precision"],
+                ["clicks", "integer"],
+                ["cpc", "double precision"],
+                ["reach", "integer"],
+                ["cpp", "double precision"],
+                ["ctr", "double precision"],
+                ["frequency", "double precision"],
+                ["video_30_sec_watched_actions", "jsonb"],
+                ["video_thruplay_watched_actions", "jsonb"],
+                ["cost_per_thruplay", "jsonb"],
+                ["spend", "double precision"],
+                ["unique_actions", "jsonb"],
+                ["cost_per_action_type", "jsonb"],
+                ["date_start", "timestamp without time zone"],
+                ["date_stop", "timestamp without time zone"]
+            ],
+            "time": [],
+            "metrics": []
+        }, {
+            "name": "insights",
+            "bounds": [
+                ["created_time"],
+                ["campaign", "stop_time"]
+            ],
+            "granularity": "day",
+            "columns": [
+                ["impressions", "integer"],
+                ["cpm", "double precision"],
+                ["clicks", "integer"],
+                ["cpc", "double precision"],
+                ["reach", "integer"],
+                ["cpp", "double precision"],
+                ["ctr", "double precision"],
+                ["frequency", "double precision"],
+                ["video_30_sec_watched_actions", "jsonb"],
+                ["video_thruplay_watched_actions", "jsonb"],
+                ["cost_per_thruplay", "jsonb"],
+                ["spend", "double precision"],
+                ["unique_actions", "jsonb"],
+                ["cost_per_action_type", "jsonb"],
+                ["date_start", "timestamp without time zone"],
+                ["date_stop", "timestamp without time zone"]
+            ],
+            "time": [],
+            "metrics": []
+        }]
+    }, {
+        "name": "adsets",
+        "time": ["created_time", "updated_time"],
+        "columns": [
+            ["id", "bigint"],
+            ["name", "text"],
+            ["account_id", "text"],
+            ["adlabels", "text"],
+            ["optimization_goal", "text"],
+            ["targeting", "json"],
+            ["adset_schedule", "json"],
+            ["rf_prediction_id", "bigint"],
+            ["bid_amount", "bigint"],
+            ["bid_info", "jsonb"],
+            ["campaign", "jsonb", "", "{start_time,stop_time}"],
+            ["campaign_id", "bigint"],
+            ["status", "text"],
+            ["adcreatives", "jsonb", "", "{id,video_id,body}"],
+            ["created_time", "timestamp without time zone"],
+            ["updated_time", "timestamp without time zone"]
+        ]
+    }, {
+        "name": "campaigns",
+        "time": ["created_time", "updated_time"],
+        "columns": [
+            ["id", "bigint"],
+            ["name", "text"],
+            ["account_id", "bigint"],
+            ["boosted_object_id", "bigint"],
+            ["buying_type", "text"],
+            ["can_use_spend_cap", "text"],
+            ["objective", "text"],
+            ["start_time", "timestamp without time zone"],
+            ["status", "text"],
+            ["stop_time", "timestamp without time zone"],
+            ["updated_time", "timestamp without time zone"],
+            ["created_time", "timestamp without time zone"],
+            ["spend_cap", "double precision"]
+        ],
+        "edges": []
+    }, {
+        "name": "customaudiences",
+        "time": ["time_created", "time_updated"],
+        "columns": [
+            ["id", "bigint"],
+            ["name", "text"],
+            ["description", "text"],
+            ["subtype", "text"],
+            ["rule", "text"],
+            ["rule_aggregation", "text"],
+            ["data_source", "jsonb"],
+            ["delivery_status", "jsonb"],
+            ["operation_status", "jsonb"],
+            ["pixel_id", "text"],
+            ["retention_days", "integer"],
+            ["external_event_source", "jsonb"],
+            ["lookalike_audience_ids", "jsonb"],
+            ["lookalike_spec", "jsonb"],
+            ["approximate_count", "bigint"],
+            ["time_created", "timestamp without time zone"],
+            ["time_updated", "timestamp without time zone"],
+            ["time_content_updated", "timestamp without time zone"]
+        ],
+        "edges": []
+    }]
+}

@@ -1,0 +1,167 @@
+{
+    "name": "page",
+    "threads": 6,
+    "delay": 1,
+    "page_size": 100,
+    "columns":[
+        ["id", "bigint"]
+    ],
+    "edges": [{
+        "name": "videos",
+        "time": ["created_time", "updated_time"],
+        "columns": [
+            ["id", "bigint"],
+            ["thumbnails", "json"],
+            ["source", "text"],
+            ["custom_labels", "json"],
+            ["content_category", "text"],
+            ["title", "text"],
+            ["description", "text"],
+            ["universal_video_id", "bigint"],
+            ["from", "json"],
+            ["length", "double precision"],
+            ["picture", "text"],
+            ["published", "bool"],
+            ["scheduled_publish_time", "timestamp without time zone"],
+            ["created_time", "timestamp without time zone"],
+            ["updated_time", "timestamp without time zone"]
+        ],
+        "edges": [{
+            "name": "comments",
+            "ordering": "desc",
+            "columns": [
+                ["id", "text"],
+                ["message", "text"],
+                ["created_time", "timestamp without time zone"],
+                ["from", "json"]
+            ],
+            "edges": [],
+            "time": ["created_time"]
+        }, {
+            "name": "crosspost_shared_pages",
+            "ordering": "desc",
+            "columns": [
+                ["id", "text"],
+                ["name", "text"]
+            ],
+            "time": []
+        }],
+        "insights": [{
+            "name": "video_insights",
+            "granularity": "lifetime",
+            "bounds": [
+                ["created_time"]
+            ],
+
+            "columns": [
+                ["values", "json"],
+                ["name", "text"]
+            ],
+            "metrics": [
+                ["total_video_views", "bigint"],
+                ["total_video_views_paid", "bigint"],
+                ["total_video_views_unique", "bigint"],
+                ["total_video_impressions", "bigint"],
+                ["total_video_impressions_paid", "bigint"],
+                ["total_video_retention_graph", "jsonb"],
+                ["total_video_view_time_by_age_bucket_and_gender", "jsonb"],
+                ["total_video_view_time_by_region_id", "jsonb"],
+                ["total_video_reactions_by_type_total", "jsonb"],
+                ["total_video_stories_by_action_type", "jsonb"]
+            ],
+            "time": []
+        },{
+            "name": "likes",
+            "granularity": "day",
+            "bounds": [
+                ["created_time"]
+            ],
+            "summary" : true,
+            "time": [],
+            "columns": [],
+            "metrics": [
+                ["total_count", "bigint"],
+                ["can_like", "bool"],
+                ["has_liked", "bool"]
+            ]
+        }]
+    }, {
+        "name": "posts",
+        "edges": [],
+        "required": ["attachments"],
+        "time": ["created_time", "updated_time"],
+        "columns": [
+            ["id", "text"],
+            ["message", "text"],
+            ["attachments", "json"],
+            ["properties", "json"],
+            ["from", "json"],
+            ["picture", "text"],
+            ["is_published", "bool"],
+            ["targeting", "json"],
+            ["updated_time", "timestamp without time zone"],
+            ["created_time", "timestamp without time zone"]
+        ],
+        "insights": [{
+            "name": "insights",
+            "granularity": "lifetime",
+            "bounds": [
+                ["created_time"]
+            ],
+            "time": [],
+            "columns": [
+                ["values", "json"],
+                ["name", "text"]
+            ],
+            "metrics": [
+                ["post_video_views_paid", "bigint"],
+                ["post_video_views", "bigint"],
+                ["post_video_views_10s_paid", "bigint"],
+                ["post_video_view_time", "bigint"],
+                ["post_negative_feedback_by_type_unique", "jsonb"],
+                ["post_video_view_time_organic", "bigint"]
+            ]
+        }, {
+            "name": "insights",
+            "granularity": "day",
+            "bounds": [
+                ["created_time"]
+            ],
+            "time": [],
+            "columns": [
+                ["values", "json"],
+                ["name", "text"],
+                ["date_start", "timestamp without time zone"],
+                ["date_stop", "timestamp without time zone"]
+            ],
+            "metrics": [
+                ["post_video_views_paid", "bigint"],
+                ["post_video_views", "bigint"],
+                ["post_video_views_10s_paid", "bigint"],
+                ["post_video_view_time", "bigint"],
+                ["post_video_view_time_organic", "bigint"]
+            ]
+        }]
+    }, {
+        "name": "video_lists",
+        "edges": [{
+            "name": "videos",
+            "ordering": "unordered",
+            "time": [],
+            "edges": [],
+            "columns": [
+                ["id", "bigint"]
+            ]
+        }],
+        "time": ["creation_time", "last_modified"],
+        "columns": [
+            ["id", "bigint"],
+            ["thumbnail", "text"],
+            ["description", "text"],
+            ["title", "text"],
+            ["videos_count", "integer"],
+            ["creation_time", "timestamp without time zone"],
+            ["last_modified", "timestamp without time zone"]
+        ]
+    }]
+}
