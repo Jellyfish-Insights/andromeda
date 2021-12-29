@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
 
-from arg_parser import Options
+from models.options import Options
 from navigators.abstract import AbstractNavigator, ElementNotFound, YouProbablyGotBlocked
 from libs.throttling import throttle
 

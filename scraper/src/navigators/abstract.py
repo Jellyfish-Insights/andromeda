@@ -1,6 +1,6 @@
 import logging, random, time, json, math, os, datetime
 from abc import ABC, abstractmethod
-from typing import List, TypeVar, Any
+from typing import Dict, List, TypeVar, Any
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,7 +13,7 @@ from selenium.webdriver.common.keys import Keys
 
 import browsermobproxy
 import undetected_chromedriver.v2 as uc
-from arg_parser import Options
+from models.options import Options
 
 from navigators.helpers.xpath import XPath
 from navigators.helpers.try_to_interact import try_to_interact
@@ -111,10 +111,13 @@ class AbstractNavigator(ABC):
 	# STATIC METHODS
 	############################################################################
 	@staticmethod
-	def select_navigator(name: str) -> type:
-		import navigators.tiktok, navigators.youtube
+	def get_available_navigators() -> Dict[str, type]:
+		import navigators.tiktok, navigators.youtube, navigators.test_navigator
+		return {x.__name__: x for x in AbstractNavigator.__subclasses__()}
 
-		navigator_classes = {x.__name__: x for x in AbstractNavigator.__subclasses__()}
+	@staticmethod
+	def select_navigator(name: str) -> type:
+		navigator_classes = AbstractNavigator.get_available_navigators()
 		try:
 			return navigator_classes[name]
 		except KeyError:
