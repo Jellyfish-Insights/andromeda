@@ -14,13 +14,14 @@ using Andromeda.Common.Extensions;
 namespace Jobs.Fetcher.TikTok.Helpers {
 
     public static class ApiDataFetcher {
-        public static List<JObject> GetPosts() {
+        public static List<JObject> GetPosts(string username, DateTime lastFetch) {
             var allPosts = new List<JObject>();
-            foreach(var payload in DatabaseManager.GetPayload(DateTime.MinValue)){
+            foreach(var payload in DatabaseManager.GetPayload(username, lastFetch)){
                 allPosts.Add(JObject.Parse(payload));
             }
             return allPosts;
         }
+        
         public static Video GetTikTokVideoFromJSON(JToken videoJSON, string postId){
             var shareCovers = new List<string>();
             foreach(var shareCover in videoJSON["shareCover"]){

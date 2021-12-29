@@ -6,9 +6,9 @@ using System.Collections.Generic;
 
 namespace Jobs.Fetcher.TikTok {
     public abstract class AbstractTikTokFetcher : AbstractJob {
-        protected List<string> UserIds { get; }
-        public AbstractTikTokFetcher(List<string> userIds) {
-            UserIds = userIds;
+        protected List<string> Usernames { get; }
+        public AbstractTikTokFetcher(List<string> usernames) {
+            Usernames = usernames;
         }
 
         protected override Logger GetLogger() {
@@ -16,11 +16,11 @@ namespace Jobs.Fetcher.TikTok {
         }
 
         public override void Run() {
-            foreach (var userId in UserIds) {
-                RunBody(userId);
+            foreach (var username in Usernames) {
+                RunBody(username);
             }
         }
 
-        abstract public void RunBody(string userId);
+        abstract public void RunBody(string username);
     }
 }
