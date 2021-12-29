@@ -1,5 +1,5 @@
-import argparse
-
+import argparse, os
+from typing import Optional
 from logger import logger
 
 DEFAULT_SCROLL_LIMIT = 5
@@ -8,8 +8,28 @@ DEFAULT_SCRAPING_INTERVAL = 600
 DEFAULT_DB_CONN_STR = "postgresql://brab:brickabode@localhost:5432"
 DEFAULT_LOGGING_LEVEL = 10
 
-def parse() -> dict:
+class Options:
+	scroll_limit: int
+	timeout: int
+	logging: int
+	keep_logs: bool
+	slow_mode: bool
+	navigator_name: str
 
+	scraping_interval: Optional[int]
+	db_conn_string: Optional[str]
+	account_name: Optional[str]
+	credentials_file: Optional[str]
+
+	def __init__(self, argparse_options: argparse.Namespace):
+		options_dict = vars(argparse_options)
+		for key, value in options_dict.items():
+			setattr(self, key, value)
+
+	def __str__(self):
+		return str(vars(self))
+
+def parse() -> Options:
 	parser = argparse.ArgumentParser(
 		description="Scrapes data from social media.",
 		epilog="Please observe the Terms and Conditions of the platform(s) before running this software."
@@ -76,21 +96,25 @@ def parse() -> dict:
 		help='Scrapes social media around 2 times slower'
 	)
 	parser.add_argument(
-		'--quiet',
-		'-q',
-		action='store_true',
-		help="Don't print logging messages to the screen"
-	)
-	parser.add_argument(
 		'--account_name',
 		'-a',
 		action='store',
 		type=str,
-		# The scheduler can run without this option. For the scrapers, though,
-		# it is needed and should be checked
+		# The scheduler can run without this option. For some of the scrapers,
+		# though, it is needed
 		required=False,
-		help="Name of the social media account to be scraped. Accounts must "
-			"start with an '@' in the services that use it."
+		help="Name of the social media account to be scraped, if appliable."
+			"Accounts must start with an '@' in the services that use it."
+	)
+	parser.add_argument(
+		'--credentials_file',
+		'-c',
+		action='store',
+		type=str,
+		# The scheduler can run without this option. For some of the scrapers,
+		# though, it is needed
+		required=False,
+		help="Credentials file for authenticating to social media, if appliable."
 	)
 
 	# Positional argument
@@ -103,8 +127,8 @@ def parse() -> dict:
 
 	args = parser.parse_args()
 	
-	if args.scroll_limit <= 0:
-		logger.critical("scroll_limit must be a strictly positive integer")
+	if args.scroll_limit < 0:
+		logger.critical("scroll_limit must be a non-negative integer")
 		exit(1)
 
 	if args.timeout < 0:
@@ -115,4 +139,14 @@ def parse() -> dict:
 		logger.critical("You can't run the scraper more often than every 60 seconds!")
 		exit(1)
 
-	return args
+	if args.credentials_file:
+		if not (os.path.isfile(args.credentials_file)
+				and os.access(args.credentials_file, os.R_OK)):
+			logger.critical("File name is not a file to which you have read permissions.")
+			exit(1)
+		else:
+			args.credentials_file = os.path.realpath(args.credentials_file)
+
+	return Options(args)
+
+parse()
