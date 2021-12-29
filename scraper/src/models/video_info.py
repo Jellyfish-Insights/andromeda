@@ -45,11 +45,11 @@ class VideoInfo(base):
 			# Destructured data
 			tiktok_id = int(item["id"]),
 			description = item["desc"],
-			comment_count = item["stats"]["commentCount"],
-			digg_count = item["stats"]["diggCount"],
-			play_count = item["stats"]["playCount"],
-			share_count = item["stats"]["shareCount"],
-			create_time = datetime.datetime.fromtimestamp(item["createTime"])
+			comment_count = int(item["stats"]["commentCount"]),
+			digg_count = int(item["stats"]["diggCount"]),
+			play_count = int(item["stats"]["playCount"]),
+			share_count = int(item["stats"]["shareCount"]),
+			create_time = datetime.datetime.fromtimestamp(int(item["createTime"]))
 		)
 		logger.info(f"Saving tiktok_id={vid_info.tiktok_id} to database...")
 

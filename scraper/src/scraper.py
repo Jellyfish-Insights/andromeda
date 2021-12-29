@@ -3,14 +3,14 @@
 import os, sys, time, shutil, threading, signal, random, traceback
 
 import browsermobproxy, undetected_chromedriver.v2 as uc
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import WebDriverException, NoSuchWindowException
 
 from logger import logger, change_logger_level
-from arg_parser import parse
+from arg_parser import Options, parse
 from libs.kill_handle import KillHandle, KillHandleTriggered
 
-from db import DBError, base, db
-from navigators.abstract import AbstractNavigator
+from db import DBError, setup_db
+from navigators.abstract import AbstractNavigator, YouProbablyGotBlocked
 
 ################################################################################
 # CONSTANTS
@@ -20,6 +20,7 @@ from navigators.abstract import AbstractNavigator
 UC_LOG_FILE = "uc.log"
 
 # Options for our ChromeDriver
+PROFILE_DIR = "chrome_profile"
 
 CHROMEDRIVER_OPTIONS = [
 	# Hopefully, using the settings below will disable other popups that could
@@ -38,7 +39,7 @@ CHROMEDRIVER_OPTIONS = [
 	"--disable-dev-shm-usage",
 
 	# For disabling cache
-	"--disk-cache-size=0"
+	"--disk-cache-size=0",
 ]
 
 CHROMEDRIVER_SERVICEARGS = ["--verbose", f"--log-path={UC_LOG_FILE}"]
@@ -90,7 +91,7 @@ LOCALE_OPTIONS = [
 class Scraper:
 	def __init__(
 			self,
-			options: dict,
+			options: Options,
 			nav_class: type
 			):
 		self.options = options
@@ -130,10 +131,8 @@ class Scraper:
 		logger.info("Starting Undetected Chrome Driver...")
 
 		options = uc.ChromeOptions()
-		PROFILE_DIR = "chrome_profile"
 
 		# We want to start with a fresh profile
-		
 		if os.path.isdir(PROFILE_DIR):
 			shutil.rmtree(PROFILE_DIR)
 		
@@ -171,7 +170,7 @@ class Scraper:
 
 	def navigate_to_content(self) -> None:
 		try:
-			navigator = self.nav_class(
+			navigator: AbstractNavigator = self.nav_class(
 					self.options,
 					self.driver,
 					self.proxy,
@@ -180,34 +179,18 @@ class Scraper:
 			)
 		except (ValueError, AttributeError):
 			self.cleanup(1)
-		
-		try:
-			url = navigator.build_url()
-		except ValueError:
-			self.cleanup(1)
-
-		logger.info(f"Loading page {url}...")		
-		self.driver.get(url)
 
 		try:
-			continue_scraping = navigator.action_load()
-		except KillHandleTriggered:
-			self.cleanup(1)
-		except Exception as err:
-			logger.critical("An unknown error happened:")
+			navigator.main()
+		except NoSuchWindowException as err:
+			logger.critical("Chrome window was closed from an outside agent!")
 			logger.critical(err)
 			traceback.print_exc()
 			self.cleanup(1)
-
-		if not continue_scraping:
-			return
-
-		try:
-			navigator.action_interact()
-		except (KillHandleTriggered, DBError):
-			self.cleanup()
+		except (KillHandleTriggered, YouProbablyGotBlocked, DBError):
+			self.cleanup(1)
 		except Exception as err:
-			logger.critical("An unknown exception was raised.")
+			logger.critical("An unknown error happened:")
 			logger.critical(err)
 			traceback.print_exc()
 			self.cleanup(1)
@@ -265,10 +248,9 @@ class Scraper:
 # MAIN / DRIVER CODE
 ################################################################################
 
-def main(options: dict):
-	# Start database
-	import models.account_name, models.video_info
-	base.metadata.create_all(db)
+def main():
+	setup_db()
+	options = parse()
 
 	# Configure logger
 	change_logger_level(options.logging)
@@ -281,7 +263,7 @@ def main(options: dict):
 
 	def sigterm_handle(signal_received, frame):
 		logger.info(f"Process received signal = {signal_received}. Cleaning up and exiting.")
-		scraper.cleanup()
+		scraper.cleanup(signal_received)
 
 	signal.signal(signal.SIGINT, sigterm_handle)
 	signal.signal(signal.SIGTERM, sigterm_handle)
@@ -299,8 +281,4 @@ def main(options: dict):
 		scraper.cleanup(1)
 
 if __name__ == "__main__":
-	options = parse()
-	if not hasattr(options, "account_name"):
-		logger.critical("Account name must be provided to run the scraper.")
-		raise AttributeError
-	main(options)
+	main()

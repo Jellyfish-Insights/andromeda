@@ -1,10 +1,9 @@
 import os, re
-from db import db, base
+from db import setup_db
 from models.account_name import AccountName
 
 def install_most_followed():
-	# Start database
-	base.metadata.create_all(db)
+	setup_db()
 
 	os.chdir(os.path.dirname(os.path.realpath(__file__)))
 	with open("most_followed.txt") as fp:
