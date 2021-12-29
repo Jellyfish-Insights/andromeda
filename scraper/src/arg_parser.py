@@ -1,33 +1,13 @@
 import argparse, os
-from typing import Optional
-from logger import logger
+from logger import log
+from navigators.abstract import AbstractNavigator
+from models.options import Options
 
 DEFAULT_SCROLL_LIMIT = 5
 DEFAULT_TIMEOUT = 480
 DEFAULT_SCRAPING_INTERVAL = 600
 DEFAULT_DB_CONN_STR = "postgresql://brab:brickabode@localhost:5432"
 DEFAULT_LOGGING_LEVEL = 10
-
-class Options:
-	scroll_limit: int
-	timeout: int
-	logging: int
-	keep_logs: bool
-	slow_mode: bool
-	navigator_name: str
-
-	scraping_interval: Optional[int]
-	db_conn_string: Optional[str]
-	account_name: Optional[str]
-	credentials_file: Optional[str]
-
-	def __init__(self, argparse_options: argparse.Namespace):
-		options_dict = vars(argparse_options)
-		for key, value in options_dict.items():
-			setattr(self, key, value)
-
-	def __str__(self):
-		return str(vars(self))
 
 def parse() -> Options:
 	parser = argparse.ArgumentParser(
@@ -90,6 +70,36 @@ def parse() -> Options:
 		help='Enables logging for ChromeDriver and BrowserMob, helpful for debugging'
 	)
 	parser.add_argument(
+		'--use_clean_profile',
+		action='store_true',
+		help='Does not reset data from last use when starting Chrome.'
+	)
+	parser.add_argument(
+		'--use_fake_user_agent',
+		action='store_true',
+		help='Uses a fake user agent to avoid bot detection.'
+	)
+	parser.add_argument(
+		'--use_random_window_size',
+		action='store_true',
+		help='Uses random window size to avoid detection. Otherwise, starts maximized.'
+	)
+	parser.add_argument(
+		'--use_random_locale',
+		action='store_true',
+		help='Uses random locale to avoid detection.'
+	)
+	parser.add_argument(
+		'--use_random_timezone',
+		action='store_true',
+		help='Uses random timezone to avoid detection.'
+	)
+	parser.add_argument(
+		'--force_logout',
+		action='store_true',
+		help='Forces logging out from accounts, in case a logged in account is detected.'
+	)
+	parser.add_argument(
 		'--slow_mode',
 		'-s',
 		action='store_true',
@@ -121,28 +131,28 @@ def parse() -> Options:
 	parser.add_argument(
 		'navigator_name',
 		type=str,
-		choices=["TikTok", "YouTube"],
+		choices=[x for x in AbstractNavigator.get_available_navigators()],
 		help="Name of the navigator to be used, i.e., TikTok, YouTube, Twitter, etc."
 	)
 
 	args = parser.parse_args()
 	
 	if args.scroll_limit < 0:
-		logger.critical("scroll_limit must be a non-negative integer")
+		log.critical("scroll_limit must be a non-negative integer")
 		exit(1)
 
 	if args.timeout < 0:
-		logger.critical("timeout must be a non-negative integer")
+		log.critical("timeout must be a non-negative integer")
 		exit(1)
 
 	if args.scraping_interval < 10:
-		logger.critical("You can't run the scraper more often than every 60 seconds!")
+		log.critical("You can't run the scraper more often than every 60 seconds!")
 		exit(1)
 
 	if args.credentials_file:
 		if not (os.path.isfile(args.credentials_file)
 				and os.access(args.credentials_file, os.R_OK)):
-			logger.critical("File name is not a file to which you have read permissions.")
+			log.critical("File name is not a file to which you have read permissions.")
 			exit(1)
 		else:
 			args.credentials_file = os.path.realpath(args.credentials_file)

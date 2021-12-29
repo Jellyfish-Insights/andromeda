@@ -2,7 +2,7 @@ import datetime, time
 from sqlalchemy import Column, String, Integer, BigInteger, DateTime, select, and_
 from sqlalchemy.dialects.postgresql import JSONB
 
-from logger import logger
+from logger import log
 from db import DBError, session, base, SCHEMA_NAME
 
 class VideoInfo(base):
@@ -51,14 +51,14 @@ class VideoInfo(base):
 			share_count = int(item["stats"]["shareCount"]),
 			create_time = datetime.datetime.fromtimestamp(int(item["createTime"]))
 		)
-		logger.info(f"Saving tiktok_id={vid_info.tiktok_id} to database...")
+		log.info(f"Saving tiktok_id={vid_info.tiktok_id} to database...")
 
 		try:
 			session.add(vid_info)
 			session.commit()
 		except BaseException as err:
-			logger.error("An unknown error happened!")
-			logger.error(err)
+			log.error("An unknown error happened!")
+			log.error(err)
 			raise DBError
 
 		if save_in_fs:
