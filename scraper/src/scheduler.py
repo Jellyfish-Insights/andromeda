@@ -3,12 +3,12 @@ import re, sys, os, random
 
 from arg_parser import parse
 from models.account_name import AccountName
-from db import base, db
+from db import setup_db
 
 SCRAPER_SCRIPT = "scraper.py"
 
 def main():
-	base.metadata.create_all(db)
+	setup_db()
 	options = parse()
 	
 	os.chdir(os.path.dirname(os.path.realpath(__file__)))

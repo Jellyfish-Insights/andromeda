@@ -27,7 +27,7 @@ usage: scraper.py [-h] [--scroll_limit SCROLL_LIMIT] [--timeout TIMEOUT]
                   [--scraping_interval SCRAPING_INTERVAL]
                   [--db_conn_string DB_CONN_STRING]
                   [--logging {0,10,20,30,40,50}] [--keep_logs]
-                  [--slow_mode] [--quiet]
+                  [--slow_mode]
                   account_name {TikTok,YouTube}
 ```
 
