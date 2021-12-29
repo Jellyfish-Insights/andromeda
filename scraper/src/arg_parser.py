@@ -80,6 +80,26 @@ def parse() -> Options:
 		help='Uses a fake user agent to avoid bot detection.'
 	)
 	parser.add_argument(
+		'--use_random_window_size',
+		action='store_true',
+		help='Uses random window size to avoid detection. Otherwise, starts maximized.'
+	)
+	parser.add_argument(
+		'--use_random_locale',
+		action='store_true',
+		help='Uses random locale to avoid detection.'
+	)
+	parser.add_argument(
+		'--use_random_timezone',
+		action='store_true',
+		help='Uses random timezone to avoid detection.'
+	)
+	parser.add_argument(
+		'--force_logout',
+		action='store_true',
+		help='Forces logging out from accounts, in case a logged in account is detected.'
+	)
+	parser.add_argument(
 		'--slow_mode',
 		'-s',
 		action='store_true',

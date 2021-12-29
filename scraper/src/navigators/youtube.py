@@ -1,53 +1,20 @@
 #!/usr/bin/env python3
 import re
-from collections import OrderedDict
 from typing import Set, Tuple
 from urllib.parse import urlencode
-
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
 
+from logger import CustomLogger
+from defaults import youtube as youtube_defaults
 from models.options import Options
 from navigators.abstract import AbstractNavigator, ElementNotFound, YouProbablyGotBlocked
 from libs.throttling import throttle
 
-################################################################################
-# CONSTANTS
-################################################################################
-
-# Convert from query string to python tuples:
-# sed -nr "s/&(.+)=(.+)/\('\1', '\2'\),/p" <FILE>
-
-ANALYTICS_QUERY_STRING_LIST = [
-	('entity_type', 'VIDEO'),
-	('entity_id', '<USE_YOUR_VIDEO_ID_HERE>'),
-	# You won't be able to export to CSV if you choose "since_publish"
-	('time_period', '4_weeks'),
-	('explore_type', 'TABLE_AND_CHART'),
-	('metric', 'VIEWS'),
-	('granularity', 'DAY'),
-	('t_metrics', 'VIEWS'),
-	('t_metrics', 'WATCH_TIME'),
-	('t_metrics', 'SUBSCRIBERS_NET_CHANGE'),
-	('t_metrics', 'VIDEO_THUMBNAIL_IMPRESSIONS'),
-	('t_metrics', 'VIDEO_THUMBNAIL_IMPRESSIONS_VTR'),
-	('v_metrics', 'VIEWS'),
-	('v_metrics', 'WATCH_TIME'),
-	('v_metrics', 'SUBSCRIBERS_NET_CHANGE'),
-	('v_metrics', 'VIDEO_THUMBNAIL_IMPRESSIONS'),
-	('v_metrics', 'VIDEO_THUMBNAIL_IMPRESSIONS_VTR'),
-	('dimension', 'VIDEO'),
-	('o_column', 'VIEWS'),
-	('o_direction', 'ANALYTICS_ORDER_DIRECTION_DESC'),
-]
-
-ANALYTICS_QUERY_STRING_DICT = OrderedDict(ANALYTICS_QUERY_STRING_LIST)
-
-################################################################################
-# CLASS DEFINITION
-################################################################################
+log = CustomLogger()
 
 class YouTube(AbstractNavigator):
+	needs_authentication = True
 	############################################################################
 	# CONSTANTS
 	############################################################################
@@ -79,8 +46,15 @@ class YouTube(AbstractNavigator):
 	def main(self):
 		url = self.build_url()
 		self.go(url)
-		account, password = self.get_credentials()
-		self.sign_in(account, password)
+		# Check if user is already logged in
+		avatar_img = self.find(tag="img", attributes={"alt": 'Avatar image'})
+		if len(avatar_img) > 0 and self.options.force_logout:
+			self.logout()
+		
+		if len(avatar_img) == 0 or self.options.force_logout:
+			account, password = self.get_credentials()
+			self.sign_in(account, password)
+			
 		video_ids = self.get_video_ids()
 		for video_id in video_ids:
 			self.get_data_for_video(video_id)
@@ -91,14 +65,19 @@ class YouTube(AbstractNavigator):
 	############################################################################
 	# CUSTOM METHODS
 	############################################################################
+	def logout(self) -> None:
+		self.go("https://www.youtube.com/logout")
+		self.wait_load()
+		self.go(self.build_url)
+	
 	def get_credentials(self) -> Tuple[str, str]:
 		self.kill_handle.check()
-		self.logger.debug(f"Reading credentials file at '{self.options.credentials_file}'")
+		log.debug(f"Reading credentials file at '{self.options.credentials_file}'")
 		yt_credentials = dotenv_values(self.options.credentials_file)
 		account = yt_credentials.get("account")
 		password = yt_credentials.get("password")
 		if account is None or password is None:
-			self.logger.critical("Could not find credentials!")
+			log.critical("Could not find credentials!")
 			raise KeyError
 		return account, password
 
@@ -153,7 +132,7 @@ class YouTube(AbstractNavigator):
 				attributes={"type":"password"}
 			)
 		except ValueError:
-			self.logger.critical("Could not find 'password' field. Check if you "
+			log.critical("Could not find 'password' field. Check if you "
 					"are getting the message 'This browser or app may not be secure.' "
 					"Unfortunately, there is no simple workaround.")
 			raise YouProbablyGotBlocked
@@ -184,7 +163,7 @@ class YouTube(AbstractNavigator):
 		self.click(content_button)
 		self.wait_load()
 
-		self.logger.debug("Pressing tab a bunch of times to load content...")
+		log.debug("Pressing tab a bunch of times to load content...")
 		self.press_tab()
 
 		# Using regex in CSS:
@@ -197,7 +176,7 @@ class YouTube(AbstractNavigator):
 			return arr;
 		"""
 		links = self.run(js_code)
-		self.logger.debug(f"{links=}")
+		log.debug(f"{links=}")
 		if len(links) == 0:
 			self.logger.critical("Could not find links to videos!")
 			raise ElementNotFound
@@ -205,7 +184,7 @@ class YouTube(AbstractNavigator):
 		regex = re.compile(r"v=(.+)$")
 		matches = set(regex.search(x) for x in links)
 		video_ids = set(x[1] for x in matches if x is not None)
-		self.logger.debug(video_ids)
+		log.debug(video_ids)
 		return video_ids
 
 	@throttle(THROTTLE_GET_DATA_FOR_VIDEO)
@@ -219,9 +198,9 @@ class YouTube(AbstractNavigator):
 		self.wait_load()
 		self.move_aimlessly(timeout=5.0)
 
-		url_dict = ANALYTICS_QUERY_STRING_DICT
+		url_dict = youtube_defaults.ANALYTICS_QUERY_STRING_DICT
 		url_dict["entity_id"] = video_id
-		url_encoded = urlencode(ANALYTICS_QUERY_STRING_DICT)
+		url_encoded = urlencode(youtube_defaults.ANALYTICS_QUERY_STRING_DICT)
 
 		self.go(f"https://studio.youtube.com/video/{video_id}/analytics/tab-overview/period-default/explore?{url_encoded}")
 		self.wait_load()
@@ -237,7 +216,7 @@ class YouTube(AbstractNavigator):
 			text_exact=True,
 			case_insensitive=True
 		)
-		self.logger.info(f"Downloading CSV file for '{video_id}'")
+		log.info(f"Downloading CSV file for '{video_id}'")
 		self.click(csv_button)
 		self.wait_load()
 

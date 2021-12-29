@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
 import json, re, random
 
+from defaults import tiktok as tiktok_defaults
+from logger import CustomLogger
 from arg_parser import Options
 from navigators.abstract import AbstractNavigator
 from models.account_name import AccountName
 from models.video_info import VideoInfo
 from db import DBError
 from libs.throttling import throttle
+
+log = CustomLogger()
 
 class TikTok(AbstractNavigator):
 	"""
@@ -23,41 +27,7 @@ class TikTok(AbstractNavigator):
 	The structure of the data is the same in both sources, and contains number
 	of likes/diggs, views, shares, creation time of the video, and more
 	"""
-	############################################################################
-	# CONSTANTS
-	############################################################################
-	# A large number of scrolls will be broken into a smaller number so we can
-	# parse data as we go
-	PARTIAL_SCROLL_SIZE = 10
-
-	LOCALE_OPTIONS = [
-		'ar',
-		'cs-CZ',
-		'de-DE',
-		'el-GR',
-		'en',
-		'es',
-		'fr',
-		'he-IL',
-		'ja-JP',
-		'it-IT',
-		'pt-BR',
-		'ru-RU',
-		'tr-TR',
-		'zh-Hant-TW'
-	]
-
-	QUERY_STRING = [
-		('&is_copy_url=1',''),
-		('&is_from_webapp=v1','')
-	]
-
-	THROTTLE_EXECUTION_TIME = 2.00
-	THROTTLE_AT_LEAST = 2.00
-
-	THROTTLE_HOVER = 0.25
-
-	UPSCROLL_PROPORTION = 0.20
+	needs_authentication = False
 
 	############################################################################
 	# CONSTRUCTOR
@@ -66,21 +36,20 @@ class TikTok(AbstractNavigator):
 				options: Options,
 				driver,
 				proxy,
-				logger,
 				kill_handle
 				):
 		
 		if options.account_name is None:
-			logger.critical("Account name must be provided to run the scraper.")
+			log.critical("Account name must be provided to run the scraper.")
 			raise AttributeError
 		
 		try:
 			AccountName.test(options.account_name)
 		except ValueError:
-			logger.critical("Bad format for TikTok account!")
+			log.critical("Bad format for TikTok account!")
 			raise
 		
-		super().__init__(options, driver, proxy, logger, kill_handle)
+		super().__init__(options, driver, proxy, kill_handle)
 
 	############################################################################
 	# METHODS
@@ -97,10 +66,10 @@ class TikTok(AbstractNavigator):
 		except ValueError:
 			raise
 
-		language = random.choice(self.LOCALE_OPTIONS)
+		language = random.choice(tiktok_defaults.LOCALE_OPTIONS)
 		url = f"https://www.tiktok.com/{account_name}?lang={language}"
 
-		for arg in self.QUERY_STRING:
+		for arg in tiktok_defaults.QUERY_STRING:
 			url += random.choice(arg)
 
 		return url
@@ -113,17 +82,17 @@ class TikTok(AbstractNavigator):
 
 		account_name = self.options.account_name
 		self.wait_load()
-		self.logger.info("First page load was successful.")
+		log.info("First page load was successful.")
 		self.move_aimlessly(timeout = 5.0)
 
 		items = self.injection("tiktok.js")
 		if len(items) == 0:
-			self.logger.warning("We could not retrieve initial data! You might want to check if you were blocked.")
+			log.warning("We could not retrieve initial data! You might want to check if you were blocked.")
 		for it in items:
 			try:
 				VideoInfo.add(account_name, it)
 			except DBError:
-				self.logger.critical("Error interacting with database!")
+				log.critical("Error interacting with database!")
 				raise
 
 	def scroll_down_handle_more_data(self):
@@ -132,7 +101,7 @@ class TikTok(AbstractNavigator):
 			scroll_limit_string = f"up to {self.options.scroll_limit} times"
 		else:
 			scroll_limit_string = "until the end of the page or timeout"
-		self.logger.info("Now let's scroll down to get more data... will scroll " +
+		log.info("Now let's scroll down to get more data... will scroll " +
 			f"down {scroll_limit_string}")
 
 		stop = False
@@ -142,8 +111,8 @@ class TikTok(AbstractNavigator):
 				or scrolled < self.options.scroll_limit)):
 			self.kill_handle.check()
 			self.move_aimlessly(timeout = 1.0)
-			self.logger.debug(f"Scrolling down")
-			self.scroll_random(upscroll_proportion=self.UPSCROLL_PROPORTION)
+			log.debug(f"Scrolling down")
+			self.scroll_random(upscroll_proportion=tiktok_defaults.UPSCROLL_PROPORTION)
 			scrolled += 1
 			if self.was_end_of_page_reached():
 				stop = True
@@ -163,23 +132,22 @@ class TikTok(AbstractNavigator):
 							try:
 								VideoInfo.add(account_name, it)
 							except DBError:
-								self.logger.critical("Error interacting with database!")
+								log.critical("Error interacting with database!")
 								raise
 
 				except KeyError:
-					self.logger.warning("Could not fetch information from GET request")
+					log.warning("Could not fetch information from GET request")
 
-		# Reset the HAR
-		self.proxy.new_har(options=self.HAR_OPTIONS)
+		self.reset_har()
 
 	############################################################################
 	# METHODS FOR NAVIGATION AND INTERACTION
 	############################################################################
 
-	@throttle(THROTTLE_EXECUTION_TIME, THROTTLE_AT_LEAST)
+	@throttle(tiktok_defaults.THROTTLE_EXECUTION_TIME, tiktok_defaults.THROTTLE_AT_LEAST)
 	def scroll_random(self, *args, **kwargs):
 		return super().scroll_random(*args, **kwargs)
 
-	@throttle(THROTTLE_HOVER)
+	@throttle(tiktok_defaults.THROTTLE_HOVER)
 	def hover(self, xpath_str: str) -> None:
 		return super().hover(xpath_str)

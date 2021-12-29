@@ -10,19 +10,16 @@ from selenium.common.exceptions import JavascriptException, InvalidSelectorExcep
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
+import browsermobproxy, undetected_chromedriver.v2 as uc
 
-import browsermobproxy
-import undetected_chromedriver.v2 as uc
+from logger import CustomLogger
+from defaults import abstract_navigator as abstract_defaults
 from models.options import Options
-
 from navigators.helpers.xpath import XPath
 from navigators.helpers.try_to_interact import try_to_interact
 from libs.kill_handle import KillHandle
 
-################################################################################
-# CONSTANTS
-################################################################################
-
+log = CustomLogger()
 T = TypeVar("T")
 
 ################################################################################
@@ -51,37 +48,7 @@ class AbstractNavigator(ABC):
 	"""
 	This class defines the blueprint of a navigator, to be attached to Scraper class.
 	"""
-	############################################################################
-	# CONSTANTS FOR COLLECTING DATA
-	############################################################################ss
-
-	# I am not sure we need to capture headers, but still haven't tried to
-	# remove this option
-	HAR_OPTIONS = {
-		'captureHeaders': True,
-		'captureContent': True
-	}
-	############################################################################
-	# CONSTANTS FOR NAVIGATION
-	############################################################################
-	WAIT_RANDOM_FACTOR = 0.15
-
-	MIN_AMOUNT_OF_SCROLLING = 200
-	SHORT_PAUSE_LENGTH = 1.0
-	LONG_PAUSE_LENGTH = 5.0
-	LONG_PAUSE_PROBABILITY = 0.10
-	SLOW_MODE_MULTIPLIER = 2.0
-
-	WAIT_UNTIL_TIMEOUT = 10.0
-	POLL_FREQUENCY = 0.5
-
-	SLOW_TYPE_SLEEP_INTERVAL = 0.15
-
-	MOVE_AROUND_MOVE_MOUSE_TIMES = 5
-	MOVE_AROUND_VISIT_LINK_PROB = 0.01
-
-	# For performing a sequence of actions as a single block (avoids overhead)
-	BATCH_ACTION_SIZE = 10
+	needs_authentication: bool
 
 	def __init__(
 				self,
@@ -98,6 +65,23 @@ class AbstractNavigator(ABC):
 		self.logger = logger
 		self.kill_handle = kill_handle
 		self.action = ActionChains(driver)
+		self.test_authentication_options()
+
+	def test_authentication_options(self):
+		if self.needs_authentication is None:
+			self.logger.critical("Variable needs_authentication needs to be "
+				f"defined for subclass {type(self).__name__}")
+			raise ValueError
+
+		if (self.needs_authentication and any(self.options.anonymization_options)):
+			self.logger.warning("The website you are scraping requires "
+				"authentication. It is not recommended to use anonymization  "
+				"options.")
+		elif (not self.needs_authentication and not all(self.options.anonymization_options)):
+			self.logger.warning("The website you are scraping does not require "
+				"authentication. In spite of that, you are not using every "
+				"anonymization option available.")
+			
 
 	############################################################################
 	# NON-IMPLEMENTED METHODS
@@ -452,3 +436,9 @@ class AbstractNavigator(ABC):
 			amount *= -1
 		
 		self.scroll_exact(amount)
+
+	############################################################################
+	# MANIPULATION OF PROXY AND DRIVER
+	############################################################################
+	def reset_har(self):
+		self.proxy.new_har(options=abstract_defaults.HAR_OPTIONS)

@@ -1,85 +1,22 @@
 #!/usr/bin/env python3
 
-import os, sys, time, shutil, threading, signal, random, traceback
+import os, sys, time, shutil, threading, signal, traceback, random
+from typing import Dict
 
 import browsermobproxy, undetected_chromedriver.v2 as uc
 from selenium.common.exceptions import WebDriverException, NoSuchWindowException
+from fake_useragent import UserAgent
 
-from logger import logger, change_logger_level
+from logger import CustomLogger
 from arg_parser import parse
 from models.options import Options
 from libs.kill_handle import KillHandle, KillHandleTriggered
 
 from db import DBError, setup_db
+from defaults import anonymization, chrome
 from navigators.abstract import AbstractNavigator, YouProbablyGotBlocked
 
-################################################################################
-# CONSTANTS
-################################################################################
-
-# Log file
-UC_LOG_FILE = "uc.log"
-
-# Options for our ChromeDriver
-PROFILE_DIR = "chrome_profile"
-
-CHROMEDRIVER_OPTIONS = [
-	# Hopefully, using the settings below will disable other popups that could
-	# disturb complete browser automation
-	"--no-first-run",
-	"--no-service-autorun",
-	"--password-store=basic",
-	"--disable-notifications",
-
-	# For ignoring "untrusted proxy" errors
-	"--ignore-ssl-errors=yes",
-	"--ignore-certificate-errors",
-
-	# For disabling /dev/shm usage (Docker Containers don't allocate a lot of
-	# memory for that)
-	"--disable-dev-shm-usage",
-
-	# For disabling cache
-	"--disk-cache-size=0",
-]
-
-CHROMEDRIVER_SERVICEARGS = ["--verbose", f"--log-path={UC_LOG_FILE}"]
-
-# An exception is triggered and driver exits if page takes longer than that
-# to load (given in seconds)
-PAGE_LOAD_TIMEOUT = 30
-
-COMMON_DISPLAY_RESOLUTIONS = [
-	(1920, 1200),
-	(1920, 1080),
-	(1366, 768),
-	(1536, 864),
-	(1440, 900),
-	(1366, 768),
-	(1280, 800),
-	(1280, 720),
-	(1280, 1024),
-	(1024, 768)
-]
-
-# This was not yet tested. The idea is to change the language preference header
-# now and then, in order to avoid IP bans
-
-# https://developer.chrome.com/docs/webstore/i18n/#localeTable
-# https://stackoverflow.com/questions/52098821/selenium-webdriver-set-preferred-browser-language-de
-# https://gist.github.com/traysr/2001377
-LOCALE_OPTIONS = [
-	'en', 'en-US', 'en-GB', 'fr', 'de', 'pl', 'nl', 'it', 'es', 'pt-BR',
-	'zh-TW', 'ja', 'ko'
-]
-# Then use, in Driver configuration
-# options.add_argument('--disable-translate')
-# options.add_argument("--lang=de-DE")
-
-
-################################################################################
-# SCRAPER CLASS
-################################################################################
+log = CustomLogger()
 
 class Scraper:
 	def __init__(
@@ -91,7 +28,7 @@ class Scraper:
 		self.kill_handle = KillHandle()
 
 		if nav_class not in AbstractNavigator.__subclasses__():
-			logger.critical("nav_class must be a subclass of AbstractNavigator!")
+			log.critical("nav_class must be a subclass of AbstractNavigator!")
 			exit(1)
 		
 		self.nav_class = nav_class
@@ -113,7 +50,7 @@ class Scraper:
 		os.chdir(dirname)
 
 	def start_proxy(self) -> None:
-		logger.info("Starting proxy server...")
+		log.info("Starting proxy server...")
 
 		self.server = browsermobproxy.Server(f"../browsermob-proxy-2.1.4/bin/browsermob-proxy")
 		self.server.start()
@@ -121,60 +58,53 @@ class Scraper:
 		self.proxy.new_har(options=AbstractNavigator.HAR_OPTIONS)
 
 	def start_driver(self) -> None:
-		logger.info("Starting Undetected Chrome Driver...")
+		log.info("Starting Undetected Chrome Driver...")
+		chrome_options = uc.ChromeOptions()
 
-		options = uc.ChromeOptions()
-
-		if self.options.use_clean_profile and os.path.isdir(PROFILE_DIR):
-			shutil.rmtree(PROFILE_DIR)
+		if self.options.use_clean_profile and os.path.isdir(chrome.PROFILE_DIR):
+			shutil.rmtree(chrome.PROFILE_DIR)
 		
-		options.user_data_dir = PROFILE_DIR
+		chrome_options.user_data_dir = chrome.PROFILE_DIR
 
-		for opt in CHROMEDRIVER_OPTIONS:
-			options.add_argument(opt)
+		for opt in chrome.CHROMEDRIVER_OPTIONS:
+			chrome_options.add_argument(opt)
 
 		# Connecting driver to BrowserMob proxy
-		options.add_argument(f'--proxy-server=localhost:{self.proxy.port}')
-
-
-		# Another idea is to use a fake user agent:
-		# https://stackoverflow.com/a/62520191/17030712
-		# https://stackoverflow.com/questions/49565042/way-to-change-google-chrome-user-agent-in-selenium/49565254#49565254
+		chrome_options.add_argument(f'--proxy-server=localhost:{self.proxy.port}')
 
 		if self.options.use_fake_user_agent:
-			from fake_useragent import UserAgent
-			try:
-				ua = UserAgent()
-				userAgent = ua.random
-				logger.info(f"Using fake user agent = {userAgent}")
-				options.add_argument(f"--user-agent={userAgent}")
-			except Exception as e:
-				logger.warning("Could not use fake user agent.")
-				logger.warning(e)
+			self.fake_user_agent(chrome_options)
+		if self.options.use_random_locale:
+			self.fake_locale()
+		if self.options.use_random_timezone:
+			self.fake_timezone()
 
 		try:
 			self.driver = uc.Chrome(
-				options=options,
-				service_args=CHROMEDRIVER_SERVICEARGS
+				options=chrome_options,
+				service_args=chrome.CHROMEDRIVER_SERVICEARGS
 			)
 		except WebDriverException as err:
-			logger.critical("We could not open Chrome Driver. Cleaning up and exiting...")
-			logger.critical(err)
+			log.critical("We could not open Chrome Driver. Cleaning up and exiting...")
+			log.critical(err)
 			self.server.stop()
 			sys.exit(1)
 		except BaseException as err:
-			logger.critical("An unknown error happened!")
-			logger.critical(err)
+			log.critical("An unknown error happened!")
+			log.critical(err)
 			traceback.print_exc()
 			self.server.stop()
 			raise		
 
 		# Will raise an exception if any page takes more than PAGE_LOAD_TIMEOUT
 		# seconds to load
-		self.driver.set_page_load_timeout(PAGE_LOAD_TIMEOUT)
-		resolution = random.choice(COMMON_DISPLAY_RESOLUTIONS)
-		self.driver.set_window_size(*resolution)
-		logger.info(f"Using window resolution = {resolution}")
+		self.driver.set_page_load_timeout(chrome.PAGE_LOAD_TIMEOUT)
+
+		if self.options.use_random_window_size:
+			self.random_window_size()
+		else:
+			log.info("Starting maximized")
+			self.driver.maximize_window()
 
 	def navigate_to_content(self) -> None:
 		try:
@@ -182,24 +112,25 @@ class Scraper:
 					self.options,
 					self.driver,
 					self.proxy,
-					logger,
 					self.kill_handle
 			)
-		except (ValueError, AttributeError):
+		except (ValueError, AttributeError) as e:
+			log.critical("An error occurred initializing navigator:")
+			log.critical(e)
 			self.cleanup(1)
 
 		try:
 			navigator.main()
 		except NoSuchWindowException as err:
-			logger.critical("Chrome window was closed from an outside agent!")
-			logger.critical(err)
+			log.critical("Chrome window was closed from an outside agent!")
+			log.critical(err)
 			traceback.print_exc()
 			self.cleanup(1)
 		except (KillHandleTriggered, YouProbablyGotBlocked, DBError):
 			self.cleanup(1)
 		except Exception as err:
-			logger.critical("An unknown error happened:")
-			logger.critical(err)
+			log.critical("An unknown error happened:")
+			log.critical(err)
 			traceback.print_exc()
 			self.cleanup(1)
 
@@ -208,7 +139,7 @@ class Scraper:
 		if timeout_seconds == 0:
 			return
 		else:
-			logger.debug(f"Using timeout of {timeout_seconds} seconds.")
+			log.debug(f"Using timeout of {timeout_seconds} seconds.")
 
 		def stop_program(kill_handle: KillHandle):
 			# We will change the sentinel value and hope that main thread
@@ -216,10 +147,10 @@ class Scraper:
 
 			# kill_handle.wait(timeout_seconds)
 			kill_handle.timeout(timeout_seconds)
-			logger.info("Kill handle was set. Exiting on next iteration.")
+			log.info("Kill handle was set. Exiting on next iteration.")
 
 			time.sleep(timeout_seconds / 2)
-			logger.warning("Process still hasn't exited, forcing cleanup.")
+			log.warning("Process still hasn't exited, forcing cleanup.")
 			self.cleanup()
 		
 		t = threading.Thread(
@@ -230,27 +161,98 @@ class Scraper:
 		t.start()
 
 	def cleanup(self, exit_code: int = 0) -> None:
-		logger.info("Cleaning...")
+		log.info("Cleaning...")
+		try:
+			self.proxy.close()
+		except Exception as e:
+			log.debug("Error closing proxy:")
+			log.debug(e)
+
 		try:
 			self.server.stop()
 		except AttributeError:
-			logger.debug("Server was not running yet, or had already been killed.")
+			log.debug("Server was not running yet, or had already been killed.")
 
 		try:
 			self.driver.quit()
 		except AttributeError:
-			logger.debug("Driver was not running yet, or had already been killed.")			
+			log.debug("Driver was not running yet, or had already been killed.")			
 
 		if not self.options.keep_logs:
 			# Removing log files created by BrowserMob and Undetected Chrome
-			list_of_files = ["bmp.log", "server.log", UC_LOG_FILE]
+			list_of_files = ["bmp.log", "server.log", chrome.UC_LOG_FILE]
 
 			for file in list_of_files:
 				if os.path.isfile(file):
 					os.unlink(file)
 
-		logger.info("Exiting...")
+		log.info("Exiting...")
 		sys.exit(exit_code)
+
+	############################################################################
+	# METHODS FOR ANONYMIZATION
+	############################################################################
+
+	def fake_timezone(self):
+		tz = random.choice(anonymization.TIMEZONES)
+		log.info(f"Using timezone = {tz}")
+		os.environ["TZ"] = tz
+
+	def unset_via_header(self):
+		# BrowserMobProxy sets a custom "Via" header that looks very suspicious
+		# Unfortunately there's currently no way to unset it other than recompiling
+		# the source for one of its dependencies. See:
+		# https://stackoverflow.com/a/65712127/17030712
+		# See line 274
+		# https://github.com/adamfisk/LittleProxy/blob/6e0d253935b0694a23b40580bb72599c279deb08/src/main/java/org/littleshoot/proxy/impl/ProxyUtils.java
+		pass
+
+	def set_header(self, header: Dict[str, str]):
+		log.debug(f"Setting header = {header}")
+		status = self.proxy.headers(header)
+		if status != 200:
+			log.warning("Server replied with non-200 status")
+
+	def fake_user_agent(self, chrome_options: uc.ChromeOptions):
+		for header in anonymization.FAKE_UA_UNSET_HEADERS:
+			self.set_header({header: ""})
+		try:
+			ua = UserAgent()
+			userAgent = ua.random
+			log.info(f"Using fake user agent = {userAgent}")
+			chrome_options.add_argument(f"--user-agent={userAgent}")
+		except Exception as e:
+			log.warning("Could not use fake user agent.")
+			log.warning(e)
+
+	def fake_locale(self):
+		def create_fake_lang_header():
+			languages = []
+
+			first_pass = True
+			q = 0.9
+			while first_pass or (random.random() < 0.8 and q >= 0.1):
+				first_pass = False
+
+				language = random.choice(anonymization.LOCALE_OPTIONS)
+				languages.append(f"{language};q={q:.1f}")
+				q -= 0.1
+
+			return ",".join(languages)
+		
+		header_value = create_fake_lang_header()
+		self.set_header({"Accept-Language": header_value})
+
+	def random_window_size(self):
+		resolution = random.choice(anonymization.COMMON_DISPLAY_RESOLUTIONS)
+		self.driver.set_window_size(*resolution)
+		log.info(f"Using window resolution = {resolution}")
+
+	def do_not_track():
+		# Launch Chrome with "Do Not Track" setting. There's currently no easy way
+		# to do this. One possibility we might want to try later is navigating
+		# to "chrome://settings/cookies" and controlling the setting.
+		pass
 
 ################################################################################
 # MAIN / DRIVER CODE
@@ -259,18 +261,18 @@ class Scraper:
 def main():
 	setup_db()
 	options = parse()
+	log.change_logger_level(options.logging)
 
-	# Configure logger
-	change_logger_level(options.logging)
-
-	logger.info("We will run the scraper with the following options:")
-	logger.info(options)
+	log.info("We will run the scraper with the following options:")
+	log.info(options)
+	log.info("You can run with the same options with the following command:")
+	log.info(options.generate_cmd())
 	
 	navigator = AbstractNavigator.select_navigator(options.navigator_name)
 	scraper = Scraper(options, navigator)
 
 	def sigterm_handle(signal_received, frame):
-		logger.info(f"Process received signal = {signal_received}. Cleaning up and exiting.")
+		log.info(f"Process received signal = {signal_received}. Cleaning up and exiting.")
 		scraper.cleanup(signal_received)
 
 	signal.signal(signal.SIGINT, sigterm_handle)
@@ -281,10 +283,10 @@ def main():
 		scraper.navigate_to_content()
 		scraper.cleanup()
 	except SystemExit as exit_code:
-		logger.info(f"Exiting with code {exit_code}")
+		log.info(f"Exiting with code {exit_code}")
 	except Exception as err:
-		logger.critical("An unknown exception was raised.")
-		logger.critical(err)
+		log.critical("An unknown exception was raised.")
+		log.critical(err)
 		traceback.print_exc()
 		scraper.cleanup(1)
 
