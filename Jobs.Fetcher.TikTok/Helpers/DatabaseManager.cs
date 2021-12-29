@@ -15,6 +15,10 @@ namespace Jobs.Fetcher.TikTok {
 
         private static HashSet<string> reserved = new HashSet<string> { "from" };
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6ebd705... Improves connection wiht scraper
         public static List<string> GetPayload(string username, DateTime last_fetch) {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
@@ -69,7 +73,11 @@ namespace Jobs.Fetcher.TikTok {
             }
         }
 
+<<<<<<< HEAD
         public static string GetTikTokId(string username) {
+=======
+        public static string GetTikTokId(string username){
+>>>>>>> 6ebd705... Improves connection wiht scraper
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -92,7 +100,11 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
+<<<<<<< HEAD
         public static bool TikTokUserExists(string username) {
+=======
+        public static bool TikTokUserExists(string username){
+>>>>>>> 6ebd705... Improves connection wiht scraper
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -114,7 +126,11 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
+<<<<<<< HEAD
         public static bool TikTokScraperTablesExist() {
+=======
+        public static bool TikTokScraperTablesExist(){
+>>>>>>> 6ebd705... Improves connection wiht scraper
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -134,6 +150,7 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
+<<<<<<< HEAD
         public static DateTime GetLastFetch(string authorId, DataLakeTikTokContext dbContext) {
             //var oldEntry = dbContext.Posts.Find(newEntry.Id);
             var now = DateTime.UtcNow;
@@ -141,6 +158,15 @@ namespace Jobs.Fetcher.TikTok {
                        .OrderByDescending(m => m.ValidityStart)
                        .Select(m => m.ValidityStart)
                        .FirstOrDefault();
+=======
+        public static DateTime GetLastFetch(string authorId, DataLakeTikTokContext dbContext){
+            //var oldEntry = dbContext.Posts.Find(newEntry.Id);
+            var now = DateTime.UtcNow;
+            return dbContext.Posts.Where(m => m.Id == authorId && m.ValidityStart <= now && m.ValidityEnd > now)
+                                    .OrderByDescending(m => m.ValidityStart)
+                                    .Select(m => m.ValidityStart)
+                                    .FirstOrDefault();
+>>>>>>> 6ebd705... Improves connection wiht scraper
         }
     }
 }
