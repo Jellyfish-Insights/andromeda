@@ -1,5 +1,6 @@
 *.pyc
 *.log
+*.error
 src/chrome_profile*
 browsermob-proxy-2.1.4/
 .mypy_cache/

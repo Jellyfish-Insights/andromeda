@@ -7,12 +7,13 @@ import traceback
 import re
 from abc import abstractmethod
 from typing import Dict, List, Optional, Type, TypeVar, Any
+from urllib.parse import urlencode
 
 from selenium.webdriver.common import by, action_chains, keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import JavascriptException, InvalidSelectorException, \
 	ElementNotInteractableException, StaleElementReferenceException, \
-	MoveTargetOutOfBoundsException, NoSuchWindowException
+	MoveTargetOutOfBoundsException, NoSuchWindowException, TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
 
 from db import DBException
@@ -83,6 +84,11 @@ class ScraperMiddleWare(ScraperCore):
 			log.critical("Chrome window was closed from an outside agent!")
 			log.critical(err)
 			traceback.print_exc()
+			self.cleanup(1)
+		except TimeoutException as e:
+			log.critical("Selenium emitted a TimeoutException!")
+			log.critical(e)
+			log.critical("Cannot continue! Exiting gracefully...")
 			self.cleanup(1)
 		except (ScraperException, DBException, KillHandleTriggered):
 			self.cleanup(1)
@@ -266,21 +272,32 @@ class ScraperMiddleWare(ScraperCore):
 		try:
 			self.action.perform()
 			log.debug(f"Visiting {anchor.get_attribute('href')} briefly...")
-		except (ElementNotInteractableException, MoveTargetOutOfBoundsException):
+		except (ElementNotInteractableException, MoveTargetOutOfBoundsException, StaleElementReferenceException):
 			log.debug("Element is not interactable or is out of screen.")
 			return
 
 		parent = self.driver.current_window_handle
-		children = self.driver.window_handles
+		children = [x for x in self.driver.window_handles if x != parent]
+		log.debug(f"We now have {len(children)} tabs open.")
 
-		for window in children:
-			if window != parent :
-				self.driver.switch_to.window(window)
-				self.wait_load()
-				self.move_aimlessly(timeout, allow_new_windows=False)
-				self.driver.close()
+		if tab_was_not_opened := (len(children) == 0):
+			log.debug("Ctrl+Click did not open new tab.")
+			self.move_aimlessly(timeout, allow_new_windows=False)
 
-		self.driver.switch_to.window(parent)
+		for tab in children:
+			log.debug("Switching to tab")
+			self.driver.switch_to.window(tab)
+			self.wait_load()
+			self.move_aimlessly(timeout, allow_new_windows=False)
+			log.debug("Closing tab")
+			self.driver.close()
+
+		if tab_was_not_opened:
+			log.debug("Going back in page visit history")
+			self.run("history.back();")
+		else:
+			log.debug("Going back to parent tab")
+			self.driver.switch_to.window(parent)
 
 	def hover(self, elem: WebElement) -> None:
 		self.action.move_to_element(elem)
@@ -354,9 +371,13 @@ class ScraperMiddleWare(ScraperCore):
 	"""Subclasses are encouraged to reuse these, by wrapping with decorators
 	if necessary"""
 
-	def go(self, url: str) -> None:
-		log.debug(f"Navigating to {url}")
-		self.driver.get(url)
+	def go(self, url: str, query_dict: Optional[Dict] = None) -> None:
+		query_encoded = ""
+		if query_dict is not None:
+			query_encoded = "?" + urlencode(query_dict)
+		full_url = f"{url}{query_encoded}"
+		log.debug(f"Navigating to {full_url}")
+		self.driver.get(full_url)
 
 	@try_to_interact
 	def click(self, elem: WebElement):

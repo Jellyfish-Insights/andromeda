@@ -1,21 +1,24 @@
+import json
 import os
 from base64 import b64encode, b64decode
 from cryptography.fernet import Fernet
 from hashlib import sha256
 from binascii import Error as BinAsciiError
-from dotenv import dotenv_values
 
 from logger import log
 
 class SymmetricEncryption:
 	def __init__(self):
 		this_dir = os.path.dirname(os.path.realpath(__file__))
-		password_file = os.path.join(this_dir, "password.env")
-		env_dict = dotenv_values(password_file)
+		password_file = os.path.join(this_dir, "password.json")
+		with open(password_file, "r") as fp:
+			env_dict = json.load(fp)
+		if type(env_dict) != dict:
+			raise ValueError("JSON received does not correspond to expected format!")
 		try:
 			password = env_dict["password"]
 		except KeyError:
-			log.critical("Password file non-existent or does not contain password!")
+			log.critical("Password file does not contain password!")
 			raise
 		hasher = sha256()
 		hasher.update(bytes(password, encoding="utf-8"))

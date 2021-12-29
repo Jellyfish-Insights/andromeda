@@ -90,7 +90,7 @@ namespace Jobs.Fetcher.YouTube {
         public ViewerPercentageMetricsQuery(List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos): base(accountInfos) {}
 
         public override List<string> Dependencies() {
-            return new List<string>() { IdOf<VideosQuery>(), IdOf<DailyVideoMetricsQuery>()};
+            return new List<string>() { IdOf<VideosQuery>(), IdOf<DailyVideoMetricsQuery>() };
         }
 
         private const int DegreeOfParallelism = 1;

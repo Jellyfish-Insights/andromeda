@@ -29,6 +29,7 @@ class Options:
 	account_name: Optional[str] = None
 	password_encrypted: Optional[str] = None
 	password_plain: Optional[str] = None
+	managed_account: Optional[str] = None
 	credentials_file: Optional[str] = None
 	# This is actually required
 	navigator_name: Optional[str] = None

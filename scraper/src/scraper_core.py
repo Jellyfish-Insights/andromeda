@@ -37,10 +37,14 @@ class YouProbablyGotBlocked(ScraperException):
 	Workarounds can be accessing through a proxy, waiting until you are unblocked
 	or changing your scraping routine.
 	"""
-	pass
 
 class JSException(ScraperException):
 	pass
+
+class UnexpectedResponse(ScraperException):
+	"""
+	The response received from server is in a format we were not expecting.
+	"""
 
 ################################################################################
 # CLASS DEFINITION

@@ -281,21 +281,32 @@ def parse() -> Options:
 		'--account_name',
 		action='store',
 		type=str,
-		help="Name of the social media account to be scraped, if appliable."
+		help="Name of the social media account to log in to, if appliable."
 			"Accounts must start with an '@' in the services that use it."
+			"If you intend to log in to a *managing account*, to then fetch data "
+			"from another account (managed account), this is the username for the "
+			"managing account."
 	)
 	parser.add_argument(
 		'--password_encrypted',
 		action='store',
 		type=str,
-		help="Password for the account_name provided, symmetrically encrypted "
+		help="Password for the account_name (managing account) provided, symmetrically encrypted "
 			"with passphrase in source code."
 	)
 	parser.add_argument(
 		'--password_plain',
 		action='store',
 		type=str,
-		help="Password for the account_name provided, ready to use."
+		help="Password for the account_name (managing account) provided, ready to use."
+	)
+	parser.add_argument(
+		'--managed_account',
+		action='store',
+		type=str,
+		help="Username or identifier for the managed account. You normally do not "
+			"possess a password for this account, and you are accessing it on "
+			"behalf of a client."
 	)
 	parser.add_argument(
 		'--credentials_file',

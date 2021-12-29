@@ -11,5 +11,8 @@ scheduler.sh
 *.csv
 *.json
 !jobs/appsettings.json
+!jobs/user_example/**/*.json
+!navigators/helpers/password.json
+!tests/data/*.json
 
 jobs/test*

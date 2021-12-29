@@ -10,7 +10,7 @@ namespace DataLakeModels {
         public const string ApiVersion = "1";
 
         public static string SchemaName() {
-            return "tiktok_scraper_v" + ApiVersion.Replace('.', '_');
+            return "general_scraper_v" + ApiVersion.Replace('.', '_');
         }
 
         public static string ConnectionString() {

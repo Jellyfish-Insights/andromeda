@@ -1,8 +1,19 @@
 window.DEBUG_MODE = false;
-window.printerr = function(s)
+window.SEGMENT_SIZE = 15;
+window.printerr = function(...args)
 {
 	if (DEBUG_MODE)
-		console.log(s);
+		console.log(...args);
+}
+
+window.printSegment = function(idx, s, stack)
+{
+	if (!DEBUG_MODE)
+		return;
+	let	start = Math.max(0, idx - SEGMENT_SIZE);
+	let end = Math.min(s.length, idx + SEGMENT_SIZE);
+	let segment = s.slice(start, end);
+	console.log(idx, s[idx], segment, stack);
 }
 
 window.getSubstringsInCurlyBraces = function(s)
@@ -10,19 +21,35 @@ window.getSubstringsInCurlyBraces = function(s)
 	const stack = [];
 	const substrings = [];
 
+	let insideDoubleQuote = false;
+	let insideSingleQuote = false;
 	for (let [index, c] of Object.entries(s)) {
-		printerr(`index=${index}, c=${c}, stack=${stack}`)
-		if (c === "{")
-			stack.push(parseInt(index));
+		let idx = parseInt(index);
+		if (!insideSingleQuote && c === '"' && (idx === 0 || s[idx - 1] != "\\"))
+			insideDoubleQuote = !insideDoubleQuote;
+		else if (!insideDoubleQuote && c === "'" && (idx === 0 || s[idx - 1] != "\\"))
+			insideSingleQuote = !insideSingleQuote;
+		else if (insideDoubleQuote || insideSingleQuote) {
+			continue;
+		}
+
+		else if (c === "{") {
+			stack.push(idx);
+			printSegment(idx, s, stack);
+		}
 		else if (c === "}") {
 			const start = stack.pop();
-			if (!start) {
+			printSegment(idx, s, stack);
+			const end = idx + 1;
+			
+			if (start === undefined) {
 				printerr("Malformed string");
+				printerr(s.slice(0, end));
 				continue;
 			}
 			if (stack.length !== 0)
 				continue;
-			const end = parseInt(index) + 1;
+
 			const newSubstring = s.slice(start, end);
 			printerr(`Inserting s[${start}:${end}] = <<< ${newSubstring} >>>`);
 			substrings.push(newSubstring);

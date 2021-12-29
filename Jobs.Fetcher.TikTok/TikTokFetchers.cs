@@ -50,10 +50,11 @@ namespace Jobs.Fetcher.TikTok {
                             var text = File.ReadAllText($"{user}");
                             var start = text.IndexOf("@");
                             var username = text.Substring(start, text.Length - start);
-                            tiktokUsernames.Add(username);
+                            tiktokUsernames.Add(username.Trim());
                         }
                     }
                 }
+
             }
             catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
             {
@@ -68,7 +69,6 @@ namespace Jobs.Fetcher.TikTok {
 
         private List<AbstractJob> GetListOfJobs(List<String> tiktokAccountNames) {
             return new List<AbstractJob>() {
-                       new ScrapperAccountAdd(tiktokAccountNames),
                        new PostsQuery(tiktokAccountNames)
             };
         }

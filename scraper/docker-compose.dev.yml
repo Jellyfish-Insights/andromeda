@@ -7,6 +7,7 @@ services:
           dockerfile: data_lake.Dockerfile
         ports:
           - '5433:5433'
+        restart: on-failure
 
     scraper_dev:
         build:
@@ -16,12 +17,6 @@ services:
         environment:
           sleep_interval: "600"
           random_order: ""
-          
-          # This is for the GUI
-          VNC_SERVER_PASSWORD: 'password'
-
-          # Enables development mode. Leave empty for production
-          development: 'development'
         ports:
           - '5900:5900'
         user: app
@@ -31,3 +26,4 @@ services:
         volumes:
           - ./src/extracted_data:/opt/scraper/extracted_data
           - ./logs:/var/log/scraper
+        restart: on-failure

@@ -1,92 +1,64 @@
+import csv
 import datetime
+import json
 import logging
-import math
 import os
 import re
+import secrets
 import sys
 import time
 import zipfile
-from dataclasses import dataclass
-from typing import Final, List
-
-import pandas as pd
+from dataclasses import dataclass, field
+from typing import Dict, Final, List
 
 from logger import log, change_logger_level
-from tools import UseDirectory, find_files, get_home_dir
+from tools import UseDirectory, find_files, get_home_dir, get_project_root_path
 
 UNZIP_DIRECTORY = 'unzipped'
 DATE_REGEX = r"[0-9]{4}-[0-9]{2}-[0-9]{2}"
 ZIP_FILE_REGEX = re.compile(
-	rf'(?i)^(?P<filter_by>.+) (?P<date_start>{DATE_REGEX})_(?P<date_end>{DATE_REGEX}) (?P<video_name>.+)\.zip$'
+	rf'(?i)^(.+) ({DATE_REGEX})_({DATE_REGEX}) (?P<video_name>.+)\.zip$'
 )
 DATE_COLUMN_REGEX = re.compile(r"(?i)date")
-INTEGER_COLUMNS_REGEX = [
-	re.compile(rf"(?i){string}")
-	for string in ["views", "subscribers", "impressions", "likes"]
-]
 EXTRACTED_DATA = "extracted_data"
 DEBUG = None
 
 @dataclass
 class CSV_Data:
 	filename: str
-	video_name: str
-	date_start: datetime.date
-	date_end: datetime.date
-	filter_by: str
-	df: pd.DataFrame = None
-	identifier: str = None
+	associated_metadata: Dict
+	data: List[Dict] = field(default_factory=list)
 
 	def __post_init__(self):
-		prefix = f"{self.video_name}___{self.filter_by}___{str(self.date_start)}___{str(self.date_end)}"
-		try:
-			filename_no_extension = re.search(r"(?i)^(.+)\.csv$", self.filename)[1]
-		except IndexError:
-			log.warning("Filename received is not of CSV extension")
-			filename_no_extension = self.filename
-		self.identifier = clean_filename(f"{prefix}___{filename_no_extension}")
-		self.df = self.fetch_data()
-
-	def fetch_data(self):
 		"""
 		File containing data will NOT be deleted after extraction.
 		"""
-		log.debug(f"Processing file {self.identifier}")
+		provisory_data: List[Dict] = []
 		try:
-			df = pd.read_csv(self.filename)
-		except pd.errors.ParserError:
+			with open(self.filename, "r") as csvfile:
+				reader = csv.DictReader(csvfile)
+				for row in reader:
+					provisory_data.append(row)
+		except Exception as exc:
 			log.critical(f"Error parsing file '{self.filename}' !")
+			log.critical(exc)
 			raise
 
-		# Cast data into the correct format
-		for col in df.columns:
-			if DATE_COLUMN_REGEX.search(col):
-				df.rename({col: "Date"})
-				df["Date"] = pd.to_datetime(df[col])
-			else:
-				for int_col_regex in INTEGER_COLUMNS_REGEX:
-					if int_col_regex.search(col):
-						for i in df.index:
-							df.loc[i, col] = math.floor(df.loc[i, col])
-						df[col] = df[col].astype(pd.Int64Dtype())
-
-		df["Identifier"] = self.identifier
-		df["Video Title"] = self.video_name
-
-		return df
-
-def clean_filename(filename: str):
-	characters_to_avoid = "\"!#$&'()*;<=>?[\\]^`{|}~- "
-	new_filename = filename
-	for c in characters_to_avoid:
-		new_filename = new_filename.replace(c, "_")
-	return new_filename
+		# Cast data into the correct format for being receive at C# code
+		for row in provisory_data:
+			self.data.append(dict())
+			self.data[-1]["VideoId"] = self.associated_metadata["videoId"]
+			self.data[-1]["ChannelId"] = self.associated_metadata["channelId"]
+			for col in row.keys():
+				if DATE_COLUMN_REGEX.search(col):
+					self.data[-1]["DateMeasure"] = round(datetime.datetime.fromisoformat(row[col]).timestamp())
+				else:
+					self.data[-1]["Metric"] = col
+					self.data[-1]["Value"] = float(row[col])
 
 def retrieve_data_from_csv_files(
-		filter_by: str = None,
-		date_start: datetime.date = None,
-		date_end: datetime.date = None,
-		video_name: str = None) -> List[CSV_Data]:
+		video_name: str = None,
+		associated_metadata: dict = None) -> List[CSV_Data]:
 	"""
 	This will remove the files we don't want to process and rename the ones
 	we want to with their respective video name.
@@ -103,7 +75,7 @@ def retrieve_data_from_csv_files(
 			if re.search(r'Table data\.csv$', filename):
 				os.unlink(filename)
 				continue
-			csv_data_obj = CSV_Data(filename, video_name, date_start, date_end, filter_by)
+			csv_data_obj = CSV_Data(filename, associated_metadata)
 			csv_data_list.append(csv_data_obj)
 			os.unlink(filename)
 	return csv_data_list
@@ -125,12 +97,12 @@ def clean_working_directory():
 			os.unlink(full_path)
 		os.rmdir(UNZIP_DIRECTORY)
 
-def retrieve_data_from_zip_files() -> pd.DataFrame:
+def retrieve_data_from_zip_files() -> List[Dict]:
 	log.info("Retrieving data from zip files")
 	zip_files = find_files(ZIP_FILE_REGEX)
 	log.info(f"Found files {zip_files}")
 	os.mkdir(UNZIP_DIRECTORY)
-	csv_data_list: List[pd.DataFrame] = []
+	csv_data_list: List[CSV_Data] = []
 	for f in zip_files:
 		with zipfile.ZipFile(f, 'r') as zf:
 			zf.extractall(UNZIP_DIRECTORY)
@@ -139,20 +111,17 @@ def retrieve_data_from_zip_files() -> pd.DataFrame:
 			raise ValueError("Unable to extract filename from zip file!")
 		named_groups = {**match.groupdict()}
 
-		try:
-			named_groups["date_start"] = \
-				datetime.date.fromisoformat(named_groups["date_start"])
-			named_groups["date_end"] = \
-				datetime.date.fromisoformat(named_groups["date_end"])
-		except ValueError:
-			raise ValueError("Date has inappropriate format!")
+		metadata_filename = f.replace("zip", "json")
+		with open(metadata_filename, "r") as fp:
+			metadata = json.load(fp)
 
-		csv_data_list.extend(retrieve_data_from_csv_files(**named_groups))
+		csv_data_list.extend(retrieve_data_from_csv_files(
+			**named_groups,
+			associated_metadata=metadata
+		))
 
 	os.rmdir(UNZIP_DIRECTORY)
-	return pd.concat(
-		[x.df for x in csv_data_list],
-	).sort_values(by=["Date"]).reset_index(drop=True)
+	return [x.data for x in csv_data_list]
 
 def set_debug_mode():
 	global DEBUG
@@ -165,30 +134,29 @@ def set_debug_mode():
 	if DEBUG:
 		log.info("DEBUG mode enabled")
 
-def get_output_filename():
-	if not os.path.isdir(EXTRACTED_DATA):
-		os.mkdir(EXTRACTED_DATA)
+def to_json(data: List[Dict]) -> None:
+	data_dir = os.path.join(get_project_root_path(), EXTRACTED_DATA)
 	timestamp = str(int(time.time() * 1000))
-	return os.path.join(EXTRACTED_DATA, f"youtube_analytics_{timestamp}.csv")
+	random_hex = secrets.token_hex(4)
+	with UseDirectory(data_dir):
+		output_file = f"youtube_studio_{timestamp}_{random_hex}.json"
+		rows, cols = len(data), len(data[0])
+		log.info(f"Writing extracted data ({rows} rows, {cols} columns) to '{output_file}'")
+		with open(output_file, "w") as fp:
+			json.dump(data, fp)
 
 def process_csv_data():
 	if DEBUG:
-		directory = os.path.join("tests", "data")
+		directory = os.path.join(get_project_root_path(), "tests", "data")
 	else:
 		directory = os.path.join(get_home_dir(), "Downloads")
 	
 	with UseDirectory(directory):
 		clean_working_directory()
-		big_table = retrieve_data_from_zip_files()
+		csv_data_list = retrieve_data_from_zip_files()
 
-	if DEBUG:
-		log.debug(big_table)
-
-	output_file = get_output_filename()
-	rows, cols = big_table.shape
-	log.info(f"Writing extracted data ({rows} rows, {cols} columns) to '{output_file}'")
-	big_table.to_csv(output_file)
-	return big_table
+	for csv_data in csv_data_list:
+		to_json(csv_data)
 
 def main():
 	set_debug_mode()
