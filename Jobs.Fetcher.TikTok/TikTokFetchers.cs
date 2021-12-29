@@ -11,6 +11,7 @@ namespace Jobs.Fetcher.TikTok {
     public class TikTokFetchers : FetcherJobsFactory {
 
         public override JobScope Scope { get; } = JobScope.TikTok;
+        public string CredentialsDir = "./credentials/tiktok";
         //private string SecretsFile = "tiktok_credentials.json";
 
         public override IEnumerable<AbstractJob> GetJobs(
@@ -23,8 +24,55 @@ namespace Jobs.Fetcher.TikTok {
                 return NoJobs;
             }
 
+            var jobs = new List<AbstractJob>();
+            var tiktokUserIds = new List<string>();
+
+            try {
+                var usrDirs = Directory.GetDirectories("./credentials");
+
+                if (usrDirs.Any(dir => dir.Contains("youtube") || dir.Contains("facebook") || dir.Contains("instagram"))) {
+                    Console.WriteLine($"Detected old folder structure. Loading only the old structure credentials, where TikTok is not available. Please, consider changing to the new folder structure");
+                    return NoJobs;
+                } else {
+                    foreach (var usrDir in usrDirs) {
+                        CredentialsDir = $"{usrDir}/tiktok";
+
+                        if (!Directory.Exists(CredentialsDir)) {
+                            Console.WriteLine($"Missing or invalid TikTok channels!");
+                            Console.WriteLine($"Couldn't find any credential on folder '{CredentialsDir}'");
+                            continue;
+                        }
+
+                        jobs.AddRange(GetListOfJobs(tiktokUserIds));
+                    }
+                }
+            }
+            catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
+            {
+                string message = String.Format("Missing or invalid TikTok credentials!\n{0}", e.Message);
+                if (e is DirectoryNotFoundException) {
+                    message = String.Format("{0}\nCheck if the path above exists!", message);
+                }
+                Console.WriteLine(message);
+                return NoJobs;
+            };
+
+            return FilterByName(jobs, names);
+        }
+    
+        private List<AbstractJob> GetListOfJobs(List<string> tiktokUserIds) {
+            var tiktokAccountIds = new List<string>();
+            foreach (var user in Directory.GetFiles(CredentialsDir)) {
+                var text = File.ReadAllText($"{user}");
+                var credential = JsonConvert.DeserializeObject<TikTokUsers>(text);
+
+                if (credential.IsValid()) {
+                    tiktokAccountIds.Add(credential.UserId);
+                }
+            }
+
             return new List<AbstractJob>() {
-                    new PostsQuery(),
+                new PostsQuery(tiktokAccountIds),
             };
         }
     }
