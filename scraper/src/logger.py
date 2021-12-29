@@ -1,27 +1,31 @@
 import __main__
 import logging, os
 
-# create logger
-logger = logging.getLogger(os.path.basename(__main__.__file__))
-logger.setLevel(logging.DEBUG)
+class CustomLogger(logging.Logger):
+	initialized_object = None
 
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+	def __new__(cls):
+		if cls.initialized_object is None:
+			logger = logging.getLogger(os.path.basename(__main__.__file__))
+			logger.setLevel(logging.DEBUG)
 
-# create formatter
-formatter = logging.Formatter('[%(asctime)s] %(name)s - %(levelname)s : %(message)s')
+			ch = logging.StreamHandler()
+			ch.setLevel(logging.DEBUG)
 
-# add formatter to ch
-ch.setFormatter(formatter)
+			formatter = logging.Formatter('[%(asctime)s] %(name)s - %(levelname)s : %(message)s')
+			ch.setFormatter(formatter)
+			logger.addHandler(ch)
 
-# add ch to logger
-logger.addHandler(ch)
+			# If you don't set this to true, messages propagate across many logger levels,
+			# generating duplicate messages
+			logger.propagate = False
+			cls.initialized_object = logger
 
-# If you don't set this to true, messages propagate across many logger levels,
-# generating duplicate messages
-logger.propagate = False
+		return cls.initialized_object
+	
+	def __init__(self):
+		"""Creates a custom logger according to options defined in source code"""
 
-def change_logger_level(level: int):
-	for handler in logger.handlers:
-		handler.setLevel(level)
+	def change_logger_level(self, level: int):
+		for handler in self.handlers:
+			handler.setLevel(level)

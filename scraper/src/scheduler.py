@@ -32,8 +32,13 @@ def main():
 			filename = os.path.basename(__file__)
 			edited_command = re.sub(filename, SCRAPER_SCRIPT, command)
 			fp.write(f"python3 {edited_command} --account_name={account}\n")
+
 			# A lot of java processes are left dangling for no reason
+			# This is still an open issue by BrowserMob Proxy Py
+			# https://github.com/AutomatedTester/browsermob-proxy-py/issues/8
 			fp.write("killall -9 java\n")
+
+			# Sleep before starting the next job
 			fp.write(f"sleep {options.scraping_interval}\n")
 
 if __name__ == "__main__":
