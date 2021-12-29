@@ -6,7 +6,8 @@ import browsermobproxy, undetected_chromedriver.v2 as uc
 from selenium.common.exceptions import WebDriverException, NoSuchWindowException
 
 from logger import logger, change_logger_level
-from arg_parser import Options, parse
+from arg_parser import parse
+from models.options import Options
 from libs.kill_handle import KillHandle, KillHandleTriggered
 
 from db import DBError, setup_db
@@ -62,7 +63,7 @@ COMMON_DISPLAY_RESOLUTIONS = [
 ]
 
 # This was not yet tested. The idea is to change the language preference header
-# now and then, in order to fool IP bans
+# now and then, in order to avoid IP bans
 
 # https://developer.chrome.com/docs/webstore/i18n/#localeTable
 # https://stackoverflow.com/questions/52098821/selenium-webdriver-set-preferred-browser-language-de
@@ -75,14 +76,6 @@ LOCALE_OPTIONS = [
 # options.add_argument('--disable-translate')
 # options.add_argument("--lang=de-DE")
 
-# Another idea is to use a fake user agent:
-# https://stackoverflow.com/a/62520191/17030712
-# https://stackoverflow.com/questions/49565042/way-to-change-google-chrome-user-agent-in-selenium/49565254#49565254
-
-# ua = UserAgent()
-# userAgent = ua.random
-# print(userAgent)
-# options.add_argument(f'user-agent={userAgent}')
 
 ################################################################################
 # SCRAPER CLASS
@@ -132,8 +125,7 @@ class Scraper:
 
 		options = uc.ChromeOptions()
 
-		# We want to start with a fresh profile
-		if os.path.isdir(PROFILE_DIR):
+		if self.options.use_clean_profile and os.path.isdir(PROFILE_DIR):
 			shutil.rmtree(PROFILE_DIR)
 		
 		options.user_data_dir = PROFILE_DIR
@@ -143,6 +135,22 @@ class Scraper:
 
 		# Connecting driver to BrowserMob proxy
 		options.add_argument(f'--proxy-server=localhost:{self.proxy.port}')
+
+
+		# Another idea is to use a fake user agent:
+		# https://stackoverflow.com/a/62520191/17030712
+		# https://stackoverflow.com/questions/49565042/way-to-change-google-chrome-user-agent-in-selenium/49565254#49565254
+
+		if self.options.use_fake_user_agent:
+			from fake_useragent import UserAgent
+			try:
+				ua = UserAgent()
+				userAgent = ua.random
+				logger.info(f"Using fake user agent = {userAgent}")
+				options.add_argument(f"--user-agent={userAgent}")
+			except Exception as e:
+				logger.warning("Could not use fake user agent.")
+				logger.warning(e)
 
 		try:
 			self.driver = uc.Chrome(
