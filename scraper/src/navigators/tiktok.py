@@ -12,11 +12,13 @@ class TikTok(AbstractNavigator):
 	"""
 	There are two sources of video information, both encoded in JSON format.
 
-	The first is already present in the page's first print, under the script
-	tag with id = "__NEXT_DATA__"
+	The first is already present in the page's first print. It used to have
+	id = "__NEXT_DATA__", but it changed suddenly, so now we have a heuristic
+	for finding fitting data on first load, wherever it might be
 
 	The second is the response payload of a request whose URL matches the regex
-	listed
+	listed. This is very fragile at the moment, and should be improved in the
+	future
 
 	The structure of the data is the same in both sources, and contains number
 	of likes/diggs, views, shares, creation time of the video, and more

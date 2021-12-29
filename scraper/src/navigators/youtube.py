@@ -53,7 +53,7 @@ class YouTube(AbstractNavigator):
 	############################################################################
 	THROTTLE_EXECUTION_TIME = 0.75
 	THROTTLE_AT_LEAST = 0.5
-	THROTTLE_GET_DATA_FOR_VIDEO = 60
+	THROTTLE_GET_DATA_FOR_VIDEO = 30
 
 	############################################################################
 	# CONSTRUCTOR
@@ -211,6 +211,14 @@ class YouTube(AbstractNavigator):
 	@throttle(THROTTLE_GET_DATA_FOR_VIDEO)
 	def get_data_for_video(self, video_id: str) -> None:
 		self.kill_handle.check()
+
+		# We don't really need to navigate to this page, as the data is directly
+		# accessible in the other link, but that is what a normal user would do
+		# and we want to simulate what a normal user does
+		self.go(f"https://studio.youtube.com/video/{video_id}/analytics/tab-overview/period-default")
+		self.wait_load()
+		self.move_aimlessly(timeout=5.0)
+
 		url_dict = ANALYTICS_QUERY_STRING_DICT
 		url_dict["entity_id"] = video_id
 		url_encoded = urlencode(ANALYTICS_QUERY_STRING_DICT)
