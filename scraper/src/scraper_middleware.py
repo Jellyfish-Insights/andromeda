@@ -1,72 +1,40 @@
-import logging, random, time, json, math, os, datetime
-from abc import ABC, abstractmethod
+import random, time, json, os, datetime, traceback
+from abc import abstractmethod
 from typing import Dict, List, TypeVar, Any
 
-from selenium.webdriver.common.by import By
+from selenium.webdriver.common import by, action_chains, keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import JavascriptException, InvalidSelectorException, \
 	ElementNotInteractableException, StaleElementReferenceException, \
-	MoveTargetOutOfBoundsException
+	MoveTargetOutOfBoundsException, NoSuchWindowException
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
-import browsermobproxy, undetected_chromedriver.v2 as uc
 
+from db import DBException
+from scraper_core import ScraperCore, ScraperException
 from logger import log
 from defaults import abstract_navigator as abstract_defaults
 from models.options import Options
 from navigators.helpers.xpath import XPath
 from navigators.helpers.try_to_interact import try_to_interact
-from libs.kill_handle import KillHandle
 
 T = TypeVar("T")
 
-################################################################################
-# CUSTOM EXCEPTIONS
-################################################################################
-
-class EndOfPage(Exception):
-	pass
-
-class ElementNotFound(Exception):
-	pass
-
-class YouProbablyGotBlocked(Exception):
+class ScraperMiddleWare(ScraperCore):
 	"""
-	We are as careful as possible not to get blocked, but sometimes it happens.
-	Workarounds can be accessing through a proxy, waiting until you are unblocked
-	or changing your scraping routine.
+	This class defines a middleware between the specific navigator implementation
+	and the Driver-Proxy core.
 	"""
-	pass
+	needs_authentication: bool = None
 
-################################################################################
-# CLASS DEFINITION
-################################################################################
-
-class AbstractNavigator(ABC):
-	"""
-	This class defines the blueprint of a navigator, to be attached to Scraper class.
-	"""
-	needs_authentication: bool
-
-	def __init__(
-				self,
-				options: Options,
-				driver: uc.Chrome,
-				proxy: browsermobproxy.client.Client,
-				kill_handle: KillHandle
-				):
-		
-		self.options = options
-		self.driver = driver
-		self.proxy = proxy
-		self.kill_handle = kill_handle
-		self.action = ActionChains(driver)
-
-		self.reset_har()
-		self.test_authentication_options()
-
-	# @property
+	def __init__(self, options: Options):
+		super().__init__(options)
+		self.action = None
+		try:
+			self.test_authentication_options()
+		except ValueError as e:
+			log.critical("An error occurred initializing navigator:")
+			log.critical(e)
+			self.cleanup(1)
 
 	def test_authentication_options(self):
 		if self.needs_authentication is None:
@@ -82,12 +50,29 @@ class AbstractNavigator(ABC):
 			log.warning("The website you are scraping does not require "
 				"authentication. In spite of that, you are not using every "
 				"anonymization option available.")
-			
+
+	def start(self):
+		super().start()
+		self.action = action_chains.ActionChains(self.driver)
+		self.reset_har()
+		try:
+			self.main()
+		except NoSuchWindowException as err:
+			log.critical("Chrome window was closed from an outside agent!")
+			log.critical(err)
+			traceback.print_exc()
+			self.cleanup(1)
+		except (ScraperException, DBException):
+			self.cleanup(1)
+		except Exception as err:
+			log.critical("An unknown error happened:")
+			log.critical(err)
+			traceback.print_exc()
+			self.cleanup(1)
 
 	############################################################################
 	# NON-IMPLEMENTED METHODS
 	############################################################################
-
 	@abstractmethod
 	def main(self):
 		pass
@@ -98,11 +83,11 @@ class AbstractNavigator(ABC):
 	@staticmethod
 	def get_available_navigators() -> Dict[str, type]:
 		import navigators.tiktok, navigators.youtube, navigators.test_navigator
-		return {x.__name__: x for x in AbstractNavigator.__subclasses__()}
+		return {x.__name__: x for x in ScraperMiddleWare.__subclasses__()}
 
 	@staticmethod
 	def select_navigator(name: str) -> type:
-		navigator_classes = AbstractNavigator.get_available_navigators()
+		navigator_classes = ScraperMiddleWare.get_available_navigators()
 		try:
 			return navigator_classes[name]
 		except KeyError:
@@ -111,14 +96,12 @@ class AbstractNavigator(ABC):
 	############################################################################
 	# METHODS FOR LOCATING
 	############################################################################
-	"""It is probably undesirable to change or override these"""
-
 	def find(self, **kwargs) -> List[WebElement]:
 		xpath = XPath.xpath(**kwargs)
 		log.debug(f"Looking for elements at xpath = {xpath}")
 
 		try:
-			return self.driver.find_elements(By.XPATH, xpath)
+			return self.driver.find_elements(by.By.XPATH, xpath)
 		except InvalidSelectorException:
 			log.critical("Bad xpath selector!")
 			raise
@@ -138,7 +121,6 @@ class AbstractNavigator(ABC):
 	############################################################################
 	# METHODS FOR CHECKING DOM STATE / DELAYING ACTION
 	############################################################################
-	"""It is probably undesirable to change or override these"""
 	def wait(
 			self,
 			timeout: float,
@@ -213,7 +195,7 @@ class AbstractNavigator(ABC):
 	def press_tab(self, n_times = 500, timeout = 0.05):
 		nodes_visited = set()
 		for i in range(n_times):
-			self.action.send_keys(Keys.TAB)
+			self.action.send_keys(keys.Keys.TAB)
 			self.action.pause(timeout)
 			self.action.perform()
 
@@ -231,7 +213,7 @@ class AbstractNavigator(ABC):
 		except IndexError:
 			return
 		
-		self.action.key_down(Keys.CONTROL)
+		self.action.key_down(keys.Keys.CONTROL)
 		self.action.move_to_element(anchor)
 		self.action.click(anchor)
 		try:
@@ -349,7 +331,7 @@ class AbstractNavigator(ABC):
 		log.debug(f"Sending JS injection from file '{filename}'")
 		os.chdir(os.path.dirname(os.path.realpath(__file__)))
 		try:
-			with open(f"./injections/{filename}", "r") as fp:
+			with open(f"./navigators/injections/{filename}", "r") as fp:
 				js_code = fp.read()
 		except (FileNotFoundError, IsADirectoryError) as e:
 			log.critical("File does not exist or is a directory.")

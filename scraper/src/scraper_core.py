@@ -1,35 +1,49 @@
-#!/usr/bin/env python3
-
-import os, sys, time, shutil, threading, signal, traceback, random
+import os, sys, time, shutil, threading, traceback, random
 from typing import Dict
-
 import browsermobproxy, undetected_chromedriver.v2 as uc
-from selenium.common.exceptions import WebDriverException, NoSuchWindowException
+from selenium.common.exceptions import WebDriverException
 from fake_useragent import UserAgent
 
-from logger import log, change_logger_level
-from arg_parser import parse
+from defaults import core as core_defaults, anonymization
+from logger import log
+from tools import KillHandle, KillHandleTriggered
 from models.options import Options
-from libs.kill_handle import KillHandle, KillHandleTriggered
 
-from db import DBError, setup_db
-from defaults import anonymization, chrome
-from navigators.abstract import AbstractNavigator, YouProbablyGotBlocked
+################################################################################
+# CUSTOM EXCEPTIONS
+################################################################################
 
-class Scraper:
-	def __init__(
-			self,
-			options: Options,
-			nav_class: type
-			):
+class ScraperException(Exception):
+	"""Defines a base class for scraper exceptions"""
+
+class BadArguments(ScraperException):
+	pass
+
+class EndOfPage(ScraperException):
+	pass
+
+class ElementNotFound(ScraperException):
+	pass
+
+class YouProbablyGotBlocked(ScraperException):
+	"""
+	We are as careful as possible not to get blocked, but sometimes it happens.
+	Workarounds can be accessing through a proxy, waiting until you are unblocked
+	or changing your scraping routine.
+	"""
+	pass
+
+################################################################################
+# CLASS DEFINITION
+################################################################################
+
+class ScraperCore:
+	def __init__(self, options: Options):
+		self.driver = None
+		self.proxy = None
+		self.server = None
 		self.options = options
 		self.kill_handle = KillHandle()
-
-		if nav_class not in AbstractNavigator.__subclasses__():
-			log.critical("nav_class must be a subclass of AbstractNavigator!")
-			exit(1)
-		
-		self.nav_class = nav_class
 
 	def start(self):
 		self.use_timeout()
@@ -57,12 +71,12 @@ class Scraper:
 		log.info("Starting Undetected Chrome Driver...")
 		chrome_options = uc.ChromeOptions()
 
-		if self.options.use_clean_profile and os.path.isdir(chrome.PROFILE_DIR):
-			shutil.rmtree(chrome.PROFILE_DIR)
+		if self.options.use_clean_profile and os.path.isdir(core_defaults.PROFILE_DIR):
+			shutil.rmtree(core_defaults.PROFILE_DIR)
 		
-		chrome_options.user_data_dir = chrome.PROFILE_DIR
+		chrome_options.user_data_dir = core_defaults.PROFILE_DIR
 
-		for opt in chrome.CHROMEDRIVER_OPTIONS:
+		for opt in core_defaults.CHROMEDRIVER_OPTIONS:
 			chrome_options.add_argument(opt)
 
 		# Connecting driver to BrowserMob proxy
@@ -78,14 +92,14 @@ class Scraper:
 		try:
 			self.driver = uc.Chrome(
 				options=chrome_options,
-				service_args=chrome.CHROMEDRIVER_SERVICEARGS
+				service_args=core_defaults.CHROMEDRIVER_SERVICEARGS
 			)
 		except WebDriverException as err:
 			log.critical("We could not open Chrome Driver. Cleaning up and exiting...")
 			log.critical(err)
 			self.server.stop()
 			sys.exit(1)
-		except BaseException as err:
+		except Exception as err:
 			log.critical("An unknown error happened!")
 			log.critical(err)
 			traceback.print_exc()
@@ -94,41 +108,13 @@ class Scraper:
 
 		# Will raise an exception if any page takes more than PAGE_LOAD_TIMEOUT
 		# seconds to load
-		self.driver.set_page_load_timeout(chrome.PAGE_LOAD_TIMEOUT)
+		self.driver.set_page_load_timeout(core_defaults.PAGE_LOAD_TIMEOUT)
 
 		if self.options.use_random_window_size:
 			self.random_window_size()
 		else:
 			log.info("Starting maximized")
 			self.driver.maximize_window()
-
-	def navigate_to_content(self) -> None:
-		try:
-			navigator: AbstractNavigator = self.nav_class(
-					self.options,
-					self.driver,
-					self.proxy,
-					self.kill_handle
-			)
-		except (ValueError, AttributeError) as e:
-			log.critical("An error occurred initializing navigator:")
-			log.critical(e)
-			self.cleanup(1)
-
-		try:
-			navigator.main()
-		except NoSuchWindowException as err:
-			log.critical("Chrome window was closed from an outside agent!")
-			log.critical(err)
-			traceback.print_exc()
-			self.cleanup(1)
-		except (KillHandleTriggered, YouProbablyGotBlocked, DBError):
-			self.cleanup(1)
-		except Exception as err:
-			log.critical("An unknown error happened:")
-			log.critical(err)
-			traceback.print_exc()
-			self.cleanup(1)
 
 	def use_timeout(self):
 		timeout_seconds = self.options.timeout
@@ -140,8 +126,6 @@ class Scraper:
 		def stop_program(kill_handle: KillHandle):
 			# We will change the sentinel value and hope that main thread
 			# exits gracefully. If that fails, we will force termination
-
-			# kill_handle.wait(timeout_seconds)
 			kill_handle.timeout(timeout_seconds)
 			log.info("Kill handle was set. Exiting on next iteration.")
 
@@ -176,7 +160,7 @@ class Scraper:
 
 		if not self.options.keep_logs:
 			# Removing log files created by BrowserMob and Undetected Chrome
-			list_of_files = ["bmp.log", "server.log", chrome.UC_LOG_FILE]
+			list_of_files = ["bmp.log", "server.log", core_defaults.UC_LOG_FILE]
 
 			for file in list_of_files:
 				if os.path.isfile(file):
@@ -249,42 +233,3 @@ class Scraper:
 		# to do this. One possibility we might want to try later is navigating
 		# to "chrome://settings/cookies" and controlling the setting.
 		pass
-
-################################################################################
-# MAIN / DRIVER CODE
-################################################################################
-
-def main():
-	setup_db()
-	options = parse()
-	change_logger_level(options.logging)
-
-	log.info("We will run the scraper with the following options:")
-	log.info(options)
-	log.info("You can run with the same options with the following command:")
-	log.info(options.generate_cmd())
-	
-	navigator = AbstractNavigator.select_navigator(options.navigator_name)
-	scraper = Scraper(options, navigator)
-
-	def sigterm_handle(signal_received, frame):
-		log.info(f"Process received signal = {signal_received}. Cleaning up and exiting.")
-		scraper.cleanup(signal_received)
-
-	signal.signal(signal.SIGINT, sigterm_handle)
-	signal.signal(signal.SIGTERM, sigterm_handle)
-
-	try:
-		scraper.start()
-		scraper.navigate_to_content()
-		scraper.cleanup()
-	except SystemExit as exit_code:
-		log.info(f"Exiting with code {exit_code}")
-	except Exception as err:
-		log.critical("An unknown exception was raised.")
-		log.critical(err)
-		traceback.print_exc()
-		scraper.cleanup(1)
-
-if __name__ == "__main__":
-	main()

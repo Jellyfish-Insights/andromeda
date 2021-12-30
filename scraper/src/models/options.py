@@ -5,23 +5,27 @@ import argparse
 FILENAME = "scraper.py"
 
 class Options:
-	scroll_limit: int
-	timeout: int
+	# Default = DEBUG
 	logging: int
+	# These default to False
 	keep_logs: bool
 	slow_mode: bool
-	use_clean_profile: bool
-	use_fake_user_agent: bool
-	use_random_window_size: bool
-	use_random_locale: bool
-	use_random_timezone: bool
-	force_logout: bool	
-
-	scraping_interval: Optional[int]
+	# These default to None, but, if nulled, they can be bulk turned on or off
+	# by Navigator according to setting needs_authentication
+	use_clean_profile: Optional[bool]
+	use_fake_user_agent: Optional[bool]
+	use_random_window_size: Optional[bool]
+	use_random_locale: Optional[bool]
+	use_random_timezone: Optional[bool]
+	force_logout: Optional[bool]
+	# Following variables default to None and it is the Navigators' duty
+	# to set default values and validate
+	scroll_limit: Optional[int]
+	timeout: Optional[int]
 	db_conn_string: Optional[str]
 	account_name: Optional[str]
 	credentials_file: Optional[str]
-
+	# This is actually required
 	navigator_name: str
 
 	@property

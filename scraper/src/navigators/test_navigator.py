@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-from navigators.abstract import AbstractNavigator
+from scraper_middleware import ScraperMiddleWare
 
-class TestNavigator(AbstractNavigator):
+class TestNavigator(ScraperMiddleWare):
 	"""
 	This is to be used for quick checks, prototyping etc.
 	"""
@@ -13,7 +13,6 @@ class TestNavigator(AbstractNavigator):
 	def main(self):
 		self.go("https://www.whatismybrowser.com/detect/what-http-headers-is-my-browser-sending")
 		breakpoint()
-
 		# For reference, my everyday browser gave the following message:
 		# Your browser fingerprint appears to be unique among the 225,631 tested
 		# in the past 45 days.
