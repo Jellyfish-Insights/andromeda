@@ -4,13 +4,14 @@ import json, re, random
 from defaults import tiktok as tiktok_defaults
 from logger import log
 from arg_parser import Options
-from navigators.abstract import AbstractNavigator
+from scraper_core import BadArguments
+from scraper_middleware import ScraperMiddleWare
 from models.account_name import AccountName
 from models.video_info import VideoInfo
-from db import DBError
-from libs.throttling import throttle
+from db import DBException
+from tools import throttle
 
-class TikTok(AbstractNavigator):
+class TikTok(ScraperMiddleWare):
 	"""
 	There are two sources of video information, both encoded in JSON format.
 
@@ -30,25 +31,18 @@ class TikTok(AbstractNavigator):
 	############################################################################
 	# CONSTRUCTOR
 	############################################################################
-	def __init__(self,
-				options: Options,
-				driver,
-				proxy,
-				kill_handle
-				):
-		
-		if options.account_name is None:
+	def __init__(self, options: Options):
+		super().__init__(options)
+		if self.options.account_name is None:
 			log.critical("Account name must be provided to run the scraper.")
-			raise AttributeError
+			raise BadArguments
 		
 		try:
-			AccountName.test(options.account_name)
+			AccountName.test(self.options.account_name)
 		except ValueError:
 			log.critical("Bad format for TikTok account!")
-			raise
+			raise BadArguments
 		
-		super().__init__(options, driver, proxy, kill_handle)
-
 	############################################################################
 	# METHODS
 	############################################################################
@@ -62,7 +56,7 @@ class TikTok(AbstractNavigator):
 		try:
 			AccountName.test(account_name)
 		except ValueError:
-			raise
+			raise BadArguments
 
 		language = random.choice(tiktok_defaults.LOCALE_OPTIONS)
 		url = f"https://www.tiktok.com/{account_name}?lang={language}"
@@ -89,7 +83,7 @@ class TikTok(AbstractNavigator):
 		for it in items:
 			try:
 				VideoInfo.add(account_name, it)
-			except DBError:
+			except DBException:
 				log.critical("Error interacting with database!")
 				raise
 
@@ -129,7 +123,7 @@ class TikTok(AbstractNavigator):
 						for it in items:
 							try:
 								VideoInfo.add(account_name, it)
-							except DBError:
+							except DBException:
 								log.critical("Error interacting with database!")
 								raise
 

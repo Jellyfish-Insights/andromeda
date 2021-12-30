@@ -1,4 +1,4 @@
-import datetime, time, random
+import threading, time, datetime, random
 
 def throttle(
 			execution_time: float,
@@ -33,3 +33,15 @@ def throttle(
 			return result
 		return wrap_inner
 	return wrap_outer
+
+class KillHandleTriggered(Exception):
+	pass
+
+class KillHandle(threading.Event):
+	def check(self):
+		if self.is_set():
+			raise KillHandleTriggered
+
+	def timeout(self, timeout_seconds: int):
+		time.sleep(timeout_seconds)
+		self.set()

@@ -1,11 +1,11 @@
 import argparse, os
 from logger import log
-from navigators.abstract import AbstractNavigator
+from scraper_middleware import ScraperMiddleWare
 from models.options import Options
 
 DEFAULT_SCROLL_LIMIT = 5
 DEFAULT_TIMEOUT = 480
-DEFAULT_SCRAPING_INTERVAL = 600
+
 DEFAULT_DB_CONN_STR = "postgresql://brab:brickabode@localhost:5432"
 DEFAULT_LOGGING_LEVEL = 10
 
@@ -14,6 +14,118 @@ def parse() -> Options:
 		description="Scrapes data from social media.",
 		epilog="Please observe the Terms and Conditions of the platform(s) before running this software."
 	)
+
+	# action="store"
+	parser.add_argument(
+		'--logging',
+		'-g',
+		action='store',
+		type=int,
+		default=DEFAULT_LOGGING_LEVEL,
+		choices=[0, 10, 20, 30, 40, 50],
+		help="Defines how much of the messages should be printed to the screen. "
+			"Accepted values are 0, 10, 20, 30, 40, 50."
+	)
+
+	# action="store_true"
+	parser.add_argument(
+		'--keep_logs',
+		'-k',
+		action='store_true',
+		help='Enables logging for ChromeDriver and BrowserMob, helpful for debugging'
+	)
+	parser.add_argument(
+		'--slow_mode',
+		'-s',
+		action='store_true',
+		help='Scrapes social media around 2 times slower'
+	)
+
+	# action="store_const", const=True
+	parser.add_argument(
+		'--use_clean_profile',
+		action='store_const',
+		const=True,
+		help='Does not reset data from last use when starting Chrome.'
+	)
+	parser.add_argument(
+		'--use_fake_user_agent',
+		action='store_const',
+		const=True,
+		help='Uses a fake user agent to avoid bot detection.'
+	)
+	parser.add_argument(
+		'--use_random_window_size',
+		action='store_const',
+		const=True,
+		help='Uses random window size to avoid detection. Otherwise, starts maximized.'
+	)
+	parser.add_argument(
+		'--use_random_locale',
+		action='store_const',
+		const=True,
+		help='Uses random locale to avoid detection.'
+	)
+	parser.add_argument(
+		'--use_random_timezone',
+		action='store_const',
+		const=True,
+		help='Uses random timezone to avoid detection.'
+	)
+	parser.add_argument(
+		'--force_logout',
+		action='store_const',
+		const=True,
+		help='Forces logging out from accounts, in case a logged in account is detected.'
+	)
+
+	# action="store_const", const=False, use dest='respective positive variable'
+
+
+	# needs to update "help" strings
+
+	parser.add_argument(
+		'--no_clean_profile',
+		action='store_const',
+		const=False,
+		help='Does not reset data from last use when starting Chrome.'
+	)
+	parser.add_argument(
+		'--no_fake_user_agent',
+		action='store_const',
+		const=False,
+		help='Uses a fake user agent to avoid bot detection.'
+	)
+	parser.add_argument(
+		'--no_random_window_size',
+		action='store_const',
+		const=False,
+		help='Uses random window size to avoid detection. Otherwise, starts maximized.'
+	)
+	parser.add_argument(
+		'--no_random_locale',
+		action='store_const',
+		const=False,
+		help='Uses random locale to avoid detection.'
+	)
+	parser.add_argument(
+		'--no_random_timezone',
+		action='store_const',
+		const=False,
+		help='Uses random timezone to avoid detection.'
+	)
+	parser.add_argument(
+		'--no_force_logout',
+		action='store_const',
+		const=False,
+		help='Forces logging out from accounts, in case a logged in account is detected.'
+	)
+
+	# action="store_true", overrides the above options if set
+
+
+	# to do...
+
 
 	# Optional arguments
 	parser.add_argument(
@@ -36,15 +148,6 @@ def parse() -> Options:
 			"zero is considered as no timeout."
 	)
 	parser.add_argument(
-		'--scraping_interval',
-		'-i',
-		action='store',
-		type=int,
-		default=DEFAULT_SCRAPING_INTERVAL,
-		help="(Parameter is only relevant for running as a container). Interval between each " +
-			f"call to the scraper. Default value is {DEFAULT_SCRAPING_INTERVAL} seconds."
-	)
-	parser.add_argument(
 		'--db_conn_string',
 		'-d',
 		action='store',
@@ -53,58 +156,9 @@ def parse() -> Options:
 		help="Connection string for the database. Format is "
 			"'postgresql://user:password@host:port'"
 	)
-	parser.add_argument(
-		'--logging',
-		'-g',
-		action='store',
-		type=int,
-		default=DEFAULT_LOGGING_LEVEL,
-		choices=[0, 10, 20, 30, 40, 50],
-		help="Defines how much of the messages should be printed to the screen. "
-			"Accepted values are 0, 10, 20, 30, 40, 50."
-	)
-	parser.add_argument(
-		'--keep_logs',
-		'-k',
-		action='store_true',
-		help='Enables logging for ChromeDriver and BrowserMob, helpful for debugging'
-	)
-	parser.add_argument(
-		'--use_clean_profile',
-		action='store_true',
-		help='Does not reset data from last use when starting Chrome.'
-	)
-	parser.add_argument(
-		'--use_fake_user_agent',
-		action='store_true',
-		help='Uses a fake user agent to avoid bot detection.'
-	)
-	parser.add_argument(
-		'--use_random_window_size',
-		action='store_true',
-		help='Uses random window size to avoid detection. Otherwise, starts maximized.'
-	)
-	parser.add_argument(
-		'--use_random_locale',
-		action='store_true',
-		help='Uses random locale to avoid detection.'
-	)
-	parser.add_argument(
-		'--use_random_timezone',
-		action='store_true',
-		help='Uses random timezone to avoid detection.'
-	)
-	parser.add_argument(
-		'--force_logout',
-		action='store_true',
-		help='Forces logging out from accounts, in case a logged in account is detected.'
-	)
-	parser.add_argument(
-		'--slow_mode',
-		'-s',
-		action='store_true',
-		help='Scrapes social media around 2 times slower'
-	)
+	
+	
+	
 	parser.add_argument(
 		'--account_name',
 		'-a',
@@ -131,7 +185,7 @@ def parse() -> Options:
 	parser.add_argument(
 		'navigator_name',
 		type=str,
-		choices=[x for x in AbstractNavigator.get_available_navigators()],
+		choices=[x for x in ScraperMiddleWare.get_available_navigators()],
 		help="Name of the navigator to be used, i.e., TikTok, YouTube, Twitter, etc."
 	)
 

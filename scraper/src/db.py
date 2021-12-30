@@ -6,13 +6,13 @@ from sqlalchemy.orm import sessionmaker
 
 SCHEMA_NAME = "tiktok_scraper_v1"
 
-class AlreadyExistent(Exception):
+class DBException(Exception):
 	pass
 
-class Inexistent(Exception):
+class AlreadyExistent(DBException):
 	pass
 
-class DBError(Exception):
+class Inexistent(DBException):
 	pass
 
 base = declarative_base()

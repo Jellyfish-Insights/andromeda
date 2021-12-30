@@ -3,7 +3,7 @@ from sqlalchemy import Column, String, Integer, BigInteger, DateTime, select, an
 from sqlalchemy.dialects.postgresql import JSONB
 
 from logger import log
-from db import DBError, session, base, SCHEMA_NAME
+from db import DBException, session, base, SCHEMA_NAME
 
 class VideoInfo(base):
 	__tablename__ = "video_info"
@@ -56,10 +56,10 @@ class VideoInfo(base):
 		try:
 			session.add(vid_info)
 			session.commit()
-		except BaseException as err:
+		except Exception as err:
 			log.error("An unknown error happened!")
 			log.error(err)
-			raise DBError
+			raise DBException
 
 		if save_in_fs:
 			vid_info.to_json()

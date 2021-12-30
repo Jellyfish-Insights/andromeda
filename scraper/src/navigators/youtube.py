@@ -8,10 +8,11 @@ from dotenv import dotenv_values
 from logger import log
 from defaults import youtube as youtube_defaults
 from models.options import Options
-from navigators.abstract import AbstractNavigator, ElementNotFound, YouProbablyGotBlocked
-from libs.throttling import throttle
+from scraper_core import ElementNotFound, YouProbablyGotBlocked, BadArguments
+from scraper_middleware import ScraperMiddleWare
+from tools import throttle
 
-class YouTube(AbstractNavigator):
+class YouTube(ScraperMiddleWare):
 	needs_authentication = True
 	############################################################################
 	# CONSTANTS
@@ -24,18 +25,11 @@ class YouTube(AbstractNavigator):
 	# CONSTRUCTOR
 	############################################################################
 
-	def __init__(self,
-				options: Options,
-				driver,
-				proxy,
-				kill_handle
-				):
-		
+	def __init__(self, options: Options):
+		super().__init__(options)
 		if options.credentials_file is None:
 			log.critical("Credentials file must be provided to run the scraper.")
-			raise AttributeError
-		
-		super().__init__(options, driver, proxy, kill_handle)
+			raise BadArguments
 
 	############################################################################
 	# METHODS
