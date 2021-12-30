@@ -2,10 +2,8 @@ import datetime, time
 from sqlalchemy import Column, String, Integer, BigInteger, DateTime, select, and_
 from sqlalchemy.dialects.postgresql import JSONB
 
-from logger import CustomLogger
+from logger import log
 from db import DBError, session, base, SCHEMA_NAME
-
-log = CustomLogger()
 
 class VideoInfo(base):
 	__tablename__ = "video_info"

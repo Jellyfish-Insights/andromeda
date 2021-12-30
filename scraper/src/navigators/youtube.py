@@ -5,13 +5,11 @@ from urllib.parse import urlencode
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
 
-from logger import CustomLogger
+from logger import log
 from defaults import youtube as youtube_defaults
 from models.options import Options
 from navigators.abstract import AbstractNavigator, ElementNotFound, YouProbablyGotBlocked
 from libs.throttling import throttle
-
-log = CustomLogger()
 
 class YouTube(AbstractNavigator):
 	needs_authentication = True
@@ -30,15 +28,14 @@ class YouTube(AbstractNavigator):
 				options: Options,
 				driver,
 				proxy,
-				logger,
 				kill_handle
 				):
 		
 		if options.credentials_file is None:
-			logger.critical("Credentials file must be provided to run the scraper.")
+			log.critical("Credentials file must be provided to run the scraper.")
 			raise AttributeError
 		
-		super().__init__(options, driver, proxy, logger, kill_handle)
+		super().__init__(options, driver, proxy, kill_handle)
 
 	############################################################################
 	# METHODS
@@ -178,7 +175,7 @@ class YouTube(AbstractNavigator):
 		links = self.run(js_code)
 		log.debug(f"{links=}")
 		if len(links) == 0:
-			self.logger.critical("Could not find links to videos!")
+			log.critical("Could not find links to videos!")
 			raise ElementNotFound
 
 		regex = re.compile(r"v=(.+)$")

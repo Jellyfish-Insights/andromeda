@@ -2,15 +2,13 @@
 import json, re, random
 
 from defaults import tiktok as tiktok_defaults
-from logger import CustomLogger
+from logger import log
 from arg_parser import Options
 from navigators.abstract import AbstractNavigator
 from models.account_name import AccountName
 from models.video_info import VideoInfo
 from db import DBError
 from libs.throttling import throttle
-
-log = CustomLogger()
 
 class TikTok(AbstractNavigator):
 	"""
