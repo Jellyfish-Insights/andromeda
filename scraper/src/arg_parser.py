@@ -1,5 +1,5 @@
 import argparse, os
-from logger import logger
+from logger import log
 from navigators.abstract import AbstractNavigator
 from models.options import Options
 
@@ -138,21 +138,21 @@ def parse() -> Options:
 	args = parser.parse_args()
 	
 	if args.scroll_limit < 0:
-		logger.critical("scroll_limit must be a non-negative integer")
+		log.critical("scroll_limit must be a non-negative integer")
 		exit(1)
 
 	if args.timeout < 0:
-		logger.critical("timeout must be a non-negative integer")
+		log.critical("timeout must be a non-negative integer")
 		exit(1)
 
 	if args.scraping_interval < 10:
-		logger.critical("You can't run the scraper more often than every 60 seconds!")
+		log.critical("You can't run the scraper more often than every 60 seconds!")
 		exit(1)
 
 	if args.credentials_file:
 		if not (os.path.isfile(args.credentials_file)
 				and os.access(args.credentials_file, os.R_OK)):
-			logger.critical("File name is not a file to which you have read permissions.")
+			log.critical("File name is not a file to which you have read permissions.")
 			exit(1)
 		else:
 			args.credentials_file = os.path.realpath(args.credentials_file)

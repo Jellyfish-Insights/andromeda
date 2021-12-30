@@ -12,14 +12,13 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
 import browsermobproxy, undetected_chromedriver.v2 as uc
 
-from logger import CustomLogger
+from logger import log
 from defaults import abstract_navigator as abstract_defaults
 from models.options import Options
 from navigators.helpers.xpath import XPath
 from navigators.helpers.try_to_interact import try_to_interact
 from libs.kill_handle import KillHandle
 
-log = CustomLogger()
 T = TypeVar("T")
 
 ################################################################################
@@ -55,30 +54,32 @@ class AbstractNavigator(ABC):
 				options: Options,
 				driver: uc.Chrome,
 				proxy: browsermobproxy.client.Client,
-				logger: logging.Logger,
 				kill_handle: KillHandle
 				):
 		
 		self.options = options
 		self.driver = driver
 		self.proxy = proxy
-		self.logger = logger
 		self.kill_handle = kill_handle
 		self.action = ActionChains(driver)
+
+		self.reset_har()
 		self.test_authentication_options()
+
+	# @property
 
 	def test_authentication_options(self):
 		if self.needs_authentication is None:
-			self.logger.critical("Variable needs_authentication needs to be "
+			log.critical("Variable needs_authentication needs to be "
 				f"defined for subclass {type(self).__name__}")
 			raise ValueError
 
 		if (self.needs_authentication and any(self.options.anonymization_options)):
-			self.logger.warning("The website you are scraping requires "
+			log.warning("The website you are scraping requires "
 				"authentication. It is not recommended to use anonymization  "
 				"options.")
 		elif (not self.needs_authentication and not all(self.options.anonymization_options)):
-			self.logger.warning("The website you are scraping does not require "
+			log.warning("The website you are scraping does not require "
 				"authentication. In spite of that, you are not using every "
 				"anonymization option available.")
 			
@@ -114,18 +115,18 @@ class AbstractNavigator(ABC):
 
 	def find(self, **kwargs) -> List[WebElement]:
 		xpath = XPath.xpath(**kwargs)
-		self.logger.debug(f"Looking for elements at xpath = {xpath}")
+		log.debug(f"Looking for elements at xpath = {xpath}")
 
 		try:
 			return self.driver.find_elements(By.XPATH, xpath)
 		except InvalidSelectorException:
-			self.logger.critical("Bad xpath selector!")
+			log.critical("Bad xpath selector!")
 			raise
 
 	def one(self, result: List[T]) -> T:
 		"""From a list of results, returns the first result or raises an error"""
 		if len(result) != 1:
-			self.logger.critical("A wrong number of elements was returned. "
+			log.critical("A wrong number of elements was returned. "
 				f"Expected 1, received {len(result)}")
 			raise ValueError
 		return result[0]
@@ -145,7 +146,8 @@ class AbstractNavigator(ABC):
 		"""Selenium has an inbuilt for this, I'm not sure what advantage it
 		brings over using time.sleep"""
 		if fuzzy:
-			r = (1.0 - self.WAIT_RANDOM_FACTOR) + 2.0 * self.WAIT_RANDOM_FACTOR * random.random()
+			r = ((1.0 - abstract_defaults.WAIT_RANDOM_FACTOR) 
+					+ 2.0 * abstract_defaults.WAIT_RANDOM_FACTOR * random.random())
 		else:
 			r = 1.0
 		time.sleep(timeout * r)
@@ -155,8 +157,8 @@ class AbstractNavigator(ABC):
 		# document.readyState, was processed
 		self.wait(2.0)
 		
-		timeout = timeout or self.WAIT_UNTIL_TIMEOUT
-		poll_freq = poll_freq or self.POLL_FREQUENCY
+		timeout = timeout or abstract_defaults.WAIT_UNTIL_TIMEOUT
+		poll_freq = poll_freq or abstract_defaults.POLL_FREQUENCY
 
 		wait = WebDriverWait(self.driver, timeout, poll_frequency=poll_freq)
 
@@ -217,7 +219,7 @@ class AbstractNavigator(ABC):
 
 			node_focused = self.run("return document.activeElement ;")
 			if node_focused in nodes_visited:
-				self.logger.debug(f"After {i} TABs, we have visited every focusable node")
+				log.debug(f"After {i} TABs, we have visited every focusable node")
 				return
 			nodes_visited.add(node_focused)
 
@@ -234,9 +236,9 @@ class AbstractNavigator(ABC):
 		self.action.click(anchor)
 		try:
 			self.action.perform()
-			self.logger.debug(f"Visiting {anchor.get_attribute('href')} briefly...")
+			log.debug(f"Visiting {anchor.get_attribute('href')} briefly...")
 		except (ElementNotInteractableException, MoveTargetOutOfBoundsException):
-			self.logger.debug("Element is not interactable or is out of screen.")
+			log.debug("Element is not interactable or is out of screen.")
 			return
 
 		parent = self.driver.current_window_handle
@@ -267,12 +269,12 @@ class AbstractNavigator(ABC):
 
 		start = datetime.datetime.now()
 		while (datetime.datetime.now() - start).total_seconds() < timeout:
-			self.move_mouse_lattice(self.MOVE_AROUND_MOVE_MOUSE_TIMES)
+			self.move_mouse_lattice(abstract_defaults.MOVE_AROUND_MOVE_MOUSE_TIMES)
 			if allow_scrolling:
 				self.scroll_random()
-			if allow_new_windows and random.random() < self.MOVE_AROUND_VISIT_LINK_PROB:
+			if allow_new_windows and random.random() < abstract_defaults.MOVE_AROUND_VISIT_LINK_PROB:
 				self.visit_any_link(timeout / 2)
-			if random.random() < self.LONG_PAUSE_PROBABILITY:
+			if random.random() < abstract_defaults.LONG_PAUSE_PROBABILITY:
 				self.long_pause()
 			self.short_pause()
 
@@ -298,45 +300,8 @@ class AbstractNavigator(ABC):
 			try:
 				self.action.perform()
 			except MoveTargetOutOfBoundsException:
-				self.logger.debug(f"Mouse would move out of screen, breaking.")
+				log.debug(f"Mouse would move out of screen, breaking.")
 				return
-			
-	def move_mouse_spiral_center_of_screen(self, max_steps = 200, batch=True):
-		window_inner_width = self.run("return window.innerWidth;")
-		window_inner_height = self.run("return window.innerHeight;")
-		
-		center_of_screen = (window_inner_width / 2, window_inner_height / 2)
-		self.logger.debug(f"{center_of_screen=}")
-		self.action.move_by_offset(*center_of_screen)
-
-		# It will take us 24 steps to go full-circle
-		DELTA_T = math.pi / 12
-		# Every 360 degrees (24 steps), we will be 50 pixels further from center
-		SPIRAL_FACTOR = 50 / (2 * math.pi)
-
-		get_coords = lambda t: (math.cos(t) * SPIRAL_FACTOR * t, math.sin(t) * SPIRAL_FACTOR * t)
-
-		t = 0
-		initial_point = last_point = get_coords(t * DELTA_T)
-		self.action.move_by_offset(*initial_point)
-
-		for t in range(1, max_steps):
-			next_point = get_coords(t * DELTA_T)
-			delta = (next_point[0] - last_point[0], next_point[1] - last_point[1])
-			self.logger.debug(f"Moving mouse by offset of {delta=}")
-			self.action.move_by_offset(*delta)
-			self.action.pause(0.01)
-
-			if not batch or t % self.BATCH_ACTION_SIZE == 0:
-				try:
-					self.action.perform()
-				except MoveTargetOutOfBoundsException:
-					self.logger.debug(f"Mouse would move out of screen, breaking.")
-					return
-
-			last_point = next_point
-
-		self.action.perform()
 
 	def move_mouse_around_elem(
 				self,
@@ -359,7 +324,7 @@ class AbstractNavigator(ABC):
 	if necessary"""
 
 	def go(self, url: str) -> None:
-		self.logger.debug(f"Navigating to {url}")
+		log.debug(f"Navigating to {url}")
 		self.driver.get(url)
 
 	@try_to_interact
@@ -369,44 +334,44 @@ class AbstractNavigator(ABC):
 	def natural_type(self, elem: WebElement, text: str):
 		for c in text:
 			elem.send_keys(c)
-			time.sleep(random.random() * self.SLOW_TYPE_SLEEP_INTERVAL)
+			time.sleep(random.random() * abstract_defaults.SLOW_TYPE_SLEEP_INTERVAL)
 
 	def run(self, js_code: str) -> Any:
 		try:
 			return self.driver.execute_script(js_code)
 		except JavascriptException:
-			self.logger.critical("There is an error in your code:")
-			self.logger.critical(js_code)
+			log.critical("There is an error in your code:")
+			log.critical(js_code)
 			raise
 
 	def injection(self, filename: str) -> Any:
 		"""Use filename with extension (normally .js)"""
-		self.logger.debug(f"Sending JS injection from file '{filename}'")
+		log.debug(f"Sending JS injection from file '{filename}'")
 		os.chdir(os.path.dirname(os.path.realpath(__file__)))
 		try:
 			with open(f"./injections/{filename}", "r") as fp:
 				js_code = fp.read()
 		except (FileNotFoundError, IsADirectoryError) as e:
-			self.logger.critical("File does not exist or is a directory.")
-			self.logger.critical(e)
+			log.critical("File does not exist or is a directory.")
+			log.critical(e)
 			raise
 		except PermissionError as e:
-			self.logger.critical("You do not have permissions to open file.")
-			self.logger.critical(e)
+			log.critical("You do not have permissions to open file.")
+			log.critical(e)
 			raise
 		return self.run(js_code)
 
 	def short_pause(self):
-		pause_length = self.SHORT_PAUSE_LENGTH
+		pause_length = abstract_defaults.SHORT_PAUSE_LENGTH
 		if self.options.slow_mode:
-			pause_length *= self.SLOW_MODE_MULTIPLIER
+			pause_length *= abstract_defaults.SLOW_MODE_MULTIPLIER
 		time.sleep(pause_length + pause_length * random.random())
 
 	def long_pause(self):
-		if random.random() < self.LONG_PAUSE_PROBABILITY:
-			pause_length = self.LONG_PAUSE_LENGTH
+		if random.random() < abstract_defaults.LONG_PAUSE_PROBABILITY:
+			pause_length = abstract_defaults.LONG_PAUSE_LENGTH
 			if self.options.slow_mode:
-				pause_length *= self.SLOW_MODE_MULTIPLIER
+				pause_length *= abstract_defaults.SLOW_MODE_MULTIPLIER
 			time.sleep(pause_length + pause_length * random.random())
 
 	def scroll_exact(self, amount: int):
@@ -428,7 +393,7 @@ class AbstractNavigator(ABC):
 		"""
 		"upscroll_proportion" means how much of the scrollings should be upscrolls
 		"""
-		min_amount_of_scrolling = min_amount_of_scrolling or self.MIN_AMOUNT_OF_SCROLLING
+		min_amount_of_scrolling = min_amount_of_scrolling or abstract_defaults.MIN_AMOUNT_OF_SCROLLING
 		page_height = self.driver.execute_script("return window.innerHeight")
 
 		amount = random.randint(min_amount_of_scrolling, page_height)

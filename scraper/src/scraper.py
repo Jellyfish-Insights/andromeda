@@ -7,7 +7,7 @@ import browsermobproxy, undetected_chromedriver.v2 as uc
 from selenium.common.exceptions import WebDriverException, NoSuchWindowException
 from fake_useragent import UserAgent
 
-from logger import CustomLogger
+from logger import log, change_logger_level
 from arg_parser import parse
 from models.options import Options
 from libs.kill_handle import KillHandle, KillHandleTriggered
@@ -15,8 +15,6 @@ from libs.kill_handle import KillHandle, KillHandleTriggered
 from db import DBError, setup_db
 from defaults import anonymization, chrome
 from navigators.abstract import AbstractNavigator, YouProbablyGotBlocked
-
-log = CustomLogger()
 
 class Scraper:
 	def __init__(
@@ -51,11 +49,9 @@ class Scraper:
 
 	def start_proxy(self) -> None:
 		log.info("Starting proxy server...")
-
 		self.server = browsermobproxy.Server(f"../browsermob-proxy-2.1.4/bin/browsermob-proxy")
 		self.server.start()
 		self.proxy = self.server.create_proxy()
-		self.proxy.new_har(options=AbstractNavigator.HAR_OPTIONS)
 
 	def start_driver(self) -> None:
 		log.info("Starting Undetected Chrome Driver...")
@@ -261,7 +257,7 @@ class Scraper:
 def main():
 	setup_db()
 	options = parse()
-	log.change_logger_level(options.logging)
+	change_logger_level(options.logging)
 
 	log.info("We will run the scraper with the following options:")
 	log.info(options)
