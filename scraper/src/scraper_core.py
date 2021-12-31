@@ -33,6 +33,9 @@ class YouProbablyGotBlocked(ScraperException):
 	"""
 	pass
 
+class JSException(ScraperException):
+	pass
+
 ################################################################################
 # CLASS DEFINITION
 ################################################################################
@@ -44,6 +47,7 @@ class ScraperCore:
 		self.server = None
 		self.options = options
 		self.kill_handle = KillHandle()
+		self.cleaned_up = False
 
 	def start(self):
 		self.use_timeout()
@@ -141,12 +145,14 @@ class ScraperCore:
 		t.start()
 
 	def cleanup(self, exit_code: int = 0) -> None:
+		if self.cleaned_up:
+			return
+		
 		log.info("Cleaning...")
 		try:
 			self.proxy.close()
-		except Exception as e:
-			log.debug("Error closing proxy:")
-			log.debug(e)
+		except AttributeError:
+			log.debug("Proxy had not been established yet.")
 
 		try:
 			self.server.stop()
@@ -166,6 +172,7 @@ class ScraperCore:
 				if os.path.isfile(file):
 					os.unlink(file)
 
+		self.cleaned_up = True
 		log.info("Exiting...")
 		sys.exit(exit_code)
 
@@ -196,6 +203,9 @@ class ScraperCore:
 	def fake_user_agent(self, chrome_options: uc.ChromeOptions):
 		for header in anonymization.FAKE_UA_UNSET_HEADERS:
 			self.set_header({header: ""})
+		log.info("Using fake user agent as a Chrome argument was deprecated "
+			"due to inadvertently disabling JavaScript.")
+		return
 		try:
 			ua = UserAgent()
 			userAgent = ua.random

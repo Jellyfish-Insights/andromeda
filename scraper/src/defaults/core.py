@@ -22,6 +22,8 @@ CHROMEDRIVER_OPTIONS = [
 
 	# For disabling cache
 	"--disk-cache-size=0",
+	
+	"--enable-javascript",
 ]
 
 CHROMEDRIVER_SERVICEARGS = ["--verbose", f"--log-path={UC_LOG_FILE}"]
