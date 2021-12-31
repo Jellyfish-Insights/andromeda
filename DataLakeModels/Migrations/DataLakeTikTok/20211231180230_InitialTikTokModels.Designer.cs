@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataLakeModels.Migrations.DataLakeTikTok
 {
     [DbContext(typeof(DataLakeTikTokContext))]
-    [Migration("20211221183039_InitialTikTokModels")]
+    [Migration("20211231180230_InitialTikTokModels")]
     partial class InitialTikTokModels
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -73,7 +73,8 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<long>("DiggCount");
 
-                    b.Property<DateTime>("EventDate");
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("date");
 
                     b.Property<long>("FollowerCount");
 
@@ -240,7 +241,8 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<long>("DiggCount");
 
-                    b.Property<DateTime>("EventDate");
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("date");
 
                     b.Property<long>("PlayCount");
 
