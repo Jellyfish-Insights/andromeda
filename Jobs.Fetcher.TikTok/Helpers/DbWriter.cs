@@ -81,11 +81,7 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             dbContext.SaveChanges();
         }
 
-<<<<<<< HEAD
-        public static void InsertUsernameOnScraper(string username, Logger logger) {
-=======
         public static void InsertUsernameOnScraper(string username, Logger logger){
->>>>>>> 6ebd705... Improves connection wiht scraper
             using (var connection = new NpgsqlConnection(DatabaseManager.ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -95,14 +91,9 @@ namespace Jobs.Fetcher.TikTok.Helpers {
                                 ) VALUES (
                                     '{0}',
                                     '{1}'
-<<<<<<< HEAD
-                                );", username, DateTime.Now
-                                                    );
-=======
                                 );"
                         , username, DateTime.Now
                     );
->>>>>>> 6ebd705... Improves connection wiht scraper
                     cmd.ExecuteNonQuery();
                     logger.Debug("Inserting new username on scrapper: {username}", username);
                 }

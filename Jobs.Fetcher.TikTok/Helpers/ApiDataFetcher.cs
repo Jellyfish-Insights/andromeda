@@ -15,22 +15,13 @@ namespace Jobs.Fetcher.TikTok.Helpers {
     public static class ApiDataFetcher {
         public static List<JObject> GetPosts(string username, DateTime lastFetch) {
             var allPosts = new List<JObject>();
-<<<<<<< HEAD
-            foreach (var payload in DatabaseManager.GetPayload(username, lastFetch)) {
-=======
             foreach(var payload in DatabaseManager.GetPayload(username, lastFetch)){
->>>>>>> 6ebd705... Improves connection wiht scraper
                 allPosts.Add(JObject.Parse(payload));
             }
             return allPosts;
         }
-<<<<<<< HEAD
-
-        public static Video GetTikTokVideoFromJSON(JToken videoJSON, string postId) {
-=======
         
         public static Video GetTikTokVideoFromJSON(JToken videoJSON, string postId){
->>>>>>> 6ebd705... Improves connection wiht scraper
             var shareCovers = new List<string>();
             foreach (var shareCover in videoJSON["shareCover"]) {
                 shareCovers.Add(shareCover.ToString());

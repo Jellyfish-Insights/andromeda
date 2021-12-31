@@ -20,29 +20,17 @@ namespace Jobs.Fetcher.TikTok {
             using (var dbContext = new DataLakeTikTokContext()) {
                 //Create a second loop for each TikTok client. Check with Erik and Victor if the Get option will receive an ID or username
                 var logger = GetLogger();
-<<<<<<< HEAD
-                if (!DatabaseManager.TikTokScraperTablesExist()) {
-=======
                 if(!DatabaseManager.TikTokScraperTablesExist()){
->>>>>>> 6ebd705... Improves connection wiht scraper
                     Logger.Warning($"TikTok Scraper tables do not exist.");
                     return;
                 }
                 var authorId = DatabaseManager.GetTikTokId(username);
-<<<<<<< HEAD
-                if (authorId == null) {
-=======
                 if(authorId == null){
->>>>>>> 6ebd705... Improves connection wiht scraper
                     Logger.Error($"Could not find TikTok's AuthorID for ({username})");
                     return;
                 }
                 var lastFetch = DatabaseManager.GetLastFetch(authorId, dbContext);
-<<<<<<< HEAD
-                foreach (var post in ApiDataFetcher.GetPosts(username, lastFetch)) {
-=======
                 foreach(var post in ApiDataFetcher.GetPosts(username, lastFetch)){
->>>>>>> 6ebd705... Improves connection wiht scraper
                     var newAuthor = ApiDataFetcher.GetTikTokAuthorFromJSON(post["author"]);
                     DbWriter.WriteAuthor(newAuthor, dbContext, logger);
 
