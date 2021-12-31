@@ -31,16 +31,19 @@ def main():
 	signal.signal(signal.SIGINT, sigterm_handle)
 	signal.signal(signal.SIGTERM, sigterm_handle)
 
+	error_code = 0
 	try:
 		scraper.start()
-		scraper.cleanup()
 	except SystemExit as exit_code:
 		log.info(f"Exiting with code {exit_code}")
 	except Exception as err:
 		log.critical("An unknown exception was raised.")
 		log.critical(err)
 		traceback.print_exc()
-		scraper.cleanup(1)
+		error_code = 1
+	finally:
+		scraper.cleanup(error_code)
+
 
 if __name__ == "__main__":
 	main()

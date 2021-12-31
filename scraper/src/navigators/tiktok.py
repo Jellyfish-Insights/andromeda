@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json, re, random
+from typing import Any, Dict
 
 from defaults import tiktok as tiktok_defaults
 from logger import log
@@ -27,25 +28,32 @@ class TikTok(ScraperMiddleWare):
 	of likes/diggs, views, shares, creation time of the video, and more
 	"""
 	needs_authentication = False
-
+	navigator_default_options: Dict[str, Any] = tiktok_defaults.NAVIGATOR_DEFAULT_OPTIONS
 	############################################################################
 	# CONSTRUCTOR
 	############################################################################
 	def __init__(self, options: Options):
 		super().__init__(options)
-		if self.options.account_name is None:
-			log.critical("Account name must be provided to run the scraper.")
-			raise BadArguments
-		
-		try:
-			AccountName.test(self.options.account_name)
-		except ValueError:
-			log.critical("Bad format for TikTok account!")
-			raise BadArguments
 		
 	############################################################################
 	# METHODS
 	############################################################################
+	def validate_options(self):
+		super().validate_options()
+		if self.options.account_name is None:
+			log.critical("Account name must be provided to run the scraper.")
+			raise BadArguments
+
+		try:
+			AccountName.test(self.options.account_name)
+		except ValueError:
+			log.critical("Bad format for TikTok account!")
+			raise BadArguments from ValueError
+
+		if self.options.scroll_limit is None or self.options.scroll_limit < 0:
+			log.critical("scroll_limit must be a non-negative integer")
+			raise BadArguments
+
 	def main(self):
 		url = self.build_url()
 		self.handle_initial_data(url)

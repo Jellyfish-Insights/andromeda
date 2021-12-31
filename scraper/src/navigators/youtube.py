@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import re
-from typing import Set, Tuple
+from typing import Any, Dict, Set, Tuple
 from urllib.parse import urlencode
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
@@ -14,6 +14,7 @@ from tools import throttle
 
 class YouTube(ScraperMiddleWare):
 	needs_authentication = True
+	navigator_default_options: Dict[str, Any] = youtube_defaults.NAVIGATOR_DEFAULT_OPTIONS
 	############################################################################
 	# CONSTANTS
 	############################################################################
@@ -24,16 +25,18 @@ class YouTube(ScraperMiddleWare):
 	############################################################################
 	# CONSTRUCTOR
 	############################################################################
-
 	def __init__(self, options: Options):
 		super().__init__(options)
-		if options.credentials_file is None:
-			log.critical("Credentials file must be provided to run the scraper.")
-			raise BadArguments
 
 	############################################################################
 	# METHODS
 	############################################################################
+	def validate_options(self):
+		super().validate_options()
+		if self.options.credentials_file is None:
+			log.critical("Credentials file must be provided to run the scraper.")
+			raise BadArguments
+
 	def main(self):
 		url = self.build_url()
 		self.go(url)

@@ -3,15 +3,17 @@ from logger import log
 from scraper_middleware import ScraperMiddleWare
 from models.options import Options
 
-DEFAULT_SCROLL_LIMIT = 5
 DEFAULT_TIMEOUT = 480
-
 DEFAULT_DB_CONN_STR = "postgresql://brab:brickabode@localhost:5432"
 DEFAULT_LOGGING_LEVEL = 10
 
 def parse() -> Options:
+	navigators_dict = ScraperMiddleWare.get_available_navigators()
+
 	parser = argparse.ArgumentParser(
-		description="Scrapes data from social media.",
+		description="Scrapes data from social media. Not all the options are "
+		"valid for all the navigators (implementations). In doubt, please "
+		"consult the documentation for the navigator.",
 		epilog="Please observe the Terms and Conditions of the platform(s) before running this software."
 	)
 
@@ -21,10 +23,11 @@ def parse() -> Options:
 		'-g',
 		action='store',
 		type=int,
-		default=DEFAULT_LOGGING_LEVEL,
 		choices=[0, 10, 20, 30, 40, 50],
+		default=DEFAULT_LOGGING_LEVEL,
 		help="Defines how much of the messages should be printed to the screen. "
-			"Accepted values are 0, 10, 20, 30, 40, 50."
+			"Accepted values are 0, 10, 20, 30, 40, 50. Default is to log "
+			"everything, from DEBUG to CRITICAL."
 	)
 
 	# action="store_true"
@@ -41,7 +44,7 @@ def parse() -> Options:
 		help='Scrapes social media around 2 times slower'
 	)
 
-	# action="store_const", const=True
+	# action="store_const", const=True or False
 	parser.add_argument(
 		'--use_clean_profile',
 		action='store_const',
@@ -49,17 +52,43 @@ def parse() -> Options:
 		help='Does not reset data from last use when starting Chrome.'
 	)
 	parser.add_argument(
+		'--no_clean_profile',
+		action='store_const',
+		dest="use_clean_profile",
+		const=False,
+		help='Resets data from last use when starting Chrome.'
+	)
+
+
+	parser.add_argument(
 		'--use_fake_user_agent',
 		action='store_const',
 		const=True,
 		help='Uses a fake user agent to avoid bot detection.'
 	)
 	parser.add_argument(
+		'--no_fake_user_agent',
+		action='store_const',
+		dest="use_fake_user_agent",
+		const=False,
+		help="Don't use a fake user agent."
+	)
+
+	parser.add_argument(
 		'--use_random_window_size',
 		action='store_const',
 		const=True,
-		help='Uses random window size to avoid detection. Otherwise, starts maximized.'
+		help='Uses random window size to avoid detection.'
 	)
+	parser.add_argument(
+		'--no_random_window_size',
+		action='store_const',
+		dest="use_random_window_size",
+		const=False,
+		help="Don't use random window size to avoid detection. Start maximized."
+	)
+
+
 	parser.add_argument(
 		'--use_random_locale',
 		action='store_const',
@@ -67,65 +96,58 @@ def parse() -> Options:
 		help='Uses random locale to avoid detection.'
 	)
 	parser.add_argument(
+		'--no_random_locale',
+		action='store_const',
+		dest="use_random_locale",
+		const=False,
+		help="Don't use a random locale."
+	)
+
+
+	parser.add_argument(
 		'--use_random_timezone',
 		action='store_const',
 		const=True,
 		help='Uses random timezone to avoid detection.'
 	)
 	parser.add_argument(
+		'--no_random_timezone',
+		action='store_const',
+		dest="use_random_timezone",
+		const=False,
+		help="Don't use a random timezone."
+	)
+
+
+	parser.add_argument(
 		'--force_logout',
 		action='store_const',
 		const=True,
 		help='Forces logging out from accounts, in case a logged in account is detected.'
 	)
-
-	# action="store_const", const=False, use dest='respective positive variable'
-
-
-	# needs to update "help" strings
-
-	parser.add_argument(
-		'--no_clean_profile',
-		action='store_const',
-		const=False,
-		help='Does not reset data from last use when starting Chrome.'
-	)
-	parser.add_argument(
-		'--no_fake_user_agent',
-		action='store_const',
-		const=False,
-		help='Uses a fake user agent to avoid bot detection.'
-	)
-	parser.add_argument(
-		'--no_random_window_size',
-		action='store_const',
-		const=False,
-		help='Uses random window size to avoid detection. Otherwise, starts maximized.'
-	)
-	parser.add_argument(
-		'--no_random_locale',
-		action='store_const',
-		const=False,
-		help='Uses random locale to avoid detection.'
-	)
-	parser.add_argument(
-		'--no_random_timezone',
-		action='store_const',
-		const=False,
-		help='Uses random timezone to avoid detection.'
-	)
 	parser.add_argument(
 		'--no_force_logout',
 		action='store_const',
+		dest="force_logout",
 		const=False,
-		help='Forces logging out from accounts, in case a logged in account is detected.'
+		help="Don't log out of accounts if signed in."
 	)
 
-	# action="store_true", overrides the above options if set
-
-
-	# to do...
-
+	# Bulk options, will set the above if they are unset
+	parser.add_argument(
+		'--use_anonymous',
+		'-a',
+		action='store_const',
+		const=True,
+		help="Use all anonymous options which haven't been set as a CLI option."
+	)
+	parser.add_argument(
+		'--no_use_anonymous',
+		action='store_const',
+		dest="use_anonymous",
+		const=False,
+		help="Disable all anonymous options which haven't been set as a CLI option."
+	)
 
 	# Optional arguments
 	parser.add_argument(
@@ -133,9 +155,7 @@ def parse() -> Options:
 		'-l',
 		action='store',
 		type=int,
-		default=DEFAULT_SCROLL_LIMIT,
-		help='Defines how far down the scraper should scroll at most. ' +
-			f"Default value is {DEFAULT_SCROLL_LIMIT} scrollings."
+		help='Defines how far down the scraper should scroll at most. '
 	)
 	parser.add_argument(
 		'--timeout',
@@ -145,7 +165,7 @@ def parse() -> Options:
 		default=DEFAULT_TIMEOUT,
 		help='Maximum time the program should run (estimated), given in '
 			f"seconds. Default value is {DEFAULT_TIMEOUT} seconds. A value of "
-			"zero is considered as no timeout."
+			"zero will be considered as no timeout."
 	)
 	parser.add_argument(
 		'--db_conn_string',
@@ -155,18 +175,11 @@ def parse() -> Options:
 		default=DEFAULT_DB_CONN_STR,
 		help="Connection string for the database. Format is "
 			"'postgresql://user:password@host:port'"
-	)
-	
-	
-	
+	)	
 	parser.add_argument(
 		'--account_name',
-		'-a',
 		action='store',
 		type=str,
-		# The scheduler can run without this option. For some of the scrapers,
-		# though, it is needed
-		required=False,
 		help="Name of the social media account to be scraped, if appliable."
 			"Accounts must start with an '@' in the services that use it."
 	)
@@ -175,42 +188,37 @@ def parse() -> Options:
 		'-c',
 		action='store',
 		type=str,
-		# The scheduler can run without this option. For some of the scrapers,
-		# though, it is needed
-		required=False,
 		help="Credentials file for authenticating to social media, if appliable."
 	)
 
-	# Positional argument
+	# Positional argument -- REQUIRED
 	parser.add_argument(
 		'navigator_name',
 		type=str,
-		choices=[x for x in ScraperMiddleWare.get_available_navigators()],
+		choices=[x for x in navigators_dict],
 		help="Name of the navigator to be used, i.e., TikTok, YouTube, Twitter, etc."
 	)
 
+	### 
+
 	args = parser.parse_args()
-	
-	if args.scroll_limit < 0:
-		log.critical("scroll_limit must be a non-negative integer")
-		exit(1)
+	navigator_class: ScraperMiddleWare = navigators_dict[args.navigator_name]
+	options = Options.init_from_dict(vars(args))
 
-	if args.timeout < 0:
-		log.critical("timeout must be a non-negative integer")
-		exit(1)
+	if args.use_anonymous is True:
+		options.enable_anonymization_options()
+	elif args.use_anonymous is False:
+		options.disable_anonymization_options()
 
-	if args.scraping_interval < 10:
-		log.critical("You can't run the scraper more often than every 60 seconds!")
-		exit(1)
+	needs_authentication = navigator_class.needs_authentication
+	if needs_authentication:
+		options.disable_anonymization_options()
+	else:
+		options.enable_anonymization_options()
 
-	if args.credentials_file:
-		if not (os.path.isfile(args.credentials_file)
-				and os.access(args.credentials_file, os.R_OK)):
-			log.critical("File name is not a file to which you have read permissions.")
-			exit(1)
-		else:
-			args.credentials_file = os.path.realpath(args.credentials_file)
+	navigator_default_options = navigator_class.navigator_default_options
+	options.apply_navigator_default_options(navigator_default_options)
 
-	return Options(args)
+	return options
 
 parse()

@@ -10,7 +10,7 @@ from selenium.common.exceptions import JavascriptException, InvalidSelectorExcep
 from selenium.webdriver.remote.webelement import WebElement
 
 from db import DBException
-from scraper_core import ScraperCore, ScraperException
+from scraper_core import BadArguments, JSException, ScraperCore, ScraperException
 from logger import log
 from defaults import abstract_navigator as abstract_defaults
 from models.options import Options
@@ -25,18 +25,29 @@ class ScraperMiddleWare(ScraperCore):
 	and the Driver-Proxy core.
 	"""
 	needs_authentication: bool = None
+	navigator_default_options: Dict[str, Any] = None
 
 	def __init__(self, options: Options):
 		super().__init__(options)
 		self.action = None
 		try:
+			self.validate_options()
 			self.test_authentication_options()
-		except ValueError as e:
-			log.critical("An error occurred initializing navigator:")
-			log.critical(e)
+		except BadArguments:
+			log.critical("An error occurred initializing navigator.")
 			self.cleanup(1)
 
+	def validate_options(self):
+		"""Derived classes must implement this to check if all necessary options
+		were supplied.
+		"""
+		if self.options.timeout < 0:
+			log.critical("timeout must be a non-negative integer")
+			raise BadArguments
+
 	def test_authentication_options(self):
+		"""This is not a validation, more like a warning.
+		"""
 		if self.needs_authentication is None:
 			log.critical("Variable needs_authentication needs to be "
 				f"defined for subclass {type(self).__name__}")
@@ -152,15 +163,16 @@ class ScraperMiddleWare(ScraperCore):
 		wait.until(page_has_loaded)
 
 	def was_end_of_page_reached(self):
-		js_code = """
-			return ((window.innerHeight + window.scrollY) >= document.body.offsetHeight);
+		page_height = self.get_page_height()
+		js_code = f"""
+			return (({page_height} + window.scrollY) >= document.body.offsetHeight);
 		"""
 		return self.run(js_code)
 
 	def is_in_view(self, elem: WebElement) -> bool:
-		window_inner_height = self.run("return window.innerHeight;")
-		window_inner_width = self.run("return window.innerWidth;")
-
+		window_inner_width = self.get_page_width()
+		window_inner_height = self.get_page_height()
+		
 		try:
 			height = elem.rect["height"]
 			width = elem.rect["width"]
@@ -182,6 +194,28 @@ class ScraperMiddleWare(ScraperCore):
 				or right > 0 and right < window_inner_width
 			)
 		)
+
+	def get_page_height(self):
+		page_height = self.run("""
+			return window.innerHeight
+			  || document.documentElement.clientHeight
+			  || document.body.clientHeight;
+		""")
+		# If JavaScript fails, we will use 60% of window size
+		if page_height is None:
+			page_height = self.driver.get_window_size()["height"] * 0.60
+		return page_height
+
+	def get_page_width(self):
+		page_width = self.run("""
+			return window.innerWidth
+			  || document.documentElement.clientWidth
+			  || document.body.clientWidth;
+		""")
+		# If JavaScript fails, we will use 60% of window size
+		if page_width is None:
+			page_width = self.driver.get_window_size()["width"] * 0.60
+		return page_width
 
 	############################################################################
 	# LOADERS
@@ -264,8 +298,9 @@ class ScraperMiddleWare(ScraperCore):
 			self.run(f"window.scrollTo({scroll_x}, {scroll_y})")
 
 	def move_mouse_lattice(self, number_of_moves: int):
-		window_inner_width = self.run("return window.innerWidth;")
-		window_inner_height = self.run("return window.innerHeight;")
+		window_inner_width = self.get_page_width()
+		window_inner_height = self.get_page_height()
+		
 		coords = [
 				(x, y)
 				for x in range(0, window_inner_width, 10)
@@ -324,7 +359,7 @@ class ScraperMiddleWare(ScraperCore):
 		except JavascriptException:
 			log.critical("There is an error in your code:")
 			log.critical(js_code)
-			raise
+			raise JSException from JavascriptException
 
 	def injection(self, filename: str) -> Any:
 		"""Use filename with extension (normally .js)"""
@@ -376,7 +411,7 @@ class ScraperMiddleWare(ScraperCore):
 		"upscroll_proportion" means how much of the scrollings should be upscrolls
 		"""
 		min_amount_of_scrolling = min_amount_of_scrolling or abstract_defaults.MIN_AMOUNT_OF_SCROLLING
-		page_height = self.driver.execute_script("return window.innerHeight")
+		page_height = self.get_page_height()
 
 		amount = random.randint(min_amount_of_scrolling, page_height)
 		if random.random() < upscroll_proportion:
