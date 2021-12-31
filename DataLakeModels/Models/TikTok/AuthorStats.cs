@@ -1,6 +1,7 @@
 using System;
 using System.Runtime;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DataLakeModels.Models.TikTok {
 
@@ -13,6 +14,7 @@ namespace DataLakeModels.Models.TikTok {
         public long VideoCount { get; set; }
         public long DiggCount { get; set; }
         public long Heart { get; set; }
+        [Column(TypeName = "date")]
         public DateTime EventDate { get; set; }
         public DateTime ValidityStart { get; set; }
         public DateTime ValidityEnd { get; set; }
