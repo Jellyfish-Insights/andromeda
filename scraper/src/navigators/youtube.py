@@ -2,9 +2,11 @@
 import re
 from typing import Any, Dict, Set, Tuple
 from urllib.parse import urlencode
+from selenium.webdriver.chrome import options
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
 
+from password import SymmetricEncryption
 from logger import log
 from defaults import youtube as youtube_defaults
 from models.options import Options
@@ -33,8 +35,17 @@ class YouTube(ScraperMiddleWare):
 	############################################################################
 	def validate_options(self):
 		super().validate_options()
-		if self.options.credentials_file is None:
-			log.critical("Credentials file must be provided to run the scraper.")
+
+		password_exists = (self.options.password_encrypted is not None
+				or self.options.password_plain is not None)
+		
+		if (self.options.credentials_file is None
+				and (self.options.account_name is None or not password_exists)):
+			log.critical("Credentials must be provided to run the scraper.")
+			raise BadArguments
+
+		if self.options.password_plain and self.options.password_encrypted:
+			log.critical("Conflicting options: both plain AND encrypted password provided.")
 			raise BadArguments
 
 	def main(self):
@@ -66,13 +77,29 @@ class YouTube(ScraperMiddleWare):
 	
 	def get_credentials(self) -> Tuple[str, str]:
 		self.kill_handle.check()
-		log.debug(f"Reading credentials file at '{self.options.credentials_file}'")
-		yt_credentials = dotenv_values(self.options.credentials_file)
-		account = yt_credentials.get("account")
-		password = yt_credentials.get("password")
+		account = None
+		password = None
+		if self.options.credentials_file:
+			log.debug(f"Reading credentials file at '{self.options.credentials_file}'")
+			yt_credentials = dotenv_values(self.options.credentials_file)
+			account = yt_credentials.get("account")
+			password = yt_credentials.get("password")
+		else:
+			log.debug("Using credentials as supplied in CLI options.")
+			account = self.options.account_name
+			if self.options.password_plain:
+				password = self.options.password_plain
+			else:
+				se = SymmetricEncryption()
+				try:
+					password = se.decrypt(self.options.password_encrypted)
+				except ValueError:
+					log.critical("Impossible to obtain a valid password!")
+					raise BadArguments from ValueError
+		
 		if account is None or password is None:
 			log.critical("Could not find credentials!")
-			raise KeyError
+			raise BadArguments
 		return account, password
 
 	def sign_in(self, account: str, password: str) -> None:

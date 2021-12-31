@@ -27,6 +27,8 @@ class Options:
 	timeout: int = None
 	db_conn_string: str = None
 	account_name: str = None
+	password_encrypted: str = None
+	password_plain: str = None
 	credentials_file: str = None
 	# This is actually required
 	navigator_name: str = None
