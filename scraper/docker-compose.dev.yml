@@ -25,9 +25,9 @@ services:
         #                   account_name {TikTok,YouTube}
         #
           
-          scroll_limit: "1000"
+          scroll_limit: "5"
           timeout: "900"
-          scraping_interval: "600"
+          scraping_interval: "60"
           db_conn_string: 'postgresql://postgres:root@pgdocker:5432'
 
           # Accepted options are 0, 10, 20, 30, 40, 50, corresponding to

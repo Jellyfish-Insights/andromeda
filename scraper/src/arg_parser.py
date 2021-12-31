@@ -184,6 +184,19 @@ def parse() -> Options:
 			"Accounts must start with an '@' in the services that use it."
 	)
 	parser.add_argument(
+		'--password_encrypted',
+		action='store',
+		type=str,
+		help="Password for the account_name provided, symmetrically encrypted "
+			"with passphrase in source code."
+	)
+	parser.add_argument(
+		'--password_plain',
+		action='store',
+		type=str,
+		help="Password for the account_name provided, ready to use."
+	)
+	parser.add_argument(
 		'--credentials_file',
 		'-c',
 		action='store',
@@ -220,5 +233,3 @@ def parse() -> Options:
 	options.apply_navigator_default_options(navigator_default_options)
 
 	return options
-
-parse()

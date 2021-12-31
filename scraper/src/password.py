@@ -1,7 +1,9 @@
 from base64 import b64encode, b64decode
 from cryptography.fernet import Fernet
 from hashlib import sha256
+from binascii import Error as BinAsciiError
 
+from logger import log
 
 class SymmetricEncryption:
 	def __init__(self):
@@ -22,7 +24,18 @@ class SymmetricEncryption:
 		return cipher
 
 	def decrypt(self, cipher: str) -> str:
-		cipher_bytes = b64decode(bytes(cipher, encoding="utf-8"))
+		try:
+			cipher_bytes = b64decode(bytes(cipher, encoding="utf-8"))
+		except BinAsciiError:
+			log.critical("This is not a properly encoded message.")
+			raise ValueError from BinAsciiError
 		message_bytes = self.f.decrypt(cipher_bytes)
 		message = message_bytes.decode("utf-8")
 		return message
+
+if __name__ == "__main__":
+	text = input("What is the text you want to encrypt? ")
+	se = SymmetricEncryption()
+	cipher = se.encrypt(text)
+	print("Encrypted text is:")
+	print(f"<<{cipher}>>")
