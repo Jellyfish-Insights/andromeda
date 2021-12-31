@@ -71,7 +71,8 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<long>("DiggCount");
 
-                    b.Property<DateTime>("EventDate");
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("date");
 
                     b.Property<long>("FollowerCount");
 
@@ -211,7 +212,6 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<bool>("VL1");
 
-
                     b.Property<DateTime>("ValidityEnd");
 
                     b.Property<DateTime>("ValidityStart");
@@ -239,7 +239,8 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
 
                     b.Property<long>("DiggCount");
 
-                    b.Property<DateTime>("EventDate");
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("date");
 
                     b.Property<long>("PlayCount");
 

@@ -158,7 +158,7 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     VideoCount = table.Column<long>(nullable: false),
                     DiggCount = table.Column<long>(nullable: false),
                     Heart = table.Column<long>(nullable: false),
-                    EventDate = table.Column<DateTime>(nullable: false),
+                    EventDate = table.Column<DateTime>(type: "date", nullable: false),
                     ValidityStart = table.Column<DateTime>(nullable: false),
                     ValidityEnd = table.Column<DateTime>(nullable: false)
                 },
@@ -243,7 +243,7 @@ namespace DataLakeModels.Migrations.DataLakeTikTok
                     ShareCount = table.Column<long>(nullable: false),
                     CommentCount = table.Column<long>(nullable: false),
                     PlayCount = table.Column<long>(nullable: false),
-                    EventDate = table.Column<DateTime>(nullable: false),
+                    EventDate = table.Column<DateTime>(type: "date", nullable: false),
                     ValidityStart = table.Column<DateTime>(nullable: false),
                     ValidityEnd = table.Column<DateTime>(nullable: false),
                     PostId = table.Column<string>(nullable: false)
