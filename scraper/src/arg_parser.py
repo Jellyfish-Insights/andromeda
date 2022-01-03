@@ -1,9 +1,7 @@
-import argparse, os
-from logger import log
+import argparse
 from scraper_middleware import ScraperMiddleWare
 from models.options import Options
 
-DEFAULT_TIMEOUT = 480
 DEFAULT_DB_CONN_STR = "postgresql://brab:brickabode@localhost:5432"
 DEFAULT_LOGGING_LEVEL = 10
 
@@ -162,10 +160,8 @@ def parse() -> Options:
 		'-t',
 		action='store',
 		type=int,
-		default=DEFAULT_TIMEOUT,
 		help='Maximum time the program should run (estimated), given in '
-			f"seconds. Default value is {DEFAULT_TIMEOUT} seconds. A value of "
-			"zero will be considered as no timeout."
+			f"seconds. A value of zero will be considered as no timeout."
 	)
 	parser.add_argument(
 		'--db_conn_string',

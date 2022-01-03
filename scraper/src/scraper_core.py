@@ -98,7 +98,7 @@ class ScraperCore:
 				options=chrome_options,
 				service_args=core_defaults.CHROMEDRIVER_SERVICEARGS
 			)
-		except WebDriverException as err:
+		except (WebDriverException, KillHandleTriggered) as err:
 			log.critical("We could not open Chrome Driver. Cleaning up and exiting...")
 			log.critical(err)
 			self.server.stop()
@@ -221,7 +221,7 @@ class ScraperCore:
 
 			first_pass = True
 			q = 0.9
-			while first_pass or (random.random() < 0.8 and q >= 0.1):
+			while first_pass or (random.random() < 0.7 and q >= 0.1):
 				first_pass = False
 
 				language = random.choice(anonymization.LOCALE_OPTIONS)
