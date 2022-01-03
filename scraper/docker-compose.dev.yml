@@ -14,34 +14,9 @@ services:
           dockerfile: scraper.dev.Dockerfile
         image: scraper-dev
         environment:
-        #
-        # This is the program's usage. If you don't want to use flags, leave
-        # variable empty. Otherwise, write "--flag"
-        # usage: scraper.py [-h] [--scroll_limit SCROLL_LIMIT] [--timeout TIMEOUT]
-        #                   [--scraping_interval SCRAPING_INTERVAL]
-        #                   [--db_conn_string DB_CONN_STRING]
-        #                   [--logging {0,10,20,30,40,50}] [--keep_logs]
-        #                   [--slow_mode]
-        #                   account_name {TikTok,YouTube}
-        #
-          
-          scroll_limit: "5"
-          timeout: "900"
-          scraping_interval: "60"
-          db_conn_string: 'postgresql://postgres:root@pgdocker:5432'
-
-          # Accepted options are 0, 10, 20, 30, 40, 50, corresponding to
-          # NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL
-          # https://docs.python.org/3/library/logging.html#levels
-          
-          logging: "10"
-
-          # Flags
-          keep_logs: "--keep_logs"
-          slow_mode: "--slow_mode"
-
-          # Positional argument
-          navigator_name: 'TikTok'
+          sleep_interval: "60"
+          random_order: ""
+          db_conn_string: "postgresql://postgres:root@pgdocker:5432"
           
           # This is for the GUI
           VNC_SERVER_PASSWORD: 'password'
