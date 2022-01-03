@@ -16,6 +16,7 @@ from defaults import abstract_navigator as abstract_defaults
 from models.options import Options
 from navigators.helpers.xpath import XPath
 from navigators.helpers.try_to_interact import try_to_interact
+from tools import KillHandleTriggered
 
 T = TypeVar("T")
 
@@ -73,7 +74,7 @@ class ScraperMiddleWare(ScraperCore):
 			log.critical(err)
 			traceback.print_exc()
 			self.cleanup(1)
-		except (ScraperException, DBException):
+		except (ScraperException, DBException, KillHandleTriggered):
 			self.cleanup(1)
 		except Exception as err:
 			log.critical("An unknown error happened:")

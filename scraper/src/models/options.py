@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from logger import log
 
-FILENAME = "scraper.py"
+SCRIPT_FILENAME = "main.py"
 
 @dataclass
 class Options:
@@ -55,6 +55,8 @@ class Options:
 			"logging",
 			"db_conn_string",
 			"account_name",
+			"password_encrypted",
+			"password_plain",
 			"credentials_file"
 		]
 
@@ -129,8 +131,12 @@ class Options:
 		}
 		return Options(**extra_options_removed)
 
-	def generate_cmd(self):
-		cmd = f"{FILENAME} "
+	def generate_cmd(
+			self,
+			script_interpreter: str = "python3",
+			script_filename: str = SCRIPT_FILENAME
+			) -> str:
+		cmd = f"{script_interpreter} {script_filename} "
 		for flag in self.flag_fields:
 			if vars(self)[flag]:
 				cmd += f"--{flag} "

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
-import signal, traceback
+import signal
+import traceback
+import sys
 
 from logger import log, change_logger_level
 from arg_parser import parse
@@ -36,6 +38,7 @@ def main():
 		scraper.start()
 	except SystemExit as exit_code:
 		log.info(f"Exiting with code {exit_code}")
+		sys.exit(exit_code)
 	except Exception as err:
 		log.critical("An unknown exception was raised.")
 		log.critical(err)
