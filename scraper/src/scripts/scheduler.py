@@ -131,18 +131,20 @@ def main():
 	script_path = os.path.dirname(os.path.abspath(__file__))
 	scraper_root_path = os.path.dirname(script_path)
 	jobs_path = os.path.join(scraper_root_path, "jobs")
+	log.info(f"Looking for .env files containing jobs, at {jobs_path}")
 	if not os.path.isdir(jobs_path):
 		log.critical(f"Jobs folder '{jobs_path}' does not exist!")
 		return
-	jobs = list(filter(
+	jobs = sorted(list(filter(
 		os.path.isfile, 
 		[
 			os.path.abspath(os.path.join(jobs_path, f))
 			for f in os.listdir(jobs_path)
 		]
-	))
+	)))
 	if not jobs:
 		log.critical("No jobs were found.")
+		return
 	log.info("")
 	log.info("We found the following jobs: \n\t" 
 		+ "\n\t".join([os.path.basename(job_file) for job_file in jobs])
@@ -168,5 +170,4 @@ def main():
 	sys.exit(sp.returncode)
 
 if __name__ == "__main__":
-	log.info("hello")
 	main()

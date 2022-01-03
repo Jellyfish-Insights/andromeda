@@ -21,33 +21,25 @@ main() {
 	# Run our app
 	############################################################################
 	directory="/opt/scraper/"
-	scheduler_script="scheduler.py"
-	scraping_instructions="to_scrape.sh"
-	sleep_time=10
+	scheduler_script="scripts/scheduler.py"
 
-	log_i "Sleeping for $sleep_time seconds to allow Postgres to init"
-	sleep $sleep_time
+	log_i "Sleeping for 10 seconds to allow Postgres to init"
+	sleep 10
 
 	cd "$directory"
+	if [ -d chrome_profile ] ; then
+		rm -rf chrome_profile
+	fi
 
 	# This needs to go unquoted in the command
-	unquoted="$keep_logs $slow_mode"
+	unquoted="$random_order"
 
 	while true ; do
 		log_i "Running scheduler script..."
-		python3 "$scheduler_script" \
-			--scroll_limit "$scroll_limit" \
-			--timeout "$timeout" \
-			--scraping_interval "$scraping_interval" \
-			--db_conn_string "$db_conn_string" \
-			$unquoted \
-			"$navigator_name"
-
-		log_i "Running scraper on instructions set by scheduler..."
-		bash "$scraping_instructions"
-
-		log_i "Sleeping for $sleep_time seconds before restarting loop..."
-		sleep $sleep_time
+		python3 -m scripts.scheduler \
+			--sleep_interval "$sleep_interval" \
+			$unquoted
+		sleep 10
 	done
 }
 
