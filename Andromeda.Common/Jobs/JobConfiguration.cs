@@ -16,6 +16,8 @@ namespace Andromeda.Common.Jobs {
         public bool Paginate { get; set; }
         // If the DefaultNowDate is null the use DateTime.Now otherwise fallback to DefaultNowDate
         public DateTime? DefaultNowDate { get; set; }
+        // set to true to fetch all the metrics for YouTube again
+        public bool ForceFetch { get; set; }
 
         public override string ToString() {
             return JsonConvert.SerializeObject(this);

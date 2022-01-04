@@ -163,11 +163,54 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             var report = reportRequest.ExecuteAsync().Result;
 
             if (report.Rows != null) {
-                logger.Information("Found {Rows} rows", report.Rows.Count);
+                logger.Debug("Found {Rows} rows", report.Rows.Count);
                 foreach (var row in report.Rows) {
                     yield return row;
                 }
             }
+        }
+
+        public static List<(DateTime date, long subscriberViews)> FetchSubscriberViews(YTA.VideoDailyMetric mostRecentRecord, string channelId, YTD.Video video, DateTime now, YouTubeAnalyticsService analyticsService, Logger logger, bool reprocessMetrics = false) {
+            DateTime mostRecentMetricDate;
+            if (mostRecentRecord == null || reprocessMetrics) {
+                TimeSpan PublishedAtOffset;
+                if (reprocessMetrics) {
+                    PublishedAtOffset = new TimeSpan(30, 0, 0, 0);
+                } else {
+                    PublishedAtOffset = TimeMargin;
+                }
+                mostRecentMetricDate = (video.PublishedAt != null) ? video.PublishedAt - PublishedAtOffset : now;
+            } else {
+                mostRecentMetricDate = mostRecentRecord.Date;
+            }
+
+            var fromDate = DateHelper.Min(now - TimeMargin, mostRecentMetricDate);
+            
+            var toDate = now;
+            var reportRequest = analyticsService.Reports.Query();
+            reportRequest.Ids = $"channel=={channelId}";
+            reportRequest.StartDate = fromDate.ToString("yyyy-MM-dd");
+            reportRequest.EndDate = toDate.ToString("yyyy-MM-dd");
+            reportRequest.Metrics = "views";
+            reportRequest.Filters = $"video=={video.VideoId};subscribedStatus==SUBSCRIBED";
+            reportRequest.Dimensions = "subscribedStatus,day";
+
+            var subscriberViewsList = new List<(DateTime date, long subscriberViews)>();
+
+            Thread.Sleep(500);
+            try{
+                var report = reportRequest.ExecuteAsync().Result;
+                if (report.Rows != null) {
+                    foreach (var row in report.Rows) {
+                        subscriberViewsList.Add((Convert.ToDateTime(row[1]).Date, (long)row[2]));
+                    }
+                }
+            }
+            catch{
+                //logger.Information("Could not get Subscriber Views");
+            }
+            
+            return subscriberViewsList;
         }
 
         public static IEnumerable<YTA.VideoDailyMetric> FetchDailyMetrics(YouTubeAnalyticsService analyticsService, string channelId, YTD.Video video, Logger logger, bool reprocess = false) {
@@ -177,8 +220,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                                            .Where(x => x.VideoId == video.VideoId && x.ValidityStart <= now && x.ValidityEnd >= now)
                                            .OrderByDescending(x => x.Date)
                                            .FirstOrDefault();
-                return FetchVideoDailyMetrics(mostRecentRecord, channelId, video, now, analyticsService, logger, reprocess)
-                           .Select(x => Api2DbObjectConverter.ConvertDailyMetricRow(video.VideoId, x));
+
+                var videoDailyMetrics = FetchVideoDailyMetrics(mostRecentRecord, channelId, video, now, analyticsService, logger, reprocess);
+                var subscriberViews = FetchSubscriberViews(mostRecentRecord, channelId, video, now, analyticsService, logger, reprocess);
+                return videoDailyMetrics.Select(x => Api2DbObjectConverter.ConvertDailyMetricRow(video.VideoId, x, subscriberViews));
             }
         }
 
@@ -238,7 +283,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                         break;
                     }
                 }
-                logger.Information("Replicated {Days} days for video {VideoId}", replicatedDays, video.VideoId);
+                logger.Debug("Replicated {Days} days for video {VideoId}", replicatedDays, video.VideoId);
             }
         }
     }

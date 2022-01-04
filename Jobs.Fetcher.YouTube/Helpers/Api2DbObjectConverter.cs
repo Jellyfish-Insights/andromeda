@@ -43,16 +43,18 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             };
         }
 
-        public static YTA.VideoDailyMetric ConvertDailyMetricRow(string videoId, IList<object> row) {
+        public static YTA.VideoDailyMetric ConvertDailyMetricRow(string videoId, IList<object> row, List<(DateTime date, long subscriberViews)> subscriberViews) {
+            var date = Convert.ToDateTime(row[0]).Date;
             return new YTA.VideoDailyMetric() {
                        VideoId = videoId,
-                       Date = Convert.ToDateTime(row[0]).Date,
+                       Date = date,
                        Views = (long) row[1],
                        Likes = (long) row[2],
                        Shares = (long) row[3],
                        Comments = (long) row[4],
                        AverageViewDuration = (long) row[5],
                        Dislikes = (long) row[6],
+                       SubscriberViews = subscriberViews.Where(x=> x.date == date).Select(y => y.subscriberViews).FirstOrDefault(),
                        SubscribersGained = (long) row[7],
                        SubscribersLost = (long) row[8],
                        VideosAddedToPlaylists = (long) row[9],

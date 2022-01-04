@@ -11,7 +11,7 @@
         "time": [],
         "columns": [
             ["caption","text"],
-            ["children","json"],
+            ["children","jsonb"],
             ["comments_count","bigint"],
             ["id","bigint"],
             ["ig_id","bigint"],
@@ -24,7 +24,7 @@
             ["thumbnail_url","text"],
             ["timestamp","timestamp without time zone"],
             ["video_title", "text"],
-            ["comments", "json"]
+            ["comments", "jsonb"]
         ],
         "edges": [{
             "name": "comments",
@@ -33,8 +33,8 @@
                 ["hidden", "bool"],
                 ["id", "bigint"],
                 ["like_count", "bigint"],
-                ["media", "json"],
-                ["replies", "json"],
+                ["media", "jsonb"],
+                ["replies", "jsonb"],
                 ["text", "text"],
                 ["timestamp", "timestamp without time zone"],
                 ["username", "text"]
@@ -46,7 +46,7 @@
                     ["hidden", "bool"],
                     ["id", "bigint"],
                     ["like_count", "bigint"],
-                    ["media", "json"],
+                    ["media", "jsonb"],
                     ["text", "text"],
                     ["timestamp", "timestamp without time zone"],
                     ["username", "text"]
@@ -130,7 +130,7 @@
             "name": "insights",
             "granularity": "lifetime",
             "columns": [
-                ["values", "json"],
+                ["values", "jsonb"],
                 ["name", "text"]
             ],
             "bounds": [],
@@ -146,7 +146,7 @@
             "name": "insights",
             "granularity": "day",
             "columns": [
-                ["values", "json"],
+                ["values", "jsonb"],
                 ["name", "text"],
                 ["date_start", "timestamp without time zone"],
                 ["date_stop", "timestamp without time zone"]
