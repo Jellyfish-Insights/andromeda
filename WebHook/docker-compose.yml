@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+    data_lake:
+        image: postgres:10
+        environment:
+            - POSTGRES_USER=fee
+            - POSTGRES_PASSWORD=dbpassword
+            - POSTGRES_DB=data_lake
+        ports:
+            - '5433:5432'
+        tmpfs:
+          - /var/lib/postgresql/data:rw,noexec,nosuid,size=400m
