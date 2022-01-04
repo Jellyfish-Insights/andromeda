@@ -69,7 +69,6 @@ namespace Jobs.Fetcher.TikTok {
 
                     var newPostStats = ApiDataFetcher.GetTikTokPostStatsJSON(post["stats"], newPost, newPost.CreateTime);
                     DbWriter.WritePostStats(newPostStats, dbContext, logger);
-
                 }
             }
         }
