@@ -6,6 +6,7 @@ using DataLakeModels;
 using DataLakeModels.Models;
 using DataLakeModels.Helpers;
 using DataLakeModels.Models.TikTok;
+using Npgsql;
 
 using Andromeda.Common;
 
@@ -70,6 +71,24 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             var oldEntry = dbContext.Videos.Find(newEntry.Id);
             Upsert<Video, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
             dbContext.SaveChanges();
+        }
+
+        public static void InsertUsernameOnScraper(string username, Logger logger){
+            using (var connection = new NpgsqlConnection(DatabaseManager.ConnectionString()))
+                using (var cmd = connection.CreateCommand()) {
+                    connection.Open();
+                    cmd.CommandText = String.Format(@"INSERT INTO account_name (
+                                    account_name, 
+                                    updated_time
+                                ) VALUES (
+                                    '{0}',
+                                    '{1}'
+                                );"
+                        , username, DateTime.Now
+                    );
+                    cmd.ExecuteNonQuery();
+                    logger.Debug("Inserting new username on scrapper: {username}", username);
+                }
         }
 
         private static void Upsert<T, Context>(
