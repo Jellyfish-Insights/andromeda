@@ -64,7 +64,7 @@ namespace Jobs.Fetcher.Facebook {
             var nominalColumn = new Column[] { Columns["id"].Clone(Name) };
             if (v.Granularity == "day") {
                 pk = new PrimaryKey(nominalColumn, true);
-            } else if (v.Granularity == "lifetime") {
+            } else if (v.Granularity == "lifetime" || v.Granularity == "maximum") {
                 pk = new PrimaryKey(nominalColumn, false);
             } else {
                 throw new Exception($"Invalid granularity: {v.Granularity}");

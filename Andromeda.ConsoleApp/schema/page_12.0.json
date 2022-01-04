@@ -11,14 +11,14 @@
         "time": ["created_time", "updated_time"],
         "columns": [
             ["id", "bigint"],
-            ["thumbnails", "json"],
+            ["thumbnails", "jsonb"],
             ["source", "text"],
-            ["custom_labels", "json"],
+            ["custom_labels", "jsonb"],
             ["content_category", "text"],
             ["title", "text"],
             ["description", "text"],
             ["universal_video_id", "bigint"],
-            ["from", "json"],
+            ["from", "jsonb"],
             ["length", "double precision"],
             ["picture", "text"],
             ["published", "bool"],
@@ -33,7 +33,7 @@
                 ["id", "text"],
                 ["message", "text"],
                 ["created_time", "timestamp without time zone"],
-                ["from", "json"]
+                ["from", "jsonb"]
             ],
             "edges": [],
             "time": ["created_time"]
@@ -54,7 +54,7 @@
             ],
 
             "columns": [
-                ["values", "json"],
+                ["values", "jsonb"],
                 ["name", "text"]
             ],
             "metrics": [
@@ -93,12 +93,12 @@
         "columns": [
             ["id", "text"],
             ["message", "text"],
-            ["attachments", "json"],
-            ["properties", "json"],
-            ["from", "json"],
+            ["attachments", "jsonb"],
+            ["properties", "jsonb"],
+            ["from", "jsonb"],
             ["picture", "text"],
             ["is_published", "bool"],
-            ["targeting", "json"],
+            ["targeting", "jsonb"],
             ["updated_time", "timestamp without time zone"],
             ["created_time", "timestamp without time zone"]
         ],
@@ -110,7 +110,7 @@
             ],
             "time": [],
             "columns": [
-                ["values", "json"],
+                ["values", "jsonb"],
                 ["name", "text"]
             ],
             "metrics": [
@@ -129,7 +129,7 @@
             ],
             "time": [],
             "columns": [
-                ["values", "json"],
+                ["values", "jsonb"],
                 ["name", "text"],
                 ["date_start", "timestamp without time zone"],
                 ["date_stop", "timestamp without time zone"]

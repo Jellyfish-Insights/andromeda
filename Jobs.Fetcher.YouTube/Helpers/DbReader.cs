@@ -8,10 +8,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
 
     public static class DbReader {
 
-        public static List<Video> GetVideos(string channelId) {
+        public static List<Video> GetVideos() {
             var now = DateTime.UtcNow;
             using (var db = new DataLakeYouTubeDataContext()) {
-                return db.Videos.Where(x => x.ValidityStart <= now && now < x.ValidityEnd && x.ChannelId == channelId).OrderByDescending(x => x.PublishedAt).ToList();
+                return db.Videos.Where(x => x.ValidityStart <= now && now < x.ValidityEnd).OrderByDescending(x => x.PublishedAt).ToList();
             }
         }
 
