@@ -2,7 +2,6 @@
 import re
 from typing import Any, Dict, Set, Tuple
 from urllib.parse import urlencode
-from selenium.webdriver.chrome import options
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
 
