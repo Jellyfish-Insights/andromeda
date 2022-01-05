@@ -1,108 +1,90 @@
-import logging, random, time, json, math, os, datetime
-from abc import ABC, abstractmethod
-from typing import List, TypeVar, Any
+import random, time, json, os, datetime, traceback
+from abc import abstractmethod
+from typing import Dict, List, TypeVar, Any
 
-from selenium.webdriver.common.by import By
+from selenium.webdriver.common import by, action_chains, keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import JavascriptException, InvalidSelectorException, \
 	ElementNotInteractableException, StaleElementReferenceException, \
-	MoveTargetOutOfBoundsException
+	MoveTargetOutOfBoundsException, NoSuchWindowException
 from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.common.keys import Keys
 
-import browsermobproxy
-import undetected_chromedriver.v2 as uc
-from arg_parser import Options
-
+from db import DBException
+from scraper_core import BadArguments, JSException, ScraperCore, ScraperException
+from logger import log
+from defaults import abstract_navigator as abstract_defaults
+from models.options import Options
 from navigators.helpers.xpath import XPath
 from navigators.helpers.try_to_interact import try_to_interact
-from libs.kill_handle import KillHandle
-
-################################################################################
-# CONSTANTS
-################################################################################
+from tools import KillHandleTriggered
 
 T = TypeVar("T")
 
-################################################################################
-# CUSTOM EXCEPTIONS
-################################################################################
-
-class EndOfPage(Exception):
-	pass
-
-class ElementNotFound(Exception):
-	pass
-
-class YouProbablyGotBlocked(Exception):
+class ScraperMiddleWare(ScraperCore):
 	"""
-	We are as careful as possible not to get blocked, but sometimes it happens.
-	Workarounds can be accessing through a proxy, waiting until you are unblocked
-	or changing your scraping routine.
+	This class defines a middleware between the specific navigator implementation
+	and the Driver-Proxy core.
 	"""
-	pass
+	needs_authentication: bool = None
+	navigator_default_options: Dict[str, Any] = None
 
-################################################################################
-# CLASS DEFINITION
-################################################################################
+	def __init__(self, options: Options):
+		super().__init__(options)
+		self.action = None
+		try:
+			self.validate_options()
+			self.test_authentication_options()
+		except BadArguments:
+			log.critical("An error occurred initializing navigator.")
+			self.cleanup(1)
 
-class AbstractNavigator(ABC):
-	"""
-	This class defines the blueprint of a navigator, to be attached to Scraper class.
-	"""
-	############################################################################
-	# CONSTANTS FOR COLLECTING DATA
-	############################################################################ss
+	def validate_options(self):
+		"""Derived classes must implement this to check if all necessary options
+		were supplied.
+		"""
+		if self.options.timeout < 0:
+			log.critical("timeout must be a non-negative integer")
+			raise BadArguments
 
-	# I am not sure we need to capture headers, but still haven't tried to
-	# remove this option
-	HAR_OPTIONS = {
-		'captureHeaders': True,
-		'captureContent': True
-	}
-	############################################################################
-	# CONSTANTS FOR NAVIGATION
-	############################################################################
-	WAIT_RANDOM_FACTOR = 0.15
+	def test_authentication_options(self):
+		"""This is not a validation, more like a warning.
+		"""
+		if self.needs_authentication is None:
+			log.critical("Variable needs_authentication needs to be "
+				f"defined for subclass {type(self).__name__}")
+			raise ValueError
 
-	MIN_AMOUNT_OF_SCROLLING = 200
-	SHORT_PAUSE_LENGTH = 1.0
-	LONG_PAUSE_LENGTH = 5.0
-	LONG_PAUSE_PROBABILITY = 0.10
-	SLOW_MODE_MULTIPLIER = 2.0
+		if (self.needs_authentication and any(self.options.anonymization_options)):
+			log.warning("The website you are scraping requires "
+				"authentication. It is not recommended to use anonymization  "
+				"options.")
+		elif (not self.needs_authentication and not all(self.options.anonymization_options)):
+			log.warning("The website you are scraping does not require "
+				"authentication. In spite of that, you are not using every "
+				"anonymization option available.")
 
-	WAIT_UNTIL_TIMEOUT = 10.0
-	POLL_FREQUENCY = 0.5
-
-	SLOW_TYPE_SLEEP_INTERVAL = 0.15
-
-	MOVE_AROUND_MOVE_MOUSE_TIMES = 5
-	MOVE_AROUND_VISIT_LINK_PROB = 0.01
-
-	# For performing a sequence of actions as a single block (avoids overhead)
-	BATCH_ACTION_SIZE = 10
-
-	def __init__(
-				self,
-				options: Options,
-				driver: uc.Chrome,
-				proxy: browsermobproxy.client.Client,
-				logger: logging.Logger,
-				kill_handle: KillHandle
-				):
-		
-		self.options = options
-		self.driver = driver
-		self.proxy = proxy
-		self.logger = logger
-		self.kill_handle = kill_handle
-		self.action = ActionChains(driver)
+	def start(self):
+		super().start()
+		self.action = action_chains.ActionChains(self.driver)
+		self.reset_har()
+		try:
+			self.main()
+		except NoSuchWindowException as err:
+			log.critical("Chrome window was closed from an outside agent!")
+			log.critical(err)
+			traceback.print_exc()
+			self.cleanup(1)
+		except (ScraperException, DBException, KillHandleTriggered):
+			self.cleanup(1)
+		except Exception as err:
+			log.critical("An unknown error happened:")
+			log.critical(err)
+			traceback.print_exc()
+			self.cleanup(1)
 
 	############################################################################
 	# NON-IMPLEMENTED METHODS
 	############################################################################
-
 	@abstractmethod
 	def main(self):
 		pass
@@ -111,10 +93,13 @@ class AbstractNavigator(ABC):
 	# STATIC METHODS
 	############################################################################
 	@staticmethod
-	def select_navigator(name: str) -> type:
-		import navigators.tiktok, navigators.youtube
+	def get_available_navigators() -> Dict[str, type]:
+		import navigators.tiktok, navigators.youtube, navigators.test_navigator
+		return {x.__name__: x for x in ScraperMiddleWare.__subclasses__()}
 
-		navigator_classes = {x.__name__: x for x in AbstractNavigator.__subclasses__()}
+	@staticmethod
+	def select_navigator(name: str) -> type:
+		navigator_classes = ScraperMiddleWare.get_available_navigators()
 		try:
 			return navigator_classes[name]
 		except KeyError:
@@ -123,22 +108,20 @@ class AbstractNavigator(ABC):
 	############################################################################
 	# METHODS FOR LOCATING
 	############################################################################
-	"""It is probably undesirable to change or override these"""
-
 	def find(self, **kwargs) -> List[WebElement]:
 		xpath = XPath.xpath(**kwargs)
-		self.logger.debug(f"Looking for elements at xpath = {xpath}")
+		log.debug(f"Looking for elements at xpath = {xpath}")
 
 		try:
-			return self.driver.find_elements(By.XPATH, xpath)
+			return self.driver.find_elements(by.By.XPATH, xpath)
 		except InvalidSelectorException:
-			self.logger.critical("Bad xpath selector!")
+			log.critical("Bad xpath selector!")
 			raise
 
 	def one(self, result: List[T]) -> T:
 		"""From a list of results, returns the first result or raises an error"""
 		if len(result) != 1:
-			self.logger.critical("A wrong number of elements was returned. "
+			log.critical("A wrong number of elements was returned. "
 				f"Expected 1, received {len(result)}")
 			raise ValueError
 		return result[0]
@@ -150,7 +133,6 @@ class AbstractNavigator(ABC):
 	############################################################################
 	# METHODS FOR CHECKING DOM STATE / DELAYING ACTION
 	############################################################################
-	"""It is probably undesirable to change or override these"""
 	def wait(
 			self,
 			timeout: float,
@@ -158,7 +140,8 @@ class AbstractNavigator(ABC):
 		"""Selenium has an inbuilt for this, I'm not sure what advantage it
 		brings over using time.sleep"""
 		if fuzzy:
-			r = (1.0 - self.WAIT_RANDOM_FACTOR) + 2.0 * self.WAIT_RANDOM_FACTOR * random.random()
+			r = ((1.0 - abstract_defaults.WAIT_RANDOM_FACTOR) 
+					+ 2.0 * abstract_defaults.WAIT_RANDOM_FACTOR * random.random())
 		else:
 			r = 1.0
 		time.sleep(timeout * r)
@@ -168,8 +151,8 @@ class AbstractNavigator(ABC):
 		# document.readyState, was processed
 		self.wait(2.0)
 		
-		timeout = timeout or self.WAIT_UNTIL_TIMEOUT
-		poll_freq = poll_freq or self.POLL_FREQUENCY
+		timeout = timeout or abstract_defaults.WAIT_UNTIL_TIMEOUT
+		poll_freq = poll_freq or abstract_defaults.POLL_FREQUENCY
 
 		wait = WebDriverWait(self.driver, timeout, poll_frequency=poll_freq)
 
@@ -181,15 +164,16 @@ class AbstractNavigator(ABC):
 		wait.until(page_has_loaded)
 
 	def was_end_of_page_reached(self):
-		js_code = """
-			return ((window.innerHeight + window.scrollY) >= document.body.offsetHeight);
+		page_height = self.get_page_height()
+		js_code = f"""
+			return (({page_height} + window.scrollY) >= document.body.offsetHeight);
 		"""
 		return self.run(js_code)
 
 	def is_in_view(self, elem: WebElement) -> bool:
-		window_inner_height = self.run("return window.innerHeight;")
-		window_inner_width = self.run("return window.innerWidth;")
-
+		window_inner_width = self.get_page_width()
+		window_inner_height = self.get_page_height()
+		
 		try:
 			height = elem.rect["height"]
 			width = elem.rect["width"]
@@ -212,6 +196,28 @@ class AbstractNavigator(ABC):
 			)
 		)
 
+	def get_page_height(self):
+		page_height = self.run("""
+			return window.innerHeight
+			  || document.documentElement.clientHeight
+			  || document.body.clientHeight;
+		""")
+		# If JavaScript fails, we will use 60% of window size
+		if page_height is None:
+			page_height = self.driver.get_window_size()["height"] * 0.60
+		return page_height
+
+	def get_page_width(self):
+		page_width = self.run("""
+			return window.innerWidth
+			  || document.documentElement.clientWidth
+			  || document.body.clientWidth;
+		""")
+		# If JavaScript fails, we will use 60% of window size
+		if page_width is None:
+			page_width = self.driver.get_window_size()["width"] * 0.60
+		return page_width
+
 	############################################################################
 	# LOADERS
 	############################################################################
@@ -224,13 +230,13 @@ class AbstractNavigator(ABC):
 	def press_tab(self, n_times = 500, timeout = 0.05):
 		nodes_visited = set()
 		for i in range(n_times):
-			self.action.send_keys(Keys.TAB)
+			self.action.send_keys(keys.Keys.TAB)
 			self.action.pause(timeout)
 			self.action.perform()
 
 			node_focused = self.run("return document.activeElement ;")
 			if node_focused in nodes_visited:
-				self.logger.debug(f"After {i} TABs, we have visited every focusable node")
+				log.debug(f"After {i} TABs, we have visited every focusable node")
 				return
 			nodes_visited.add(node_focused)
 
@@ -242,14 +248,14 @@ class AbstractNavigator(ABC):
 		except IndexError:
 			return
 		
-		self.action.key_down(Keys.CONTROL)
+		self.action.key_down(keys.Keys.CONTROL)
 		self.action.move_to_element(anchor)
 		self.action.click(anchor)
 		try:
 			self.action.perform()
-			self.logger.debug(f"Visiting {anchor.get_attribute('href')} briefly...")
+			log.debug(f"Visiting {anchor.get_attribute('href')} briefly...")
 		except (ElementNotInteractableException, MoveTargetOutOfBoundsException):
-			self.logger.debug("Element is not interactable or is out of screen.")
+			log.debug("Element is not interactable or is out of screen.")
 			return
 
 		parent = self.driver.current_window_handle
@@ -280,12 +286,12 @@ class AbstractNavigator(ABC):
 
 		start = datetime.datetime.now()
 		while (datetime.datetime.now() - start).total_seconds() < timeout:
-			self.move_mouse_lattice(self.MOVE_AROUND_MOVE_MOUSE_TIMES)
+			self.move_mouse_lattice(abstract_defaults.MOVE_AROUND_MOVE_MOUSE_TIMES)
 			if allow_scrolling:
 				self.scroll_random()
-			if allow_new_windows and random.random() < self.MOVE_AROUND_VISIT_LINK_PROB:
+			if allow_new_windows and random.random() < abstract_defaults.MOVE_AROUND_VISIT_LINK_PROB:
 				self.visit_any_link(timeout / 2)
-			if random.random() < self.LONG_PAUSE_PROBABILITY:
+			if random.random() < abstract_defaults.LONG_PAUSE_PROBABILITY:
 				self.long_pause()
 			self.short_pause()
 
@@ -293,8 +299,9 @@ class AbstractNavigator(ABC):
 			self.run(f"window.scrollTo({scroll_x}, {scroll_y})")
 
 	def move_mouse_lattice(self, number_of_moves: int):
-		window_inner_width = self.run("return window.innerWidth;")
-		window_inner_height = self.run("return window.innerHeight;")
+		window_inner_width = self.get_page_width()
+		window_inner_height = self.get_page_height()
+		
 		coords = [
 				(x, y)
 				for x in range(0, window_inner_width, 10)
@@ -311,45 +318,8 @@ class AbstractNavigator(ABC):
 			try:
 				self.action.perform()
 			except MoveTargetOutOfBoundsException:
-				self.logger.debug(f"Mouse would move out of screen, breaking.")
+				log.debug(f"Mouse would move out of screen, breaking.")
 				return
-			
-	def move_mouse_spiral_center_of_screen(self, max_steps = 200, batch=True):
-		window_inner_width = self.run("return window.innerWidth;")
-		window_inner_height = self.run("return window.innerHeight;")
-		
-		center_of_screen = (window_inner_width / 2, window_inner_height / 2)
-		self.logger.debug(f"{center_of_screen=}")
-		self.action.move_by_offset(*center_of_screen)
-
-		# It will take us 24 steps to go full-circle
-		DELTA_T = math.pi / 12
-		# Every 360 degrees (24 steps), we will be 50 pixels further from center
-		SPIRAL_FACTOR = 50 / (2 * math.pi)
-
-		get_coords = lambda t: (math.cos(t) * SPIRAL_FACTOR * t, math.sin(t) * SPIRAL_FACTOR * t)
-
-		t = 0
-		initial_point = last_point = get_coords(t * DELTA_T)
-		self.action.move_by_offset(*initial_point)
-
-		for t in range(1, max_steps):
-			next_point = get_coords(t * DELTA_T)
-			delta = (next_point[0] - last_point[0], next_point[1] - last_point[1])
-			self.logger.debug(f"Moving mouse by offset of {delta=}")
-			self.action.move_by_offset(*delta)
-			self.action.pause(0.01)
-
-			if not batch or t % self.BATCH_ACTION_SIZE == 0:
-				try:
-					self.action.perform()
-				except MoveTargetOutOfBoundsException:
-					self.logger.debug(f"Mouse would move out of screen, breaking.")
-					return
-
-			last_point = next_point
-
-		self.action.perform()
 
 	def move_mouse_around_elem(
 				self,
@@ -372,7 +342,7 @@ class AbstractNavigator(ABC):
 	if necessary"""
 
 	def go(self, url: str) -> None:
-		self.logger.debug(f"Navigating to {url}")
+		log.debug(f"Navigating to {url}")
 		self.driver.get(url)
 
 	@try_to_interact
@@ -382,44 +352,44 @@ class AbstractNavigator(ABC):
 	def natural_type(self, elem: WebElement, text: str):
 		for c in text:
 			elem.send_keys(c)
-			time.sleep(random.random() * self.SLOW_TYPE_SLEEP_INTERVAL)
+			time.sleep(random.random() * abstract_defaults.SLOW_TYPE_SLEEP_INTERVAL)
 
 	def run(self, js_code: str) -> Any:
 		try:
 			return self.driver.execute_script(js_code)
 		except JavascriptException:
-			self.logger.critical("There is an error in your code:")
-			self.logger.critical(js_code)
-			raise
+			log.critical("There is an error in your code:")
+			log.critical(js_code)
+			raise JSException from JavascriptException
 
 	def injection(self, filename: str) -> Any:
 		"""Use filename with extension (normally .js)"""
-		self.logger.debug(f"Sending JS injection from file '{filename}'")
+		log.debug(f"Sending JS injection from file '{filename}'")
 		os.chdir(os.path.dirname(os.path.realpath(__file__)))
 		try:
-			with open(f"./injections/{filename}", "r") as fp:
+			with open(f"./navigators/injections/{filename}", "r") as fp:
 				js_code = fp.read()
 		except (FileNotFoundError, IsADirectoryError) as e:
-			self.logger.critical("File does not exist or is a directory.")
-			self.logger.critical(e)
+			log.critical("File does not exist or is a directory.")
+			log.critical(e)
 			raise
 		except PermissionError as e:
-			self.logger.critical("You do not have permissions to open file.")
-			self.logger.critical(e)
+			log.critical("You do not have permissions to open file.")
+			log.critical(e)
 			raise
 		return self.run(js_code)
 
 	def short_pause(self):
-		pause_length = self.SHORT_PAUSE_LENGTH
+		pause_length = abstract_defaults.SHORT_PAUSE_LENGTH
 		if self.options.slow_mode:
-			pause_length *= self.SLOW_MODE_MULTIPLIER
+			pause_length *= abstract_defaults.SLOW_MODE_MULTIPLIER
 		time.sleep(pause_length + pause_length * random.random())
 
 	def long_pause(self):
-		if random.random() < self.LONG_PAUSE_PROBABILITY:
-			pause_length = self.LONG_PAUSE_LENGTH
+		if random.random() < abstract_defaults.LONG_PAUSE_PROBABILITY:
+			pause_length = abstract_defaults.LONG_PAUSE_LENGTH
 			if self.options.slow_mode:
-				pause_length *= self.SLOW_MODE_MULTIPLIER
+				pause_length *= abstract_defaults.SLOW_MODE_MULTIPLIER
 			time.sleep(pause_length + pause_length * random.random())
 
 	def scroll_exact(self, amount: int):
@@ -441,11 +411,17 @@ class AbstractNavigator(ABC):
 		"""
 		"upscroll_proportion" means how much of the scrollings should be upscrolls
 		"""
-		min_amount_of_scrolling = min_amount_of_scrolling or self.MIN_AMOUNT_OF_SCROLLING
-		page_height = self.driver.execute_script("return window.innerHeight")
+		min_amount_of_scrolling = min_amount_of_scrolling or abstract_defaults.MIN_AMOUNT_OF_SCROLLING
+		page_height = self.get_page_height()
 
 		amount = random.randint(min_amount_of_scrolling, page_height)
 		if random.random() < upscroll_proportion:
 			amount *= -1
 		
 		self.scroll_exact(amount)
+
+	############################################################################
+	# MANIPULATION OF PROXY AND DRIVER
+	############################################################################
+	def reset_har(self):
+		self.proxy.new_har(options=abstract_defaults.HAR_OPTIONS)
