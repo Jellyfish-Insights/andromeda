@@ -94,7 +94,8 @@ class ScraperMiddleWare(ScraperCore):
 	############################################################################
 	@staticmethod
 	def get_available_navigators() -> Dict[str, type]:
-		import navigators.tiktok, navigators.youtube, navigators.test_navigator
+		import navigators.tiktok, navigators.youtube, navigators.test_navigator, \
+			navigators.profile_faker
 		return {x.__name__: x for x in ScraperMiddleWare.__subclasses__()}
 
 	@staticmethod
@@ -286,6 +287,7 @@ class ScraperMiddleWare(ScraperCore):
 
 		start = datetime.datetime.now()
 		while (datetime.datetime.now() - start).total_seconds() < timeout:
+			self.kill_handle.check()
 			self.move_mouse_lattice(abstract_defaults.MOVE_AROUND_MOVE_MOUSE_TIMES)
 			if allow_scrolling:
 				self.scroll_random()

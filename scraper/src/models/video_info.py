@@ -1,4 +1,7 @@
-import datetime, time
+import datetime
+import time
+import os
+import json
 from sqlalchemy import Column, String, Integer, BigInteger, DateTime, select, and_
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -34,7 +37,7 @@ class VideoInfo(base):
 	create_time = Column(DateTime, nullable=False)
 
 	@staticmethod
-	def add(account_name: str, item: dict, save_in_fs: bool = False):
+	def add(account_name: str, item: dict, save_in_fs: bool = True):
 		vid_info = VideoInfo(
 			# Metadata
 			account_name = account_name,
@@ -82,8 +85,10 @@ class VideoInfo(base):
 		return [x[0] for x in videos]
 
 	def to_json(self):
-		with open(f"json/{int(time.time() * 10 ** 6)}.json", "w") as fp:
-			fp.write(self.json_payload)
+		filename = f"{self.account_name}___{self.tiktok_id}___{int(time.time() * 10 ** 6)}.json"
+		full_path = os.path.join("extracted_data", filename)
+		with open(full_path, "w") as fp:
+			fp.write(json.dumps(self.json_payload))
 
 	def __str__(self):
 		return str(self.__dict__)

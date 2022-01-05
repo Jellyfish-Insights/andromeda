@@ -39,13 +39,13 @@ COPY src/ /opt/scraper/
 COPY bootstrap.sh /
 
 # Add regular user, give them ownership of binaries
-RUN useradd apps \
-    && mkdir -p /home/apps \
-    && chown -v -R apps:apps /home/apps \
-	&& usermod -aG sudo apps \
-	&& chown -R apps:apps /opt/
-
-# Make regular user able to write log files
-RUN chmod a+w /var/log/
+ARG APP_UID=${APP_UID:-1000}
+ENV APP_UID=${APP_UID}
+RUN useradd app -u ${APP_UID} \
+    && mkdir -p /home/app \
+    && chown -v -R app:app /home/app \
+	&& mkdir -p /var/log/scraper/ \
+	&& chown -R app:app /var/log/scraper/ \
+	&& chown -R app:app /opt/
 
 CMD [ "/bootstrap.sh" ]
