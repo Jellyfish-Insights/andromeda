@@ -1,3 +1,4 @@
+"""outdated, don't use"""
 import os, re
 from db import setup_db
 from models.account_name import AccountName

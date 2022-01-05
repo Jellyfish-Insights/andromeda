@@ -21,10 +21,10 @@ def parse() -> Options:
 		'-g',
 		action='store',
 		type=int,
-		choices=[0, 10, 20, 30, 40, 50],
+		choices=[10, 20, 30, 40, 50],
 		default=DEFAULT_LOGGING_LEVEL,
 		help="Defines how much of the messages should be printed to the screen. "
-			"Accepted values are 0, 10, 20, 30, 40, 50. Default is to log "
+			"Accepted values are 10, 20, 30, 40, 50. Default is to log "
 			"everything, from DEBUG to CRITICAL."
 	)
 
@@ -44,17 +44,17 @@ def parse() -> Options:
 
 	# action="store_const", const=True or False
 	parser.add_argument(
-		'--use_clean_profile',
+		'--use_disposable_profile',
 		action='store_const',
 		const=True,
-		help='Does not reset data from last use when starting Chrome.'
+		help='If set, Chrome will run with a throw-away profile.'
 	)
 	parser.add_argument(
-		'--no_clean_profile',
+		'--no_disposable_profile',
 		action='store_const',
-		dest="use_clean_profile",
+		dest="use_disposable_profile",
 		const=False,
-		help='Resets data from last use when starting Chrome.'
+		help='Chrome will use the latest available profile, or create one if there is none.'
 	)
 
 
@@ -204,7 +204,7 @@ def parse() -> Options:
 	parser.add_argument(
 		'navigator_name',
 		type=str,
-		choices=[x for x in navigators_dict],
+		choices=navigators_dict.keys(),
 		help="Name of the navigator to be used, i.e., TikTok, YouTube, Twitter, etc."
 	)
 

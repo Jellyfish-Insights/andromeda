@@ -20,7 +20,10 @@ services:
 
           # Enables development mode. Leave empty for production
           development: ''
-        user: apps
+        user: app
         privileged: true
         depends_on:
           - pgdocker
+        volumes:
+          - ./src/extracted_data:/opt/scraper/extracted_data
+          - ./logs:/var/log/scraper

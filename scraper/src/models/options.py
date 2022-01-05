@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 
 from logger import log
 
+SCRIPT_INTERPRETER = "python3"
 SCRIPT_FILENAME = "main.py"
 
 @dataclass
@@ -15,7 +16,7 @@ class Options:
 	slow_mode: bool = False
 	# These default to None, but, if nulled, they can be bulk turned on or off
 	# by Navigator according to setting needs_authentication
-	use_clean_profile: bool = None
+	use_disposable_profile: bool = None
 	use_fake_user_agent: bool = None
 	use_random_window_size: bool = None
 	use_random_locale: bool = None
@@ -38,7 +39,7 @@ class Options:
 	@property
 	def anonymization_fields(self) -> List[str]:
 		return [
-			"use_clean_profile",
+			"use_disposable_profile",
 			"use_fake_user_agent",
 			"use_random_window_size",
 			"use_random_locale",
@@ -65,7 +66,7 @@ class Options:
 		return [
 			"keep_logs",
 			"slow_mode",
-			"use_clean_profile",
+			"use_disposable_profile",
 			"use_fake_user_agent",
 			"use_random_window_size",
 			"use_random_locale",
@@ -79,8 +80,14 @@ class Options:
 
 	############################################################################
 	def __post_init__(self):
+		from scraper_middleware import ScraperMiddleWare
+		
 		if self.navigator_name is None:
 			raise ValueError("Navigator name must be provided")
+
+		nav_names = ScraperMiddleWare.get_available_navigators().keys()
+		if self.navigator_name not in nav_names:
+			raise ValueError("Navigator name invalid")
 
 		# It is better to do this check here and already resolve paths to realpaths
 		# If we delegate this task to the navigator(s), pwd can be different and
@@ -133,7 +140,7 @@ class Options:
 
 	def generate_cmd(
 			self,
-			script_interpreter: str = "python3",
+			script_interpreter: str = SCRIPT_INTERPRETER,
 			script_filename: str = SCRIPT_FILENAME
 			) -> str:
 		cmd = f"{script_interpreter} {script_filename} "
