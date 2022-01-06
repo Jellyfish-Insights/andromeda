@@ -46,7 +46,6 @@ namespace DataLakeModels {
                 .HasOne(table => table.Music)
                 .WithMany(post => post.Posts)
                 .HasForeignKey(table => table.MusicId);
-
             modelBuilder.Entity<Post>()
                 .HasOne(table => table.Video)
                 .WithMany(post => post.Posts)

@@ -25,7 +25,6 @@ namespace DataLakeModels.Models.TikTok {
         public bool PrivateAccount { get; set; }
         public ICollection<AuthorStats> Stats { get; set; }
         public ICollection<Post> Posts { get; set; }
-
         bool IEquatable<Author>.Equals(Author other) {
             return Id == other.Id &&
                    UniqueId == other.UniqueId &&
