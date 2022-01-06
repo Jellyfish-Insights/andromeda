@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from logger import log
 
@@ -10,29 +10,29 @@ SCRIPT_FILENAME = "main.py"
 @dataclass
 class Options:
 	# Default = DEBUG
-	logging: int = None
+	logging: Optional[int] = None
 	# These default to False
-	keep_logs: bool = False
+	keep_logs: Optional[bool] = False
 	slow_mode: bool = False
 	# These default to None, but, if nulled, they can be bulk turned on or off
 	# by Navigator according to setting needs_authentication
-	use_disposable_profile: bool = None
-	use_fake_user_agent: bool = None
-	use_random_window_size: bool = None
-	use_random_locale: bool = None
-	use_random_timezone: bool = None
-	force_logout: bool = None
+	use_disposable_profile: Optional[bool] = None
+	use_fake_user_agent: Optional[bool] = None
+	use_random_window_size: Optional[bool] = None
+	use_random_locale: Optional[bool] = None
+	use_random_timezone: Optional[bool] = None
+	force_logout: Optional[bool] = None
 	# Following variables default to None and it is the Navigators' duty
 	# to set default values and validate
-	scroll_limit: int = None
-	timeout: int = None
-	db_conn_string: str = None
-	account_name: str = None
-	password_encrypted: str = None
-	password_plain: str = None
-	credentials_file: str = None
+	scroll_limit: Optional[int] = None
+	timeout: Optional[int] = None
+	db_conn_string: Optional[str] = None
+	account_name: Optional[str] = None
+	password_encrypted: Optional[str] = None
+	password_plain: Optional[str] = None
+	credentials_file: Optional[str] = None
 	# This is actually required
-	navigator_name: str = None
+	navigator_name: Optional[str] = None
 
 	############################################################################
 
@@ -81,12 +81,10 @@ class Options:
 	############################################################################
 	def __post_init__(self):
 		from scraper_middleware import ScraperMiddleWare
-		
 		if self.navigator_name is None:
 			raise ValueError("Navigator name must be provided")
 
-		nav_names = ScraperMiddleWare.get_available_navigators().keys()
-		if self.navigator_name not in nav_names:
+		if ScraperMiddleWare.match_navigator_name(self.navigator_name) is None:
 			raise ValueError("Navigator name invalid")
 
 		# It is better to do this check here and already resolve paths to realpaths

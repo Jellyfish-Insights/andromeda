@@ -6,12 +6,13 @@ import datetime
 import logging
 import zipfile
 from dataclasses import dataclass
-from typing import Final, List, Set, Union
+from typing import Final, List
 
 import numpy as np
 import pandas as pd
 
 from logger import log, change_logger_level
+from tools import UseDirectory, find_files, get_home_dir
 
 UNZIP_DIRECTORY = 'unzipped'
 DATE_REGEX = r"[0-9]{4}-[0-9]{2}-[0-9]{2}"
@@ -72,53 +73,6 @@ class CSV_Data:
 		df["Video Title"] = self.video_name
 
 		return df
-
-class UseDirectory:
-	def __init__(self, go_to_directory):
-		self.go_to_directory = go_to_directory
-		self.old_dir = None
-
-	def __enter__(self):
-		self.old_dir = os.getcwd()
-		if not os.path.isdir(self.go_to_directory):
-			log.debug(f"Directory '{self.go_to_directory}' did not exist, creating")
-			os.mkdir(self.go_to_directory)
-		os.chdir(self.go_to_directory)
-		log.debug(f"Moving to directory '{self.go_to_directory}'")
-
-	def __exit__(self, exc_type, exc_value, traceback):
-		os.chdir(self.old_dir)
-		log.debug(f"Moving back to directory '{self.old_dir}'")
-
-def get_home_dir():
-	home_dir = os.path.expanduser("~")
-	if home_dir == "~":
-		raise OSError("Failed to identify home directory")
-	return home_dir
-
-
-def find_files(regex: Union[str,re.Pattern] = None, join_path: str = None) -> Set[str]:
-	current_path = os.getcwd()
-
-	if regex is None:
-		regex = ""
-	
-	if join_path is not None:
-		path = os.path.join(current_path, join_path)
-	else:
-		path = current_path
-	
-	if type(regex) == re.Pattern:
-		compiled = regex
-	else:
-		compiled = re.compile(regex, flags=re.I)
-	
-	files = set([
-		f
-		for f in os.listdir(path)
-		if os.path.isfile(os.path.join(path, f)) and bool(compiled.search(f))
-	])
-	return files
 
 def clean_filename(filename: str):
 	characters_to_avoid = "\"!#$&'()*;<=>?[\\]^`{|}~- "

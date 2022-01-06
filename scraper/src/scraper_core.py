@@ -5,7 +5,7 @@ import shutil
 import threading
 import traceback
 import random
-from typing import Dict
+from typing import Dict, Optional
 import browsermobproxy, undetected_chromedriver.v2 as uc
 from selenium.common.exceptions import WebDriverException, SessionNotCreatedException
 from fake_useragent import UserAgent
@@ -48,13 +48,13 @@ class JSException(ScraperException):
 
 class ScraperCore:
 	def __init__(self, options: Options):
-		self.driver = None
-		self.proxy = None
-		self.server = None
-		self.options = options
-		self.kill_handle = KillHandle()
-		self.cleaned_up = False
-		self.profile_dir = self.get_profile_dir()
+		self.driver: Optional[uc.Chrome] = None
+		self.proxy: Optional[browsermobproxy.Client] = None
+		self.server: Optional[browsermobproxy.Server] = None
+		self.options: Options = options
+		self.kill_handle: KillHandle = KillHandle()
+		self.cleaned_up: bool = False
+		self.profile_dir: str = self.get_profile_dir()
 
 	def start(self):
 		self.use_timeout()
@@ -80,7 +80,7 @@ class ScraperCore:
 
 	def start_driver(self) -> None:
 		log.info("Starting Undetected Chrome Driver...")
-		chrome_options = uc.ChromeOptions()
+		chrome_options: uc.ChromeOptions = uc.ChromeOptions()
 		chrome_options.user_data_dir = self.profile_dir
 		log.info(f"Using profile directory = '{self.profile_dir}'")
 		for opt in core_defaults.CHROMEDRIVER_OPTIONS:
@@ -282,7 +282,7 @@ class ScraperCore:
 		self.driver.set_window_size(*resolution)
 		log.info(f"Using window resolution = {resolution}")
 
-	def do_not_track():
+	def do_not_track(self):
 		# Launch Chrome with "Do Not Track" setting. There's currently no easy way
 		# to do this. One possibility we might want to try later is navigating
 		# to "chrome://settings/cookies" and controlling the setting.

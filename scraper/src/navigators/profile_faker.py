@@ -3,6 +3,7 @@ import random
 from typing import Any, Dict
 from scraper_middleware import ScraperMiddleWare
 from defaults.profile_faker import NAVIGATOR_DEFAULT_OPTIONS
+from logger import log
 
 class ProfileFaker(ScraperMiddleWare):
 	needs_authentication = True
@@ -39,7 +40,11 @@ class ProfileFaker(ScraperMiddleWare):
 		all_websites_random_order = list(just_pass_by | stay_for_a_while)
 		random.shuffle(all_websites_random_order)
 		all_websites = set(all_websites_random_order)
-		print(all_websites)
+		
+		log.info("In order to create a more credible browser fingerprint, we "
+			"will be accessing some of the following websites:")
+		log.info(all_websites)
+
 		for website in all_websites:
 			self.go(website)
 			if website in just_pass_by:

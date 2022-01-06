@@ -6,30 +6,34 @@ import subprocess
 import argparse
 import random
 import sys
+import signal
+from typing import Tuple
 from dotenv import dotenv_values
 
 from db import setup_db
 from logger import log
 from models.options import Options as ScraperOptions
+from scripts.job_finder import Job, find_all_jobs, get_jobs_path
+from tools import UseDirectory, get_project_root_path
 
 SCHEDULER_SHELL_SCRIPT = "scheduler.sh"
 DEFAULT_SLEEP_INTERVAL = 60
 
-BASH_PROLOGUE = """\
+BASH_PROLOGUE = f"""\
 #!/usr/bin/env bash
 
-log() {
-	echo -e "$(date +'%%Y-%%m-%%d %%H:%%M:%%S') [BASH-SCHEDULER] $1"
-}
+log() {{
+	echo -e "[$(date +"%Y-%m-%d %H:%M:%S")] [BASH-SCHEDULER] $1"
+}}
 
-control_c() {
+control_c() {{
     log "Interrupt received... exiting... :("
     exit
-}
+}}
 trap control_c SIGINT SIGTERM SIGHUP
 
 return_total=0
-cd '%(script_path)s'
+cd '{get_project_root_path()}'
 
 """
 
@@ -97,21 +101,22 @@ def parse() -> SchedulerOptions:
 	print(args)
 	return SchedulerOptions(**vars(args))
 
-def start_scheduler_shell_script(script_path):
-	write(BASH_PROLOGUE % {'script_path': script_path})
+def start_scheduler_shell_script():
+	write(BASH_PROLOGUE)
 
 def add_scheduler_shell_script(
-			job_index: int,
-			job_file: str,
+			index: int,
+			job: Job,
 			sleep_interval: int) -> None:
-	job_dict = dotenv_values(job_file)
-	options = ScraperOptions(**job_dict)
 
-	basename = os.path.basename(job_file)
+	full_options = job.make_full_options()
+	options = ScraperOptions(**full_options)
+
+	basename = os.path.basename(job.filename)
 	cmd = options.generate_cmd()
 	redacted = re.sub(r"password_encrypted='(.+)'", r"password_encrypted='********'", cmd)
 	redacted = re.sub(r"password_plain='(.+)'", r"password_plain='********'", redacted)
-	write_append(f'log "Now executing job #{job_index + 1} with instructions found at {basename}"')
+	write_append(f'log "Now executing job #{index + 1} with instructions found at {basename}"')
 	write_append(f'log "Running command {redacted}"')
 	write_append(cmd)
 	write_append(BASH_GET_RETURN_VALUE)
@@ -124,28 +129,22 @@ def add_scheduler_shell_script(
 	write_append(f"sleep {sleep_interval}")
 	write_append("")
 
+def sig_handle(signal_received, frame):
+	log.info(f"Process received signal = {signal_received}. Cleaning up and exiting.")
+	os.unlink(SCHEDULER_SHELL_SCRIPT)
+	sys.exit(1)
+
 def main():
 	options = parse()
 	setup_db()
 	
-	script_path = os.path.dirname(os.path.abspath(__file__))
-	scraper_root_path = os.path.dirname(script_path)
-	jobs_path = os.path.join(scraper_root_path, "jobs")
-	log.info(f"Looking for .env files containing jobs, at {jobs_path}")
-	if not os.path.isdir(jobs_path):
-		log.critical(f"Jobs folder '{jobs_path}' does not exist!")
-		return
-	jobs = sorted(list([
-		os.path.abspath(os.path.join(jobs_path, f))
-		for f in os.listdir(jobs_path)
-		if os.path.isfile(os.path.join(jobs_path, f)) and f.endswith(".env")
-	]))
+	jobs = find_all_jobs(discard_empty_jobs=False)
 	if not jobs:
 		log.critical("No jobs were found.")
 		return
 	log.info("")
 	log.info("We found the following jobs: \n\t" 
-		+ "\n\t".join([os.path.basename(job_file) for job_file in jobs])
+		+ "\n\t".join([os.path.basename(job.filename) for job in jobs])
 		+ "\n"
 	)
 
@@ -153,19 +152,24 @@ def main():
 		log.info("Shuffling jobs to a random order.")
 		random.shuffle(jobs)
 
-	log.info(f"We will write instructions to '{SCHEDULER_SHELL_SCRIPT}'")
-	start_scheduler_shell_script(scraper_root_path)
-	for i in range(len(jobs)):
-		add_scheduler_shell_script(i, jobs[i], options.sleep_interval)
-	write_append(BASH_EPILOGUE)
+	with UseDirectory(get_jobs_path()):
+		log.info(f"We will write instructions to '{SCHEDULER_SHELL_SCRIPT}'")
+		start_scheduler_shell_script()		
 
-	log.info(f"Running file generated with instructions.")
-	sp = subprocess.run(f"bash {SCHEDULER_SHELL_SCRIPT}", shell=True)
-	if sp.returncode != 0:
-		log.error("One or more of your jobs failed. Please check the logs above.")
-	os.unlink(SCHEDULER_SHELL_SCRIPT)
+		for i in range(len(jobs)):
+			add_scheduler_shell_script(i, jobs[i], options.sleep_interval)
+		write_append(BASH_EPILOGUE)
+
+		signal.signal(signal.SIGINT, sig_handle)
+		signal.signal(signal.SIGTERM, sig_handle)
+
+		full_path = os.path.realpath(SCHEDULER_SHELL_SCRIPT)
+		log.info(f"Running file '{full_path}' generated with instructions.")
+		sp = subprocess.run(f"bash {SCHEDULER_SHELL_SCRIPT}", shell=True)
+		if sp.returncode != 0:
+			log.error("One or more of your jobs failed. Please check the logs above.")
+		os.unlink(SCHEDULER_SHELL_SCRIPT)
 
 	sys.exit(sp.returncode)
-
 if __name__ == "__main__":
 	main()
