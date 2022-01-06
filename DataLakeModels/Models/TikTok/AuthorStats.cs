@@ -19,7 +19,7 @@ namespace DataLakeModels.Models.TikTok {
         public DateTime ValidityStart { get; set; }
         public DateTime ValidityEnd { get; set; }
         public Author Author { get; set; }
-        
+
         bool IEquatable<AuthorStats>.Equals(AuthorStats other) {
             return AuthorId == other.AuthorId &&
                    FollowingCount == other.FollowingCount &&

@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 
 namespace Jobs.Fetcher.TikTok {
-    public class TikTokUsers{
+    public class TikTokUsers {
 
         [JsonProperty("Name")] public string Name { get; set; }
 
