@@ -24,3 +24,5 @@ services:
         privileged: true
         depends_on:
           - pgdocker
+        volumes:
+          - ../credentials:/opt/scraper/jobs
