@@ -16,7 +16,7 @@ namespace DataLakeModels.Models.TikTok {
         public string CoverMedium { get; set; }
         public string CoverLarge { get; set; }
         public bool IsCommerce { get; set; }
-        
+
         bool IEquatable<Challenge>.Equals(Challenge other) {
             return Id == other.Id &&
                    Title == other.Title &&

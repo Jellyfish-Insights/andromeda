@@ -13,5 +13,4 @@ namespace Jobs.Fetcher.Twitter.Helpers {
     public static class DbReader {
         //Functions to simplify getting information on DataLake for Tik Tok data. Have readers for every info necessary
     }
-        
 }

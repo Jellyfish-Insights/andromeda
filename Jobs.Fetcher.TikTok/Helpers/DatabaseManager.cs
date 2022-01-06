@@ -15,7 +15,6 @@ namespace Jobs.Fetcher.TikTok {
 
         private static HashSet<string> reserved = new HashSet<string> { "from" };
 
-
         public static List<string> GetPayload(string username, DateTime last_fetch) {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
@@ -35,7 +34,7 @@ namespace Jobs.Fetcher.TikTok {
                     using (var reader = cmd.ExecuteReader()) {
                         while (reader.Read()) {
                             /*var log = new RowLog();
-                            log.AddInput("videos",
+                               log.AddInput("videos",
                                         MutableEntityExtentions.AutoPK(reader.Prim<long>("id")));*/
                             payloadStrings.Add(reader.GetString(0));
                         }
@@ -70,7 +69,7 @@ namespace Jobs.Fetcher.TikTok {
             }
         }
 
-        public static string GetTikTokId(string username){
+        public static string GetTikTokId(string username) {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -93,7 +92,7 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
-        public static bool TikTokUserExists(string username){
+        public static bool TikTokUserExists(string username) {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -115,7 +114,7 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
-        public static bool TikTokScraperTablesExist(){
+        public static bool TikTokScraperTablesExist() {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -135,13 +134,13 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
-        public static DateTime GetLastFetch(string authorId, DataLakeTikTokContext dbContext){
+        public static DateTime GetLastFetch(string authorId, DataLakeTikTokContext dbContext) {
             //var oldEntry = dbContext.Posts.Find(newEntry.Id);
             var now = DateTime.UtcNow;
             return dbContext.Posts.Where(m => m.Id == authorId && m.ValidityStart <= now && m.ValidityEnd > now)
-                                    .OrderByDescending(m => m.ValidityStart)
-                                    .Select(m => m.ValidityStart)
-                                    .FirstOrDefault();
+                       .OrderByDescending(m => m.ValidityStart)
+                       .Select(m => m.ValidityStart)
+                       .FirstOrDefault();
         }
     }
 }
