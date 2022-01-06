@@ -138,7 +138,7 @@ def main():
 	options = parse()
 	setup_db()
 	
-	jobs = find_all_jobs(discard_empty_jobs=False)
+	jobs = find_all_jobs()
 	if not jobs:
 		log.critical("No jobs were found.")
 		return

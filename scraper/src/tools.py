@@ -65,15 +65,20 @@ class PreserveDirectory:
 		os.chdir(self.old_dir)
 
 class UseDirectory:
-	def __init__(self, go_to_directory):
+	def __init__(self, go_to_directory, create_if_nonexistent: bool = True):
+		self.create_if_nonexistent = create_if_nonexistent
 		self.go_to_directory = go_to_directory
 		self.old_dir = None
 
 	def __enter__(self):
 		self.old_dir = os.getcwd()
 		if not os.path.isdir(self.go_to_directory):
-			log.debug(f"Directory '{self.go_to_directory}' did not exist, creating")
-			os.mkdir(self.go_to_directory)
+			if self.create_if_nonexistent:
+				log.debug(f"Directory '{self.go_to_directory}' did not exist, creating")
+				os.mkdir(self.go_to_directory)
+			else:
+				raise ValueError(f"Directory '{self.go_to_directory}' does not "
+					"exist and we won't create it.")
 		os.chdir(self.go_to_directory)
 
 	def __exit__(self, exc_type, exc_value, traceback):

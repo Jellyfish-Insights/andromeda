@@ -6,7 +6,7 @@ import datetime
 import traceback
 import re
 from abc import abstractmethod
-from typing import Dict, List, Optional, Type, TypeVar, Any, Union
+from typing import Dict, List, Optional, Type, TypeVar, Any
 
 from selenium.webdriver.common import by, action_chains, keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -33,6 +33,10 @@ class ScraperMiddleWare(ScraperCore):
 	"""
 	needs_authentication: Optional[bool] = None
 	navigator_default_options: Optional[Dict[str, Any]] = None
+
+	# Change to true in derived classes to allow running the program passing
+	# the scraper name as the only argument
+	allow_empty_options: bool = False
 
 	def __init__(self, options: Options):
 		super().__init__(options)
@@ -105,7 +109,7 @@ class ScraperMiddleWare(ScraperCore):
 		return {x.__name__: x for x in ScraperMiddleWare.__subclasses__()}
 
 	@staticmethod
-	def match_navigator_name(name: str) -> Union[Type, None]:
+	def match_navigator_name(name: str) -> Optional[Type]:
 		available_navigators = ScraperMiddleWare.get_available_navigators()
 		for nav_name in available_navigators.keys():
 			if re.search(rf"(?i)^{nav_name}$", name):

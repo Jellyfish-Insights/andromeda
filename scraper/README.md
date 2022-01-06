@@ -8,10 +8,27 @@ This was designed as a tool for the [Andromeda project](https://github.com/Jelly
 
 ## How to run the program?
 
-Place files for every job you would like to run in the folder `src/jobs`.
-Example jobs are included in this repository. The data (.csv, .json files)
-resulting from your jobs will be saved to `src/extracted_data` folder, which,
-in the Docker container, gets linked to the host filesystem.
+For this scraper, we will follow the same pattern as the credentials from the
+rest of Andromeda project. Please consult further documentation and examples
+there.
+
+Place `.env` files for every job you would like to run in the folder `src/jobs`.
+You can define different users, each with their set of jobs. For every user,
+you must create subdirectories whose names are the names of their respective
+scrapers (e.g. `tiktok`, `youtube` etc. — case insensitive). Example jobs are
+included in this repository. If you would like your jobs to run in a specific
+order, please prefix a numeric index to its name, e.g. `00_my_youtube_job.env`.
+Jobs will run by default in alphabetical order, though random order is also
+possible (see below).
+
+Besides instructions which are specific to each job, you might also want to set
+global constants, such as a database connection string. Please name this file as
+`appsettings.json` and place it directly under `jobs/` directory. This will be
+valid for every user and every job.
+
+The data (.csv, .json files) resulting from your jobs will be saved to
+`src/extracted_data` folder, which, in the Docker container, gets linked to the
+host filesystem.
 
 Build the Docker images and then run it with
 ```

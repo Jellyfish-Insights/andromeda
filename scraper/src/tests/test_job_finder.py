@@ -13,6 +13,8 @@ class BackupCurrentJobs:
 		go_to_jobs(create=True)
 		os.chdir(os.path.pardir)
 		shutil.copytree("jobs", self.backup_jobs_dir)
+		shutil.rmtree("jobs")
+		os.mkdir("jobs")
 
 	def __exit__(self, exc_type, exc_value, traceback):
 		go_to_jobs(create=False)
@@ -29,26 +31,27 @@ def main():
 		jobs_examples.extractall("../jobs/")
 		jobs_examples.close()
 		all_jobs = frozenset(find_all_jobs())
+		job_files = frozenset({job.filename for job in all_jobs})
 
 	files_to_check = frozenset([
-		'./user_example/profilefaker/00_profile_faker.env',
-		'./user_example/youtube/01_youtube_passwd_encrypted.env',
-		'./user_example/tiktok/02_tiktok_1.env',
-		'./user_example/tiktok/03_tiktok_2.env',
-		'./user_example/tiktok/04_tiktok_3.env',
-		'./jobs_examples/user_8d6126a4-90c1-4355-bd15-14dc19955f75/tiktok/09_good_dict_good_dir.env'
+		'./jobs_examples/user_example/tiktok/04_tiktok_3.env',
+		'./jobs_examples/user_example/tiktok/03_tiktok_2.env',
+		'./jobs_examples/user_example/tiktok/02_tiktok_1.env',
+		'./jobs_examples/user_example/profilefaker/00_profile_faker.env',
+		'./jobs_examples/user_8d6126a4-90c1-4355-bd15-14dc19955f75/tiktok/09_good_dict_good_dir.env',
+		'./jobs_examples/user_example/youtube/05_youtube_passwd_encrypted.env'
 	])
-	if all_jobs == files_to_check:
+	if job_files == files_to_check:
 		log.info("Test passed!")
 	else:
 		log.critical("Test failed.")
-		if len(all_jobs - files_to_check) == 0:
+		if len(job_files - files_to_check) == 0:
 			log.critical("Not all jobs were identified correctly.")
-		elif len(files_to_check - all_jobs) == 0:
+		elif len(files_to_check - job_files) == 0:
 			log.critical("Program marked more jobs as valid than it should have.")
 		else:
 			log.critical("There are jobs that shouldn't be there and jobs that are there and shouldn't be.")
-		log.critical(f"Output was: {all_jobs}")
+		log.critical(f"Output was: {job_files}")
 		log.critical(f"Expected: {files_to_check}")
 
 if __name__ == "__main__":

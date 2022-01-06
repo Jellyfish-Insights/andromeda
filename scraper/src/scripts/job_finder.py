@@ -18,6 +18,9 @@ class Job:
 	def make_full_options(self) -> Dict[str,str]:
 		return {**self.options, "navigator_name": self.nav_name}
 
+	def __hash__(self):
+		return hash(self.filename)
+
 def get_jobs_path(create: bool = False):
 	with PreserveDirectory():
 		go_to_project_root()
@@ -53,30 +56,25 @@ def create_example_jobs_directory():
 							filename = "%02d_job_sample.env" % i
 							open(filename, "w").close()
 
-def get_options_and_nav_name_from_file(
-			filename: str,
-			discard_if_empty: bool) -> Optional[Job]:
+def get_options_and_nav_name_from_file(filename: str) -> Optional[Job]:
+	# Check if a scraper exists with the directory name
+	dirname = os.path.basename(os.path.dirname(filename))
+	nav_class: Optional[ScraperMiddleWare] = ScraperMiddleWare.match_navigator_name(dirname)
+	if nav_class is None:
+		return
 
-	if discard_if_empty:
+	options = dotenv_values(filename)
+
+	if not nav_class.allow_empty_options:
 		minimum_file_size = 5
 		file_size = os.stat(filename).st_size
 		if file_size < minimum_file_size:
 			log.debug(f"File '{filename}' has under {minimum_file_size} bytes, skipping")
 			return
 
-		options = dotenv_values(filename)
-
 		if not options or all(value is None for value in options.values()):
 			log.debug(f"Bad format for .env file in '{filename}', skipping")
 			return
-	else:
-		options = dotenv_values(filename)
-
-	# Check if a scraper exists with the directory name
-	dirname = os.path.basename(os.path.dirname(filename))
-	nav_class: Optional[Type] = ScraperMiddleWare.match_navigator_name(dirname)
-	if nav_class is None:
-		return
 
 	# Let's try to create this object and see if it will complain
 	nav_name = nav_class.__name__
@@ -92,7 +90,7 @@ def get_options_and_nav_name_from_file(
 
 	return job
 
-def find_all_jobs(discard_empty_jobs=True) -> List[Job]:
+def find_all_jobs() -> List[Job]:
 	with UseDirectory(get_jobs_path(create=False)):
 		log.info(f"Looking for .env files containing jobs, at {os.getcwd()}")
 		jobs_found = []
@@ -104,8 +102,7 @@ def find_all_jobs(discard_empty_jobs=True) -> List[Job]:
 					log.debug(f"File '{full_filename}' does not have the .env extension, skipping")
 					continue
 
-				job = get_options_and_nav_name_from_file(
-					full_filename, discard_if_empty=discard_empty_jobs)
+				job = get_options_and_nav_name_from_file(full_filename)
 
 				if job is None:
 					continue

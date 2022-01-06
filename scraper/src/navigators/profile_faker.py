@@ -8,6 +8,7 @@ from logger import log
 class ProfileFaker(ScraperMiddleWare):
 	needs_authentication = True
 	navigator_default_options: Dict[str, Any] = NAVIGATOR_DEFAULT_OPTIONS
+	allow_empty_options: bool = True
 	
 	############################################################################
 	# METHODS
