@@ -6,6 +6,8 @@
 # This script should NOT be run as root, as it is not advisable to run Chrome
 # with root privileges.
 
+log_file="/var/log/scraper/$(date +%s).log"
+
 main() {
     log_i "Starting xvfb virtual display..."
     launch_xvfb
@@ -22,14 +24,12 @@ main() {
 	############################################################################
 	directory="/opt/scraper/"
 	scheduler_script="scripts/scheduler.py"
-
+	
 	log_i "Sleeping for 10 seconds to allow Postgres to init"
 	sleep 10
 
 	cd "$directory"
-	if [ -d chrome_profile ] ; then
-		rm -rf chrome_profile
-	fi
+	find -maxdepth 1 -regex '.*chrome_profile.*' -type d -exec rm -rf {} +
 
 	# This needs to go unquoted in the command
 	unquoted="$random_order"
@@ -38,7 +38,8 @@ main() {
 		log_i "Running scheduler script..."
 		python3 -m scripts.scheduler \
 			--sleep_interval "$sleep_interval" \
-			$unquoted
+			$unquoted \
+			2>&1 | tee -a "$log_file"
 		sleep 10
 	done
 }
@@ -134,7 +135,7 @@ log_e() {
 }
 
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [BOOTSTRAP] ${@}"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [BOOTSTRAP] ${@}" 2>&1 | tee -a "$log_file"
 }
 
 control_c() {

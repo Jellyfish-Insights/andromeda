@@ -16,7 +16,7 @@ class Inexistent(DBException):
 	pass
 
 base = declarative_base()
-db_string = os.environ.get('db_conn_string') or 'postgresql://brab:brickabode@localhost:5432'
+db_string = os.environ.get('db_conn_string') or 'postgresql://postgres:root@localhost:5432'
 db = create_engine(db_string)
 
 if not db.dialect.has_schema(db, SCHEMA_NAME):

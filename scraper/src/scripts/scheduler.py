@@ -135,13 +135,11 @@ def main():
 	if not os.path.isdir(jobs_path):
 		log.critical(f"Jobs folder '{jobs_path}' does not exist!")
 		return
-	jobs = sorted(list(filter(
-		os.path.isfile, 
-		[
-			os.path.abspath(os.path.join(jobs_path, f))
-			for f in os.listdir(jobs_path)
-		]
-	)))
+	jobs = sorted(list([
+		os.path.abspath(os.path.join(jobs_path, f))
+		for f in os.listdir(jobs_path)
+		if os.path.isfile(os.path.join(jobs_path, f)) and f.endswith(".env")
+	]))
 	if not jobs:
 		log.critical("No jobs were found.")
 		return

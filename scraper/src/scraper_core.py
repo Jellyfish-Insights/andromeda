@@ -1,7 +1,13 @@
-import os, sys, time, shutil, threading, traceback, random
+import os
+import sys
+import time
+import shutil
+import threading
+import traceback
+import random
 from typing import Dict
 import browsermobproxy, undetected_chromedriver.v2 as uc
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import WebDriverException, SessionNotCreatedException
 from fake_useragent import UserAgent
 
 from defaults import core as core_defaults, anonymization
@@ -48,6 +54,7 @@ class ScraperCore:
 		self.options = options
 		self.kill_handle = KillHandle()
 		self.cleaned_up = False
+		self.profile_dir = self.get_profile_dir()
 
 	def start(self):
 		self.use_timeout()
@@ -74,12 +81,8 @@ class ScraperCore:
 	def start_driver(self) -> None:
 		log.info("Starting Undetected Chrome Driver...")
 		chrome_options = uc.ChromeOptions()
-
-		if self.options.use_clean_profile and os.path.isdir(core_defaults.PROFILE_DIR):
-			shutil.rmtree(core_defaults.PROFILE_DIR)
-		
-		chrome_options.user_data_dir = core_defaults.PROFILE_DIR
-
+		chrome_options.user_data_dir = self.profile_dir
+		log.info(f"Using profile directory = '{self.profile_dir}'")
 		for opt in core_defaults.CHROMEDRIVER_OPTIONS:
 			chrome_options.add_argument(opt)
 
@@ -98,9 +101,18 @@ class ScraperCore:
 				options=chrome_options,
 				service_args=core_defaults.CHROMEDRIVER_SERVICEARGS
 			)
+		except SessionNotCreatedException as err:
+			log.critical("Session was not created! Check if ChromeDriver version "
+				"is compatible. You might want to run `sudo apt update && sudo "
+				"apt upgrade -y`")
+			log.critical(err)
+			traceback.print_exc()
+			self.server.stop()
+			sys.exit(1)
 		except (WebDriverException, KillHandleTriggered) as err:
 			log.critical("We could not open Chrome Driver. Cleaning up and exiting...")
 			log.critical(err)
+			traceback.print_exc()
 			self.server.stop()
 			sys.exit(1)
 		except Exception as err:
@@ -172,9 +184,41 @@ class ScraperCore:
 				if os.path.isfile(file):
 					os.unlink(file)
 
+		if os.path.isdir(self.profile_dir) and self.options.use_disposable_profile:
+			shutil.rmtree(self.profile_dir, ignore_errors=True)
+
 		self.cleaned_up = True
 		log.info("Exiting...")
 		sys.exit(exit_code)
+
+	def get_profile_dir(self) -> str:
+		prefix = core_defaults.PROFILE_DIR
+		throwaway_suffix = "throwaway"
+		throwaway_dirname = f"{prefix}___{throwaway_suffix}"
+		
+		if os.path.isdir(throwaway_dirname):
+			shutil.rmtree(throwaway_dirname, ignore_errors=True)
+		
+		if self.options.use_disposable_profile:
+			log.debug(f"Using disposable profile '{throwaway_dirname}'")
+			os.mkdir(throwaway_dirname)
+			return throwaway_dirname
+
+		existing_profiles = sorted([
+			x
+			for x in os.listdir()
+			if os.path.isdir(x) and x.startswith(prefix)
+		])
+		if not existing_profiles:
+			new_dirname = f"{prefix}___{int(time.time())}"
+			log.debug(f"No existing profile. Will use {new_dirname}")
+			os.mkdir(new_dirname)
+			return new_dirname
+		else:
+			existing_profile = existing_profiles[-1]
+			log.debug(f"Found existing profile {existing_profile}")
+			return existing_profile
+
 
 	############################################################################
 	# METHODS FOR ANONYMIZATION
