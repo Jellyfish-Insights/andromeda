@@ -5,7 +5,11 @@ scheduler.sh
 *.env
 # The exceptions are for demonstration purposes. Please remove these files
 # when sharing relevant passwords
+<<<<<<< HEAD
 !jobs/**/*.env
+=======
+!jobs/*.env
+>>>>>>> feature/scraper/main
 !navigators/helpers/password.env
 
 *.csv

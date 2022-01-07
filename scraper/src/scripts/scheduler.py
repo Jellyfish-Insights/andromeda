@@ -138,7 +138,22 @@ def main():
 	options = parse()
 	setup_db()
 	
+<<<<<<< HEAD
 	jobs = find_all_jobs()
+=======
+	script_path = os.path.dirname(os.path.abspath(__file__))
+	scraper_root_path = os.path.dirname(script_path)
+	jobs_path = os.path.join(scraper_root_path, "jobs")
+	log.info(f"Looking for .env files containing jobs, at {jobs_path}")
+	if not os.path.isdir(jobs_path):
+		log.critical(f"Jobs folder '{jobs_path}' does not exist!")
+		return
+	jobs = sorted(list([
+		os.path.abspath(os.path.join(jobs_path, f))
+		for f in os.listdir(jobs_path)
+		if os.path.isfile(os.path.join(jobs_path, f)) and f.endswith(".env")
+	]))
+>>>>>>> feature/scraper/main
 	if not jobs:
 		log.critical("No jobs were found.")
 		return
