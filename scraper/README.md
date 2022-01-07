@@ -32,11 +32,15 @@ host filesystem.
 
 Build the Docker images and then run it with
 ```
-docker-compose -f <FILE> build && docker-compose -f <FILE> up
+docker-compose -f docker-compose.dev.yml build --build-arg APP_UID=$(id -u) \
+&& docker-compose -f docker-compose.dev.yml up
 ```
 
-We have both a development and a production version pre-configured. You can also
-use other settings by changing the environment variables below.
+We have both a development and a production version pre-configured (just change the
+word `dev` above to `prod`). You can also use other settings by changing the
+environment variables below. Using `--build-arg APP_UID=$(id -u)` is advisable,
+but unnecessary in the case you are the only user of your computer (i.e. your
+UID is 1000).
 
 ### Environment variables
 File `docker-compose.yml` accepts two paramenters:
@@ -59,7 +63,7 @@ usage: main.py [-h] [--logging {10,20,30,40,50}] [--keep_logs] [--slow_mode]
                [--use_random_locale] [--no_random_locale] [--use_random_timezone]
                [--no_random_timezone] [--force_logout] [--no_force_logout]
                [--use_anonymous] [--no_use_anonymous] [--scroll_limit SCROLL_LIMIT]
-               [--timeout TIMEOUT] [--db_conn_string DB_CONN_STRING]
+               [--timeout TIMEOUT]
                [--account_name ACCOUNT_NAME]
                [--password_encrypted PASSWORD_ENCRYPTED]
                [--password_plain PASSWORD_PLAIN]

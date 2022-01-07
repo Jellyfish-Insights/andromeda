@@ -116,12 +116,16 @@ def find_files(regex: Union[str,re.Pattern] = None, join_path: str = None) -> Se
 def get_project_root_path() -> str:
 	"""Finds realpath to the /src directory by going upwards in the directory
 	tree and looking for the presence of "main.py"
+
+	Can also identify if it is in a Docker container, by matching the full path.
 	"""
 	with PreserveDirectory():
 		while True:
 			files = [x for x in os.listdir() if os.path.isfile(x)]
 			current_dir = os.getcwd()
-			if os.path.basename(current_dir) == "src" and "main.py" in files:
+			if ((os.path.basename(current_dir) == "src" 
+					or current_dir == '/opt/scraper')
+					and "main.py" in files):
 				break 
 			parent_dir = os.path.dirname(current_dir)
 			if parent_dir == current_dir:

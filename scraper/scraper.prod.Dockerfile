@@ -1,4 +1,3 @@
-# FROM ubuntu:20.04
 FROM debian:11
 
 # For avoiding prompts
@@ -45,7 +44,10 @@ RUN useradd app -u ${APP_UID} \
     && mkdir -p /home/app \
     && chown -v -R app:app /home/app \
 	&& mkdir -p /var/log/scraper/ \
-	&& chown -R app:app /var/log/scraper/ \
+	&& chown -R app:app /var/log/ \
 	&& chown -R app:app /opt/
+
+# Make it more lightweight by removing tests
+RUN rm -r /opt/scraper/tests
 
 CMD [ "/bootstrap.sh" ]

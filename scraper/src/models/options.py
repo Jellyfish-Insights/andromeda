@@ -26,7 +26,6 @@ class Options:
 	# to set default values and validate
 	scroll_limit: Optional[int] = None
 	timeout: Optional[int] = None
-	db_conn_string: Optional[str] = None
 	account_name: Optional[str] = None
 	password_encrypted: Optional[str] = None
 	password_plain: Optional[str] = None
@@ -54,7 +53,6 @@ class Options:
 			"scroll_limit",
 			"timeout",
 			"logging",
-			"db_conn_string",
 			"account_name",
 			"password_encrypted",
 			"password_plain",

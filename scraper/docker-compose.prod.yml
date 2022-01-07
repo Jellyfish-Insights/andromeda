@@ -1,29 +1,27 @@
 version: '3'
 
 services:
-    pgdocker:
-        image: postgres
+    data_lake:
+        build:
+          context: .
+          dockerfile: data_lake.Dockerfile
         ports:
-          - '5433:5432'
-        environment:
-          POSTGRES_PASSWORD: 'root'
+          - '5433:5433'
 
-    scraper-prod:
+    scraper_prod:
         build:
           context: .
           dockerfile: scraper.prod.Dockerfile
-        image: scraper-prod
         environment:
           sleep_interval: "60"
           random_order: ""
-          db_conn_string: "postgresql://postgres:root@pgdocker:5432"
 
           # Enables development mode. Leave empty for production
           development: ''
         user: app
         privileged: true
         depends_on:
-          - pgdocker
+          - data_lake
         volumes:
           - ./src/extracted_data:/opt/scraper/extracted_data
           - ./logs:/var/log/scraper

@@ -3,6 +3,8 @@ import json
 import re
 
 from dataclasses import dataclass
+from typing import Union
+from urllib.parse import quote
 
 from sqlalchemy import create_engine
 from sqlalchemy.schema import CreateSchema
@@ -14,20 +16,22 @@ from logger import log
 
 SETTINGS_FILE = "appsettings.json"
 KEY_FOR_SETTINGS_FILE = "ConnectionStrings"
-KEY_INSIDE_KEY = "BusinessDatabase"
+KEY_INSIDE_KEY = "DataLakeDatabase"
 
-DEFAULT_DATABASE = "postgresql"
+DEFAULT_VENDOR = "postgresql"
+DEFAULT_DATABASE = "postgres"
 DEFAULT_UNAME = "postgres"
 DEFAULT_PASSWD = "root"
 DEFAULT_HOST = "localhost"
 DEFAULT_PORT = 5432
 
 PYTHON_CONN_STR_REGEX = re.compile(
-	r'^(?P<database>.+)://'
-	r'(?P<uname>.+):'
-	r'(?P<passwd>.+)@'
-	r'(?P<host>.+):'
-	r'(?P<port>[0-9]+)$'
+	r'^(?P<vendor>[^:]+)://'
+	r'(?P<uname>[^:]+):'
+	r'(?P<passwd>[^@]+)@'
+	r'(?P<host>[^:/]+)'
+	r'(:(?P<port>[0-9]+))?'				# optional
+	r'(/(?P<database>.+)|/?)$'			# optional
 )
 
 CS_CONN_STR_HOST_REGEX = re.compile(r'Host=([^;]+)')
@@ -36,7 +40,7 @@ CS_CONN_STR_UNAME_REGEX = re.compile(r'Username=([^;]+)')
 CS_CONN_STR_PASSWD_REGEX = re.compile(r'Password=([^;]+)')
 CS_CONN_STR_PORT_REGEX = re.compile(r'Port=([0-9]+)')
 
-SCHEMA_NAME = "tiktok_scraper_v1"
+SCHEMA_NAME = "general_scraper_v1"
 
 class DBException(Exception):
 	pass
@@ -49,11 +53,12 @@ class Inexistent(DBException):
 
 @dataclass
 class ConnStr:
+	vendor: str
 	host: str
 	database: str
 	uname: str
 	passwd: str
-	port: int
+	port: Union[int,str]
 
 	@staticmethod
 	def from_csharp(s: str) -> 'ConnStr':
@@ -66,20 +71,31 @@ class ConnStr:
 		if not all([match_host, match_database, match_uname, match_passwd, match_port]):
 			raise ValueError("This is not a C# connection string")
 
+		log.debug(f"C# string doesn't supply a SQL vendor, assuming '{DEFAULT_VENDOR}'")
+		vendor = DEFAULT_VENDOR
 		host = match_host[1]
 		database = match_database[1]
 		uname = match_uname[1]
 		passwd = match_passwd[1]
 		port = int(match_port[1])
-		return ConnStr(host, database, uname, passwd, port)
+		return ConnStr(vendor, host, database, uname, passwd, port)
 
 	@staticmethod
 	def from_python(s: str) -> 'ConnStr':
 		match = PYTHON_CONN_STR_REGEX.search(s)
 		if not match:
 			raise ValueError("This is not a RFC-1738-style connection string")
+
+		destructured = {**match.groupdict()}
+
+		# Default for postgres is to log in to database named as user, if no
+		# database is supplied
+		if destructured.get("database") is None:
+			destructured["database"] = destructured["uname"]
+		if destructured.get("port") is None:
+			destructured["port"] = 5432
 		
-		return ConnStr(**match.groupdict())
+		return ConnStr(**destructured)
 
 	@staticmethod
 	def from_unknown_string(s: str) -> 'ConnStr':
@@ -95,11 +111,58 @@ class ConnStr:
 
 	@staticmethod
 	def default_conn_str() -> 'ConnStr':
-		return ConnStr(DEFAULT_HOST, DEFAULT_DATABASE, DEFAULT_UNAME,
+		return ConnStr(DEFAULT_VENDOR, DEFAULT_HOST, DEFAULT_DATABASE, DEFAULT_UNAME,
 			DEFAULT_PASSWD, DEFAULT_PORT)
 
+	@staticmethod
+	def test() -> bool:
+		python_strings = [
+			'postgres://user:password@localhost:5432/database',
+			'postgres://user:password@localhost:5432/',
+			'postgres://user:password@localhost:5432',
+			'postgres://user:password@localhost',
+			'postgres://user:password@localhost/',
+			'postgres://user:password@localhost/database',
+			'postgres://user:password@localhost:',		# error
+			'postgres://:password@localhost/database'	# error
+			'postgres://user:password@:5432',			# error
+		]
+		for ps in python_strings:
+			try:
+				conn_str_to_python = ConnStr.from_python(ps).to_python()
+			except ValueError:
+				conn_str_to_python = "Error!"
+			log.info(f"The input of '{ps}' was parsed as '{conn_str_to_python}'")
+
+		cs_strings = [
+			"Host=analytics_platform;Database=analytics_platform;Username=fee;Password=dbpassword;Port=5432",
+			"Host=analytics_platform;Database=analytics_platform;Username=fee;Port=5432;Password=dbpassword",
+			"Password=dbpassword;Host=analytics_platform;Database=analytics_platform;Username=fee;Port=5432",
+		]
+		for cs in cs_strings:
+			try:
+				conn_str_to_python = ConnStr.from_csharp(cs).to_python()
+			except ValueError:
+				conn_str_to_python = "Error!"
+			log.info(f"The input of '{cs}' was parsed as '{conn_str_to_python}'")
+
+	############################################################################
+	# INSTANCE METHOD
+	############################################################################
+	def encode(self) -> 'ConnStr':
+		"""Returns a copy of the object, changing every field to be RFC-3986
+		compliant (i.e. escape reserved characters)
+		"""
+		copy = ConnStr(self.vendor, self.host, self.database, self.uname,
+			self.passwd, self.port)
+		for key, value in vars(copy).items():
+			if (quoted := quote(str(value))) != value:
+				setattr(copy, key, quoted)
+		return copy
+
 	def to_python(self):
-		return f"{self.database}://{self.uname}:{self.passwd}@{self.host}:{self.port}"
+		encoded = self.encode()
+		return f"{encoded.vendor}://{encoded.uname}:{encoded.passwd}@{encoded.host}:{encoded.port}/{encoded.database}"
 
 def parse_db_string() -> str:
 	jobs_dir = os.path.join(get_project_root_path(), "jobs")
@@ -125,8 +188,7 @@ def parse_db_string() -> str:
 
 base = declarative_base()
 db_string = parse_db_string()
-print(db_string)
-exit()
+log.info(f"Connecting to database with string '{db_string}'")
 db = create_engine(db_string)
 
 if not db.dialect.has_schema(db, SCHEMA_NAME):

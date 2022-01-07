@@ -2,7 +2,6 @@ import argparse
 from scraper_middleware import ScraperMiddleWare
 from models.options import Options
 
-DEFAULT_DB_CONN_STR = "postgresql://brab:brickabode@localhost:5432"
 DEFAULT_LOGGING_LEVEL = 10
 
 def parse() -> Options:
@@ -163,15 +162,6 @@ def parse() -> Options:
 		help='Maximum time the program should run (estimated), given in '
 			f"seconds. A value of zero will be considered as no timeout."
 	)
-	parser.add_argument(
-		'--db_conn_string',
-		'-d',
-		action='store',
-		type=str,
-		default=DEFAULT_DB_CONN_STR,
-		help="Connection string for the database. Format is "
-			"'postgresql://user:password@host:port'"
-	)	
 	parser.add_argument(
 		'--account_name',
 		action='store',
