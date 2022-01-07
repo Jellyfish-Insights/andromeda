@@ -13,7 +13,7 @@ services:
           context: .
           dockerfile: scraper.dev.Dockerfile
         environment:
-          sleep_interval: "60"
+          sleep_interval: "600"
           random_order: ""
           
           # This is for the GUI

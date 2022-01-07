@@ -65,9 +65,14 @@ class PreserveDirectory:
 		os.chdir(self.old_dir)
 
 class UseDirectory:
-	def __init__(self, go_to_directory, create_if_nonexistent: bool = True):
-		self.create_if_nonexistent = create_if_nonexistent
+	def __init__(
+				self,
+				go_to_directory: str,
+				create_if_nonexistent: bool = True,
+				create_parents: bool = True):
 		self.go_to_directory = go_to_directory
+		self.create_if_nonexistent = create_if_nonexistent
+		self.create_parents = create_parents
 		self.old_dir = None
 
 	def __enter__(self):
@@ -75,7 +80,15 @@ class UseDirectory:
 		if not os.path.isdir(self.go_to_directory):
 			if self.create_if_nonexistent:
 				log.debug(f"Directory '{self.go_to_directory}' did not exist, creating")
-				os.mkdir(self.go_to_directory)
+				try:
+					os.mkdir(self.go_to_directory)
+				except FileNotFoundError:
+					log.debug(f"Cannot reach '{self.go_to_directory}' directly")
+					if self.create_parents:
+						log.debug("Creating parent directories...")
+						os.makedirs(self.go_to_directory)
+					else:
+						raise ValueError("Option create_parents was set to False")
 			else:
 				raise ValueError(f"Directory '{self.go_to_directory}' does not "
 					"exist and we won't create it.")
@@ -137,3 +150,6 @@ def go_to_project_root():
 	"""Changes working directory to the /src directory
 	"""
 	os.chdir(get_project_root_path())
+
+def dirname_from_file(filename: str) -> str:
+	return os.path.dirname(os.path.realpath(filename))

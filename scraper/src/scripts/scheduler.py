@@ -59,6 +59,7 @@ DEBUG = False
 class SchedulerOptions:
 	random_order: bool
 	sleep_interval: int
+	dry_run: bool
 
 def write(*args, **kwargs):
 	if DEBUG:
@@ -87,6 +88,12 @@ def parse() -> SchedulerOptions:
 		action='store_true',
 		help="By default, jobs are run in alphabetical order. If this is set, "
 		"a random order is used instead."
+	)
+	parser.add_argument(
+		'--dry_run',
+		'-d',
+		action='store_true',
+		help="Quit after producing file with instructions. Don't run jobs."
 	)
 	parser.add_argument(
 		'--sleep_interval',
@@ -138,22 +145,7 @@ def main():
 	options = parse()
 	setup_db()
 	
-<<<<<<< HEAD
 	jobs = find_all_jobs()
-=======
-	script_path = os.path.dirname(os.path.abspath(__file__))
-	scraper_root_path = os.path.dirname(script_path)
-	jobs_path = os.path.join(scraper_root_path, "jobs")
-	log.info(f"Looking for .env files containing jobs, at {jobs_path}")
-	if not os.path.isdir(jobs_path):
-		log.critical(f"Jobs folder '{jobs_path}' does not exist!")
-		return
-	jobs = sorted(list([
-		os.path.abspath(os.path.join(jobs_path, f))
-		for f in os.listdir(jobs_path)
-		if os.path.isfile(os.path.join(jobs_path, f)) and f.endswith(".env")
-	]))
->>>>>>> feature/scraper/main
 	if not jobs:
 		log.critical("No jobs were found.")
 		return
@@ -174,6 +166,9 @@ def main():
 		for i in range(len(jobs)):
 			add_scheduler_shell_script(i, jobs[i], options.sleep_interval)
 		write_append(BASH_EPILOGUE)
+
+		if options.dry_run:
+			return
 
 		signal.signal(signal.SIGINT, sig_handle)
 		signal.signal(signal.SIGTERM, sig_handle)
