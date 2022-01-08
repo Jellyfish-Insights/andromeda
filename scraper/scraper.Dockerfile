@@ -58,8 +58,9 @@ FROM scraper_prod AS scraper_dev
 COPY src/tests/ /opt/scraper/tests
 
 # Install debugging features
-RUN apt-get install -y make x11vnc less vim curl sudo
-RUN usermod -aG sudo app
+RUN apt-get install -y make x11vnc less vim curl sudo htop
+RUN usermod -aG sudo app && \
+	echo "123456\n123456" | passwd app
 
 # Install test data
 RUN cd /opt/scraper/ && \
