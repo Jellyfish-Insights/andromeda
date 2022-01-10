@@ -1,14 +1,14 @@
-import os
-import sys
-import re
-import time
 import datetime
 import logging
+import math
+import os
+import re
+import sys
+import time
 import zipfile
 from dataclasses import dataclass
 from typing import Final, List
 
-import numpy as np
 import pandas as pd
 
 from logger import log, change_logger_level
@@ -66,8 +66,9 @@ class CSV_Data:
 			else:
 				for int_col_regex in INTEGER_COLUMNS_REGEX:
 					if int_col_regex.search(col):
-						df[col] = np.floor(df[col]).astype(pd.Int64Dtype())
-						pass
+						for i in df.index:
+							df.loc[i, col] = math.floor(df.loc[i, col])
+						df[col] = df[col].astype(pd.Int64Dtype())
 
 		df["Identifier"] = self.identifier
 		df["Video Title"] = self.video_name

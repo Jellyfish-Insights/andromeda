@@ -1,4 +1,4 @@
-version: '3'
+version: '3.4'
 
 services:
     data_lake:
@@ -11,7 +11,8 @@ services:
     scraper_dev:
         build:
           context: .
-          dockerfile: scraper.dev.Dockerfile
+          dockerfile: scraper.Dockerfile
+          target: scraper_dev
         environment:
           sleep_interval: "600"
           random_order: ""

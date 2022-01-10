@@ -7,8 +7,7 @@ import argparse
 import random
 import sys
 import signal
-from typing import Tuple
-from dotenv import dotenv_values
+from typing import List
 
 from db import setup_db
 from logger import log
@@ -136,6 +135,30 @@ def add_scheduler_shell_script(
 	write_append(f"sleep {sleep_interval}")
 	write_append("")
 
+def show_statistics(jobs: List[Job]):
+	buffer = [
+		"",
+		"",
+		"We found the following jobs: ",
+		""
+	]
+	for job in jobs:
+		buffer.append(f"\t{os.path.basename(job.filename)}")
+	buffer.append("")
+
+	nav_names = [job.nav_name for job in jobs]
+	counter = {nav_name: nav_names.count(nav_name) for nav_name in set(nav_names)}
+	
+	buffer.append("Jobs are distributed as: ")
+	buffer.append("")
+	for nav_name, frequency in counter.items():
+		buffer.append(f"\t{nav_name:18s}{frequency:3d}")
+	buffer.append(f"\t{'_' * 21}")
+	buffer.append(f"\t{'Total':18s}{sum(counter.values()):3d}")
+	buffer.append("")
+
+	log.info("\n".join(buffer))
+
 def sig_handle(signal_received, frame):
 	log.info(f"Process received signal = {signal_received}. Cleaning up and exiting.")
 	os.unlink(SCHEDULER_SHELL_SCRIPT)
@@ -149,11 +172,7 @@ def main():
 	if not jobs:
 		log.critical("No jobs were found.")
 		return
-	log.info("")
-	log.info("We found the following jobs: \n\t" 
-		+ "\n\t".join([os.path.basename(job.filename) for job in jobs])
-		+ "\n"
-	)
+	show_statistics(jobs)
 
 	if options.random_order:
 		log.info("Shuffling jobs to a random order.")

@@ -1,4 +1,4 @@
-FROM debian:11
+FROM debian:11 AS scraper_prod
 
 # For avoiding prompts
 ENV DEBIAN_FRONTEND=noninteractive
@@ -49,5 +49,20 @@ RUN useradd app -u ${APP_UID} \
 
 # Make it more lightweight by removing tests
 RUN rm -r /opt/scraper/tests
+
+CMD [ "/bootstrap.sh" ]
+
+FROM scraper_prod AS scraper_dev
+
+# Put tests back
+COPY src/tests/ /opt/scraper/tests
+
+# Install debugging features
+RUN apt-get install -y make x11vnc less vim curl sudo
+RUN usermod -aG sudo app
+
+# Install test data
+RUN cd /opt/scraper/ && \
+	python3 -m tests.test_tiktok_most_followed
 
 CMD [ "/bootstrap.sh" ]
