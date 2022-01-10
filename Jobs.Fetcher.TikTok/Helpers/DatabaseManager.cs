@@ -134,10 +134,10 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
-        public static DateTime GetLastFetch(string authorId, DataLakeTikTokContext dbContext) {
+        public static DateTime GetLastFetch(string username, DataLakeTikTokContext dbContext) {
             //var oldEntry = dbContext.Posts.Find(newEntry.Id);
             var now = DateTime.UtcNow;
-            return dbContext.Posts.Where(m => m.Id == authorId && m.ValidityStart <= now && m.ValidityEnd > now)
+            return dbContext.Posts.Where(m => m.Author.UniqueId == username && m.ValidityStart <= now && m.ValidityEnd > now)
                        .OrderByDescending(m => m.ValidityStart)
                        .Select(m => m.ValidityStart)
                        .FirstOrDefault();

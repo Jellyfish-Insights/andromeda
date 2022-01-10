@@ -24,13 +24,17 @@ namespace Jobs.Fetcher.TikTok {
                     Logger.Warning($"TikTok Scraper tables do not exist.");
                     return;
                 }
-                var authorId = DatabaseManager.GetTikTokId(username);
+                /*var authorId = DatabaseManager.GetTikTokId(username);
                 if (authorId == null) {
                     Logger.Error($"Could not find TikTok's AuthorID for ({username})");
                     return;
-                }
-                var lastFetch = DatabaseManager.GetLastFetch(authorId, dbContext);
+                }*/
+                var lastFetch = DatabaseManager.GetLastFetch(username, dbContext);
                 foreach (var post in ApiDataFetcher.GetPosts(username, lastFetch)) {
+                    if(post["author"].ToString() == username){
+                        Logger.Warning($"Author data not available on JSON payload.");
+                        continue;
+                    }
                     var newAuthor = ApiDataFetcher.GetTikTokAuthorFromJSON(post["author"]);
                     DbWriter.WriteAuthor(newAuthor, dbContext, logger);
 

@@ -121,7 +121,6 @@ namespace Jobs.Fetcher.TikTok.Helpers {
         }
 
         public static Author GetTikTokAuthorFromJSON(JToken authorJSON) {
-            Console.WriteLine("\n The author: {0} \n", authorJSON);
             return new Author() {
                        Id = authorJSON["id"].ToString(),
                        UniqueId = authorJSON["uniqueId"].ToString(),
