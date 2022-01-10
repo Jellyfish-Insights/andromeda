@@ -17,9 +17,6 @@ services:
           sleep_interval: "600"
           random_order: ""
           
-          # This is for the GUI
-          VNC_SERVER_PASSWORD: 'password'
-
           # Enables development mode. Leave empty for production
           development: 'development'
         ports:

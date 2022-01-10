@@ -10,7 +10,7 @@ log_file="/var/log/scraper/$(date +%s).log"
 
 python_watchdog() {
 	max_age=3600
-	watch_frequency=60
+	watch_frequency=600
 	log_i "Starting python watchdog in the background"
 	(
 		while true; do
@@ -122,25 +122,20 @@ launch_window_manager() {
 
 run_vnc_server() {
     local passwordArgument='-nopw'
+	local vnc_server_password='123456'
+	local passwordFilePath="${HOME}/.x11vnc.pass"
 
-    if [ -n "${VNC_SERVER_PASSWORD}" ]
-    then
-        local passwordFilePath="${HOME}/.x11vnc.pass"
-        if ! x11vnc -storepasswd "${VNC_SERVER_PASSWORD}" "${passwordFilePath}"
-        then
-            log_e "Failed to store x11vnc password"
-            exit 1
-        fi
-        passwordArgument=-"-rfbauth ${passwordFilePath}"
-        log_i "The VNC server will ask for a password"
-    else
-        log_w "The VNC server will NOT ask for a password"
-    fi
+	if ! x11vnc -storepasswd "${vnc_server_password}" "${passwordFilePath}"
+	then
+		log_e "Failed to store x11vnc password"
+		exit 1
+	fi
+	passwordArgument=-"-rfbauth ${passwordFilePath}"
+	log_i "The VNC server will ask for the password '$vnc_server_password'"
 
     x11vnc -display ${DISPLAY} -forever ${passwordArgument} \
 		>> /var/log/x11vnc.log \
 		2>> /var/log/x11vnc.error &
-	
 }
 
 log_i() {

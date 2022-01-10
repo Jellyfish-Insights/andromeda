@@ -104,6 +104,12 @@ can work without human intervention.
 
 ## Debugging
 
+### Attaching to a running process
+Unfortunately, it is not possible to attach PDB (Python Debugger) to a running
+process the same way you would attach GDB to a C program. [Some](https://stackoverflow.com/questions/54205110/attaching-python-debugger)
+[workarounds](https://devguide.python.org/gdb/) have been tried, but they are so
+inconvenient they should really be the last option. Therefore, your best bet is to
+closely analyze the log files.
 ### Log files
 
 If you run the program as a container, log files will be available at the volume
@@ -111,22 +117,16 @@ mounted to `logs`. The verbosity level of log messages can also be changed
 for every individual job by passing `logging` parameter in the `.env` file.
 This parameter can take values {10,20,30,40,50}, where 10 includes all messages
 and 50 only critical messages.
-### Debugging the GUI
 
+### Debugging the GUI
 Sometimes the scraper might not work and you have no clue why. It is hard to tell,
 because we cannot see what is on the screen at Chrome. For this reason, the 
 development version has support for attaching a GUI client.
 
-In addition to these arguments, we have one extra which can be used to restrict access
-to the graphic terminal in development mode:
-- `VNC_SERVER_PASSWORD` is optional unless you are using Mac. If you are on
-Ubuntu and leave this empty, then the VNC will simply be accessible without
-a password.
-
 The Docker command will open a container whose port 5900 is connected to port
 5900 of the host. If you want to check out what is going on inside the container,
 you can connect to the GUI with a client such as `vncviewer`, like so:
-`vncviewer localhost:5900`.
+`vncviewer localhost:5900`. When requested, type in the password `123456`.
 
 In the future we want to add periodical screenshots for debugging purposes.
 
