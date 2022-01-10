@@ -1,4 +1,12 @@
-import threading, time, datetime, random
+import threading
+import time
+import datetime
+import random
+import os
+import re
+from typing import Set, Union
+
+from logger import log
 
 def throttle(
 			execution_time: float,
@@ -45,3 +53,103 @@ class KillHandle(threading.Event):
 	def timeout(self, timeout_seconds: int):
 		time.sleep(timeout_seconds)
 		self.set()
+
+class PreserveDirectory:
+	def __init__(self):
+		self.old_dir = None
+
+	def __enter__(self):
+		self.old_dir = os.getcwd()
+
+	def __exit__(self, exc_type, exc_value, traceback):
+		os.chdir(self.old_dir)
+
+class UseDirectory:
+	def __init__(
+				self,
+				go_to_directory: str,
+				create_if_nonexistent: bool = True,
+				create_parents: bool = True):
+		self.go_to_directory = go_to_directory
+		self.create_if_nonexistent = create_if_nonexistent
+		self.create_parents = create_parents
+		self.old_dir = None
+
+	def __enter__(self):
+		self.old_dir = os.getcwd()
+		if not os.path.isdir(self.go_to_directory):
+			if self.create_if_nonexistent:
+				log.debug(f"Directory '{self.go_to_directory}' did not exist, creating")
+				try:
+					os.mkdir(self.go_to_directory)
+				except FileNotFoundError:
+					log.debug(f"Cannot reach '{self.go_to_directory}' directly")
+					if self.create_parents:
+						log.debug("Creating parent directories...")
+						os.makedirs(self.go_to_directory)
+					else:
+						raise ValueError("Option create_parents was set to False")
+			else:
+				raise ValueError(f"Directory '{self.go_to_directory}' does not "
+					"exist and we won't create it.")
+		os.chdir(self.go_to_directory)
+
+	def __exit__(self, exc_type, exc_value, traceback):
+		os.chdir(self.old_dir)
+
+def get_home_dir():
+	home_dir = os.path.expanduser("~")
+	if home_dir == "~":
+		raise OSError("Failed to identify home directory")
+	return home_dir
+
+def find_files(regex: Union[str,re.Pattern] = None, join_path: str = None) -> Set[str]:
+	current_path = os.getcwd()
+
+	if regex is None:
+		regex = ""
+	
+	if join_path is not None:
+		path = os.path.join(current_path, join_path)
+	else:
+		path = current_path
+	
+	if type(regex) == re.Pattern:
+		compiled = regex
+	else:
+		compiled = re.compile(regex, flags=re.I)
+	
+	files = set([
+		f
+		for f in os.listdir(path)
+		if os.path.isfile(os.path.join(path, f)) and bool(compiled.search(f))
+	])
+	return files
+
+def get_project_root_path() -> str:
+	"""Finds realpath to the /src directory by going upwards in the directory
+	tree and looking for the presence of "main.py"
+
+	Can also identify if it is in a Docker container, by matching the full path.
+	"""
+	with PreserveDirectory():
+		while True:
+			files = [x for x in os.listdir() if os.path.isfile(x)]
+			current_dir = os.getcwd()
+			if ((os.path.basename(current_dir) == "src" 
+					or current_dir == '/opt/scraper')
+					and "main.py" in files):
+				break 
+			parent_dir = os.path.dirname(current_dir)
+			if parent_dir == current_dir:
+				raise ValueError("The project root could not be found!")
+			os.chdir(os.path.pardir)
+		return current_dir
+
+def go_to_project_root():
+	"""Changes working directory to the /src directory
+	"""
+	os.chdir(get_project_root_path())
+
+def dirname_from_file(filename: str) -> str:
+	return os.path.dirname(os.path.realpath(filename))

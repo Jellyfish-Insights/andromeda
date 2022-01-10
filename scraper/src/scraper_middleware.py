@@ -1,6 +1,12 @@
-import random, time, json, os, datetime, traceback
+import random
+import time
+import json
+import os
+import datetime
+import traceback
+import re
 from abc import abstractmethod
-from typing import Dict, List, TypeVar, Any
+from typing import Dict, List, Optional, Type, TypeVar, Any
 
 from selenium.webdriver.common import by, action_chains, keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -25,8 +31,12 @@ class ScraperMiddleWare(ScraperCore):
 	This class defines a middleware between the specific navigator implementation
 	and the Driver-Proxy core.
 	"""
-	needs_authentication: bool = None
-	navigator_default_options: Dict[str, Any] = None
+	needs_authentication: Optional[bool] = None
+	navigator_default_options: Optional[Dict[str, Any]] = None
+
+	# Change to true in derived classes to allow running the program passing
+	# the scraper name as the only argument
+	allow_empty_options: bool = False
 
 	def __init__(self, options: Options):
 		super().__init__(options)
@@ -93,17 +103,19 @@ class ScraperMiddleWare(ScraperCore):
 	# STATIC METHODS
 	############################################################################
 	@staticmethod
-	def get_available_navigators() -> Dict[str, type]:
-		import navigators.tiktok, navigators.youtube, navigators.test_navigator
+	def get_available_navigators() -> Dict[str, Type]:
+		import navigators.tiktok, navigators.youtube, navigators.test_navigator, \
+			navigators.profile_faker
 		return {x.__name__: x for x in ScraperMiddleWare.__subclasses__()}
 
 	@staticmethod
-	def select_navigator(name: str) -> type:
-		navigator_classes = ScraperMiddleWare.get_available_navigators()
-		try:
-			return navigator_classes[name]
-		except KeyError:
-			raise
+	def match_navigator_name(name: str) -> Optional[Type]:
+		available_navigators = ScraperMiddleWare.get_available_navigators()
+		for nav_name in available_navigators.keys():
+			if re.search(rf"(?i)^{nav_name}$", name):
+				return available_navigators[nav_name]
+		log.debug(f"Name '{name}' matches no known scraper.")
+		return None
 
 	############################################################################
 	# METHODS FOR LOCATING
@@ -286,6 +298,7 @@ class ScraperMiddleWare(ScraperCore):
 
 		start = datetime.datetime.now()
 		while (datetime.datetime.now() - start).total_seconds() < timeout:
+			self.kill_handle.check()
 			self.move_mouse_lattice(abstract_defaults.MOVE_AROUND_MOVE_MOUSE_TIMES)
 			if allow_scrolling:
 				self.scroll_random()

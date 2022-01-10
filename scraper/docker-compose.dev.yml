@@ -1,22 +1,21 @@
-version: '3'
+version: '3.4'
 
 services:
-    pgdocker:
-        image: postgres
-        ports:
-          - '5433:5432'
-        environment:
-          POSTGRES_PASSWORD: 'root'
-
-    scraper-dev:
+    data_lake:
         build:
           context: .
-          dockerfile: scraper.dev.Dockerfile
-        image: scraper-dev
+          dockerfile: data_lake.Dockerfile
+        ports:
+          - '5433:5433'
+
+    scraper_dev:
+        build:
+          context: .
+          dockerfile: scraper.Dockerfile
+          target: scraper_dev
         environment:
-          sleep_interval: "60"
+          sleep_interval: "600"
           random_order: ""
-          db_conn_string: "postgresql://postgres:root@pgdocker:5432"
           
           # This is for the GUI
           VNC_SERVER_PASSWORD: 'password'
@@ -25,7 +24,10 @@ services:
           development: 'development'
         ports:
           - '5900:5900'
-        user: apps
+        user: app
         privileged: true
         depends_on:
-          - pgdocker
+          - data_lake
+        volumes:
+          - ./src/extracted_data:/opt/scraper/extracted_data
+          - ./logs:/var/log/scraper

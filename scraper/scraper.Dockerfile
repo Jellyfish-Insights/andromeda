@@ -1,5 +1,4 @@
-# FROM ubuntu:20.04
-FROM debian:11
+FROM debian:11 AS scraper_prod
 
 # For avoiding prompts
 ENV DEBIAN_FRONTEND=noninteractive
@@ -39,13 +38,31 @@ COPY src/ /opt/scraper/
 COPY bootstrap.sh /
 
 # Add regular user, give them ownership of binaries
-RUN useradd apps \
-    && mkdir -p /home/apps \
-    && chown -v -R apps:apps /home/apps \
-	&& usermod -aG sudo apps \
-	&& chown -R apps:apps /opt/
+ARG APP_UID=${APP_UID:-1000}
+ENV APP_UID=${APP_UID}
+RUN useradd app -u ${APP_UID} \
+    && mkdir -p /home/app \
+    && chown -v -R app:app /home/app \
+	&& mkdir -p /var/log/scraper/ \
+	&& chown -R app:app /var/log/ \
+	&& chown -R app:app /opt/
 
-# Make regular user able to write log files
-RUN chmod a+w /var/log/
+# Make it more lightweight by removing tests
+RUN rm -r /opt/scraper/tests
+
+CMD [ "/bootstrap.sh" ]
+
+FROM scraper_prod AS scraper_dev
+
+# Put tests back
+COPY src/tests/ /opt/scraper/tests
+
+# Install debugging features
+RUN apt-get install -y make x11vnc less vim curl sudo
+RUN usermod -aG sudo app
+
+# Install test data
+RUN cd /opt/scraper/ && \
+	python3 -m tests.test_tiktok_most_followed
 
 CMD [ "/bootstrap.sh" ]

@@ -1,44 +1,44 @@
 import os
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from logger import log
 
+SCRIPT_INTERPRETER = "python3"
 SCRIPT_FILENAME = "main.py"
 
 @dataclass
 class Options:
 	# Default = DEBUG
-	logging: int = None
+	logging: Optional[int] = None
 	# These default to False
-	keep_logs: bool = False
+	keep_logs: Optional[bool] = False
 	slow_mode: bool = False
 	# These default to None, but, if nulled, they can be bulk turned on or off
 	# by Navigator according to setting needs_authentication
-	use_clean_profile: bool = None
-	use_fake_user_agent: bool = None
-	use_random_window_size: bool = None
-	use_random_locale: bool = None
-	use_random_timezone: bool = None
-	force_logout: bool = None
+	use_disposable_profile: Optional[bool] = None
+	use_fake_user_agent: Optional[bool] = None
+	use_random_window_size: Optional[bool] = None
+	use_random_locale: Optional[bool] = None
+	use_random_timezone: Optional[bool] = None
+	force_logout: Optional[bool] = None
 	# Following variables default to None and it is the Navigators' duty
 	# to set default values and validate
-	scroll_limit: int = None
-	timeout: int = None
-	db_conn_string: str = None
-	account_name: str = None
-	password_encrypted: str = None
-	password_plain: str = None
-	credentials_file: str = None
+	scroll_limit: Optional[int] = None
+	timeout: Optional[int] = None
+	account_name: Optional[str] = None
+	password_encrypted: Optional[str] = None
+	password_plain: Optional[str] = None
+	credentials_file: Optional[str] = None
 	# This is actually required
-	navigator_name: str = None
+	navigator_name: Optional[str] = None
 
 	############################################################################
 
 	@property
 	def anonymization_fields(self) -> List[str]:
 		return [
-			"use_clean_profile",
+			"use_disposable_profile",
 			"use_fake_user_agent",
 			"use_random_window_size",
 			"use_random_locale",
@@ -53,7 +53,6 @@ class Options:
 			"scroll_limit",
 			"timeout",
 			"logging",
-			"db_conn_string",
 			"account_name",
 			"password_encrypted",
 			"password_plain",
@@ -65,7 +64,7 @@ class Options:
 		return [
 			"keep_logs",
 			"slow_mode",
-			"use_clean_profile",
+			"use_disposable_profile",
 			"use_fake_user_agent",
 			"use_random_window_size",
 			"use_random_locale",
@@ -79,8 +78,12 @@ class Options:
 
 	############################################################################
 	def __post_init__(self):
+		from scraper_middleware import ScraperMiddleWare
 		if self.navigator_name is None:
 			raise ValueError("Navigator name must be provided")
+
+		if ScraperMiddleWare.match_navigator_name(self.navigator_name) is None:
+			raise ValueError("Navigator name invalid")
 
 		# It is better to do this check here and already resolve paths to realpaths
 		# If we delegate this task to the navigator(s), pwd can be different and
@@ -133,7 +136,7 @@ class Options:
 
 	def generate_cmd(
 			self,
-			script_interpreter: str = "python3",
+			script_interpreter: str = SCRIPT_INTERPRETER,
 			script_filename: str = SCRIPT_FILENAME
 			) -> str:
 		cmd = f"{script_interpreter} {script_filename} "

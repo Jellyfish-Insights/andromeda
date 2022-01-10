@@ -1,0 +1,3 @@
+NAVIGATOR_DEFAULT_OPTIONS = {
+	"timeout": 600
+}

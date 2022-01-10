@@ -2,11 +2,11 @@
 import re
 from typing import Any, Dict, Set, Tuple
 from urllib.parse import urlencode
-from selenium.webdriver.chrome import options
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
 
-from password import SymmetricEncryption
+from navigators.helpers.password import SymmetricEncryption
+import navigators.helpers.csv_processing as csv_processing
 from logger import log
 from defaults import youtube as youtube_defaults
 from models.options import Options
@@ -60,9 +60,13 @@ class YouTube(ScraperMiddleWare):
 			account, password = self.get_credentials()
 			self.sign_in(account, password)
 			
+		csv_processing.clean_downloads()
 		video_ids = self.get_video_ids()
 		for video_id in video_ids:
 			self.get_data_for_video(video_id)
+
+		log.info("Compiling extracted data to CSV file")
+		csv_processing.process_csv_data()
 
 	def build_url(self):
 		return f"https://www.youtube.com"

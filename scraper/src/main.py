@@ -3,6 +3,7 @@
 import signal
 import traceback
 import sys
+from typing import Type, Union
 
 from logger import log, change_logger_level
 from arg_parser import parse
@@ -20,7 +21,11 @@ def main():
 	log.info("You can run with the same options with the following command:")
 	log.info(options.generate_cmd())
 	
-	scraper_middleware_class: type = ScraperMiddleWare.select_navigator(options.navigator_name)
+	scraper_middleware_class: Union[Type, None] = \
+			ScraperMiddleWare.match_navigator_name(options.navigator_name)
+	if scraper_middleware_class is None:
+		return
+	
 	try:
 		scraper: ScraperMiddleWare = scraper_middleware_class(options)
 	except BadArguments:
