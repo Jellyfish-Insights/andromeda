@@ -114,7 +114,7 @@ namespace Jobs.Fetcher.Facebook {
                     url_params.Add("metric", metrics.Select(x => x.Name).Aggregate((x, y) => x + ',' + y));
                     url_params.Add("period", edge.Granularity);
 
-                    if (range != null && edge.Granularity != "lifetime") {
+                    if (range != null && (edge.Granularity != "lifetime" && edge.Granularity != "maximum")) {
                         url_params.Add("since", UnixTimeStampUTC(range.Minimum, true).ToString());
                         url_params.Add("until", UnixTimeStampUTC(range.Maximum, false).ToString());
                     }

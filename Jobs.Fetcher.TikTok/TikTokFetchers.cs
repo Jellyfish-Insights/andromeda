@@ -30,7 +30,7 @@ namespace Jobs.Fetcher.TikTok {
             return FilterByName(jobs, names);
         }
 
-        private List<string> GetTikTokUsers(){
+        private List<string> GetTikTokUsers() {
             var tiktokUsernames = new List<string>();
             try {
                 var usrDirs = Directory.GetDirectories("./credentials");
@@ -48,15 +48,12 @@ namespace Jobs.Fetcher.TikTok {
                         }
                         foreach (var user in Directory.GetFiles(CredentialsDir)) {
                             var text = File.ReadAllText($"{user}");
-                            var username = JsonConvert.DeserializeObject<TikTokUsers>(text);
-
-                            if (username.IsValid()) {
-                                tiktokUsernames.Add(username.Name);
-                            }
+                            var start = text.IndexOf("@");
+                            var username = text.Substring(start, text.Length - start);
+                            tiktokUsernames.Add(username);
                         }
                     }
                 }
-
             }
             catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
             {
@@ -68,11 +65,11 @@ namespace Jobs.Fetcher.TikTok {
             };
             return tiktokUsernames;
         }
-    
+
         private List<AbstractJob> GetListOfJobs(List<String> tiktokAccountNames) {
             return new List<AbstractJob>() {
-                new ScrapperAccountAdd(tiktokAccountNames),
-                new PostsQuery(tiktokAccountNames)
+                       new ScrapperAccountAdd(tiktokAccountNames),
+                       new PostsQuery(tiktokAccountNames)
             };
         }
     }

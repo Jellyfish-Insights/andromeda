@@ -17,7 +17,6 @@ namespace DataLakeModels.Models.TikTok {
         public DateTime ValidityEnd { get; set; }
         public Post Post { get; set; }
         public string PostId { get; set; }
-        
         bool IEquatable<PostStats>.Equals(PostStats other) {
             return PostId == other.PostId &&
                    DiggCount == other.DiggCount &&

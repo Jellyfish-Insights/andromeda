@@ -20,17 +20,17 @@ namespace Jobs.Fetcher.TikTok {
             using (var dbContext = new DataLakeTikTokContext()) {
                 //Create a second loop for each TikTok client. Check with Erik and Victor if the Get option will receive an ID or username
                 var logger = GetLogger();
-                if(!DatabaseManager.TikTokScraperTablesExist()){
+                if (!DatabaseManager.TikTokScraperTablesExist()) {
                     Logger.Warning($"TikTok Scraper tables do not exist.");
                     return;
                 }
                 var authorId = DatabaseManager.GetTikTokId(username);
-                if(authorId == null){
+                if (authorId == null) {
                     Logger.Error($"Could not find TikTok's AuthorID for ({username})");
                     return;
                 }
                 var lastFetch = DatabaseManager.GetLastFetch(authorId, dbContext);
-                foreach(var post in ApiDataFetcher.GetPosts(username, lastFetch)){
+                foreach (var post in ApiDataFetcher.GetPosts(username, lastFetch)) {
                     var newAuthor = ApiDataFetcher.GetTikTokAuthorFromJSON(post["author"]);
                     DbWriter.WriteAuthor(newAuthor, dbContext, logger);
 
@@ -50,15 +50,15 @@ namespace Jobs.Fetcher.TikTok {
                     DbWriter.WriteVideo(newVideo, dbContext, logger);
 
                     var challengeIds = new List<string>();
-                    foreach(var challenge in newChallenges){
+                    foreach (var challenge in newChallenges) {
                         challengeIds.Add(challenge.Id);
                     }
                     var tagIds = new List<string>();
-                    foreach(var tag in newTags){
+                    foreach (var tag in newTags) {
                         tagIds.Add(tag.HashtagId);
                     }
                     var effectStickerIds = new List<string>();
-                    foreach(var effectSticker in newEffectStickers){
+                    foreach (var effectSticker in newEffectStickers) {
                         effectStickerIds.Add(effectSticker.Id);
                     }
                     var newPost = ApiDataFetcher.GetTikTokPostFromJSON(post, newAuthor, newVideo, newMusic, challengeIds, tagIds, effectStickerIds);
@@ -69,11 +69,9 @@ namespace Jobs.Fetcher.TikTok {
 
                     var newPostStats = ApiDataFetcher.GetTikTokPostStatsJSON(post["stats"], newPost, newPost.CreateTime);
                     DbWriter.WritePostStats(newPostStats, dbContext, logger);
-
                 }
             }
         }
-
     }
 
     public class ScrapperAccountAdd : AbstractTikTokFetcher {
@@ -85,10 +83,9 @@ namespace Jobs.Fetcher.TikTok {
         }
 
         public override void RunBody(string username) {
-            if(!DatabaseManager.TikTokUserExists(username)){
+            if (!DatabaseManager.TikTokUserExists(username)) {
                 DbWriter.InsertUsernameOnScraper(username, GetLogger());
             }
         }
-
     }
 }
