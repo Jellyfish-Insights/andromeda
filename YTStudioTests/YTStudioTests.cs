@@ -156,7 +156,6 @@ namespace YTStudioTests
             List<string> strList = new List<string>();
             List<string> header;
             List<List<string>> rows;
-            ;
             var exception = Assert.Throws<InvalidOperationException>(
                 () => CSV.HeaderAndRowsFromStringList(strList, out header, out rows)
             );
@@ -175,7 +174,6 @@ namespace YTStudioTests
                 };
             List<string> header;
             List<List<string>> rows;
-            ;
             var exception = Assert.Throws<InvalidOperationException>(
                 () => CSV.HeaderAndRowsFromStringList(strList, out header, out rows)
             );
@@ -194,11 +192,85 @@ namespace YTStudioTests
                 };
             List<string> header;
             List<List<string>> rows;
-            ;
             var exception = Assert.Throws<InvalidOperationException>(
                 () => CSV.HeaderAndRowsFromStringList(strList, out header, out rows)
             );
             Assert.Equal("Row size does not match header.", exception.Message);
         }
+
+        [Fact]
+        public void Test12()
+        {
+            const int headerExpectedSize = 2;
+            const int rowsExpectedSize = 9;
+            string filename = UseTestFile("table_09x02.csv");
+            CSV csv = new CSV(filename);
+            bool headerRightSize = csv.Header.Count == headerExpectedSize;
+            Assert.True(headerRightSize, "Wrong header size " +
+                $"({csv.Header.Count}, expected {headerExpectedSize}).");
+            bool rowsRightSize = csv.Rows.Count == rowsExpectedSize;
+            Assert.True(rowsRightSize, "Wrong rows size " +
+                $"({csv.Rows.Count}, expected {rowsExpectedSize}).");
+
+            const string header0Expected = "col1";
+            Assert.True(csv.Header[0] == header0Expected, "header[0] has wrong value " +
+                $"'{csv.Header[0]}', expected {header0Expected}");
+
+            const string row6_0Expected = "seventh";
+            Assert.True(csv.Rows[6][0] == row6_0Expected, "rows[6][0] has wrong value " +
+                $"'{csv.Rows[6][0]}', expected {row6_0Expected}");
+        }
+
+
+        [Fact]
+        public void Test13()
+        {
+            const int headerExpectedSize = 3;
+            const int rowsExpectedSize = 12;
+            string filename = UseTestFile("table_12x03.csv");
+            CSV csv = new CSV(filename);
+            bool headerRightSize = csv.Header.Count == headerExpectedSize;
+            Assert.True(headerRightSize, "Wrong header size " +
+                $"({csv.Header.Count}, expected {headerExpectedSize}).");
+            bool rowsRightSize = csv.Rows.Count == rowsExpectedSize;
+            Assert.True(rowsRightSize, "Wrong rows size " +
+                $"({csv.Rows.Count}, expected {rowsExpectedSize}).");
+
+            const string header2Expected = "col3";
+            Assert.True(csv.Header[2] == header2Expected, "header[2] has wrong value " +
+                $"'{csv.Header[2]}', expected {header2Expected}");
+
+            const string row10_1Expected = "something else";
+            Assert.True(csv.Rows[10][1] == row10_1Expected, "rows[10][1] has wrong value " +
+                $"'{csv.Rows[10][1]}', expected {row10_1Expected}");
+        }
+
+        [Fact]
+        public void Test14()
+        {
+            /* test with table with random numbers */
+            const int headerExpectedSize = 12;
+            const int rowsExpectedSize = 99;
+            string filename = UseTestFile("table_99x12.csv");
+            CSV csv = new CSV(filename);
+            bool headerRightSize = csv.Header.Count == headerExpectedSize;
+            Assert.True(headerRightSize, "Wrong header size " +
+                $"({csv.Header.Count}, expected {headerExpectedSize}).");
+            bool rowsRightSize = csv.Rows.Count == rowsExpectedSize;
+            Assert.True(rowsRightSize, "Wrong rows size " +
+                $"({csv.Rows.Count}, expected {rowsExpectedSize}).");
+
+
+            const string row34_7Expected = "0";
+            Assert.True(csv.Rows[34][7] == row34_7Expected, "rows[34][7] has wrong value " +
+                $"'{csv.Rows[34][7]}', expected {row34_7Expected}");
+
+            const string row22_11Expected = "1";
+            Assert.True(csv.Rows[22][11] == row22_11Expected, "rows[22][11] has wrong value " +
+                $"'{csv.Rows[22][11]}', expected {row22_11Expected}");
+        }
+
+
+
     }
 }
