@@ -110,9 +110,6 @@ namespace Jobs.Fetcher.YouTubeStudio
     }
     sealed class YouTubeStudioFetcher
     {
-        static private string PathToCSVFiles;
-        static private string DBConnectionString;
-
         static private readonly Regex csvFileRegex = new Regex(@"\.csv$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -196,26 +193,19 @@ namespace Jobs.Fetcher.YouTubeStudio
         public static void Main(string[] args)
         {
             if (args.Length != 1) {
-                Console.WriteLine("Program must be run with exactly one argument");
+                Console.WriteLine("Program must be run with exactly one argument, " +
+                    "the path to CSV directory.");
                 return;
             }
             string path = args[0];
             var files = GetCSVFiles(path);
-            files.ForEach(Console.WriteLine);
-
-            CSV csv = new CSV(files[0]);
-            var videos = VideosFromCSV(csv);
-            videos.ForEach(Console.WriteLine);
-            // try
-            // {
-            //     json = (new CSV(filename)).ToJSON();
-            // }
-            // catch (InvalidOperationException)
-            // {
-            //     Console.WriteLine("Cannot proceed. Exiting...");
-            //     return;
-            // }
-            // Console.WriteLine(json);
+            foreach (var file in files){
+                Console.WriteLine($"Now parsing file '{file}'");
+                CSV csv = new CSV(file);
+                var videos = VideosFromCSV(csv);
+                Console.WriteLine($"File contained data for {videos.Count} Video DTOs");
+                videos.ForEach(Console.WriteLine);
+            }
         }
     }
 }
