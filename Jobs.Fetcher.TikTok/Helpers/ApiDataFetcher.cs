@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using DataLakeModels.Models.TikTok;
+using Serilog.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
@@ -13,11 +14,13 @@ using Andromeda.Common.Extensions;
 namespace Jobs.Fetcher.TikTok.Helpers {
 
     public static class ApiDataFetcher {
-        public static List<JObject> GetPosts(string username, DateTime lastFetch) {
+        public static List<JObject> GetPosts(string username, DateTime lastFetch, Logger logger) {
+            logger.Information(@"Fetching posts for '" + username + "' after '" + lastFetch + "'.");
             var allPosts = new List<JObject>();
             foreach(var payload in DatabaseManager.GetPayload(username, lastFetch)){
                 allPosts.Add(JObject.Parse(payload));
             }
+            logger.Information("Found " + allPosts.Count + " posts.");
             return allPosts;
         }
         
@@ -120,7 +123,7 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             return effectStickers;
         }
 
-        public static Author GetTikTokAuthorFromJSON(JToken authorJSON) {
+        public static Author GetTikTokAuthorFromAuthorJSON(JToken authorJSON) {
             return new Author() {
                        Id = authorJSON["id"].ToString(),
                        UniqueId = authorJSON["uniqueId"].ToString(),
@@ -139,6 +142,28 @@ namespace Jobs.Fetcher.TikTok.Helpers {
                        DuetSetting = authorJSON["duetSetting"].ToObject<int>(),
                        StitchSetting = authorJSON["stitchSetting"].ToObject<int>(),
                        PrivateAccount = authorJSON["privateAccount"].ToObject<bool>()
+            };
+        }
+
+        public static Author GetTikTokAuthorFromPostJSON(JToken postJSON) {
+            return new Author() {
+                       Id = postJSON["authorId"].ToString(),
+                       UniqueId = postJSON["author"].ToString(),
+                       Nickname = postJSON["nickname"].ToString()/*,
+                                                                    AvatarThumbnail = authorJSON["avatarThumb"].ToString(),
+                                                                    AvatarMedium = authorJSON["avatarMedium"].ToString(),
+                                                                    AvatarLarge = authorJSON["avatarLarger"].ToString(),
+                                                                    Signature = authorJSON["signature"].ToString(),
+                                                                    Verified = authorJSON["verified"].ToObject<bool>(),
+                                                                    SecurityUId = authorJSON["secUid"].ToString(),
+                                                                    Secret = authorJSON["secret"].ToObject<bool>(),
+                                                                    FTC = authorJSON["ftc"].ToObject<bool>(),
+                                                                    Relation = authorJSON["relation"].ToObject<int>(),
+                                                                    OpenFavorite = authorJSON["openFavorite"].ToObject<int>(),
+                                                                    CommentSetting = authorJSON["commentSetting"].ToObject<int>(),
+                                                                    DuetSetting = authorJSON["duetSetting"].ToObject<int>(),
+                                                                    StitchSetting = authorJSON["stitchSetting"].ToObject<int>(),
+                                                                    PrivateAccount = authorJSON["privateAccount"].ToObject<bool>()*/
             };
         }
 

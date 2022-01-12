@@ -185,7 +185,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             }
 
             var fromDate = DateHelper.Min(now - TimeMargin, mostRecentMetricDate);
-            
+
             var toDate = now;
             var reportRequest = analyticsService.Reports.Query();
             reportRequest.Ids = $"channel=={channelId}";
@@ -198,18 +198,18 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             var subscriberViewsList = new List<(DateTime date, long subscriberViews)>();
 
             Thread.Sleep(500);
-            try{
+            try {
                 var report = reportRequest.ExecuteAsync().Result;
                 if (report.Rows != null) {
                     foreach (var row in report.Rows) {
-                        subscriberViewsList.Add((Convert.ToDateTime(row[1]).Date, (long)row[2]));
+                        subscriberViewsList.Add((Convert.ToDateTime(row[1]).Date, (long) row[2]));
                     }
                 }
             }
-            catch{
+            catch {
                 //logger.Information("Could not get Subscriber Views");
             }
-            
+
             return subscriberViewsList;
         }
 
