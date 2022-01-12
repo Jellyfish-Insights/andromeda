@@ -9,6 +9,7 @@ from logger import log
 from scraper_middleware import ScraperMiddleWare
 from models.options import Options as ScraperOptions
 from tools import PreserveDirectory, UseDirectory, go_to_project_root
+
 @dataclass
 class Job:
 	filename: str

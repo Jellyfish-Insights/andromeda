@@ -23,7 +23,7 @@ POLL_FREQUENCY = 0.5
 SLOW_TYPE_SLEEP_INTERVAL = 0.15
 
 MOVE_AROUND_MOVE_MOUSE_TIMES = 5
-MOVE_AROUND_VISIT_LINK_PROB = 0.01
+MOVE_AROUND_VISIT_LINK_PROB = 0.05
 
 # For performing a sequence of actions as a single block (avoids overhead)
 BATCH_ACTION_SIZE = 10
