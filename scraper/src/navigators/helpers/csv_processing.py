@@ -52,20 +52,29 @@ class CSV_Data:
 			log.critical(f"Error parsing file '{self.filename}' !")
 			raise
 
-		# Cast data into the correct format
+		# Cast data into the correct format for being receive at C# code
+		metric = None
 		for col in df.columns:
 			if DATE_COLUMN_REGEX.search(col):
-				df.rename({col: "Date"})
-				df["Date"] = pd.to_datetime(df[col])
+				df["DateMeasure"] = pd.to_datetime(df[col])
+				df = df.drop(columns=[col])
 			else:
+				metric = col
 				for int_col_regex in INTEGER_COLUMNS_REGEX:
 					if int_col_regex.search(col):
 						for i in df.index:
 							df.loc[i, col] = math.floor(df.loc[i, col])
 						df[col] = df[col].astype(pd.Int64Dtype())
 
-		df["Video ID"] = self.associated_metadata["videoId"]
-		df["Channel ID"] = self.associated_metadata["channelId"]
+
+		if metric is not None:
+			df = df.rename(columns={metric: "Value"})
+			print(f"Renaming '{metric}' as 'Value'")
+			df["Metric"] = metric
+
+		df["VideoId"] = self.associated_metadata["videoId"]
+		df["ChannelId"] = self.associated_metadata["channelId"]
+		df["ValidityStart"] = self.associated_metadata["timeSaved"]
 
 		return df
 
@@ -125,7 +134,7 @@ def retrieve_data_from_zip_files() -> List[pd.DataFrame]:
 	zip_files = find_files(ZIP_FILE_REGEX)
 	log.info(f"Found files {zip_files}")
 	os.mkdir(UNZIP_DIRECTORY)
-	csv_data_list: List[pd.DataFrame] = []
+	csv_data_list: List[CSV_Data] = []
 	for f in zip_files:
 		with zipfile.ZipFile(f, 'r') as zf:
 			zf.extractall(UNZIP_DIRECTORY)
@@ -152,7 +161,7 @@ def retrieve_data_from_zip_files() -> List[pd.DataFrame]:
 		))
 
 	os.rmdir(UNZIP_DIRECTORY)
-	return csv_data_list
+	return [x.df for x in csv_data_list]
 
 def aggregate(dfs: List[pd.DataFrame]) -> pd.DataFrame:
 	"""Receives a list of dataframes and outputs a single dataframe, which
@@ -161,7 +170,7 @@ def aggregate(dfs: List[pd.DataFrame]) -> pd.DataFrame:
 	We are no longer using this.
 	"""
 	return pd.concat(
-		[x.df for x in dfs],
+		[x for x in dfs],
 	).sort_values(by=["Date"]).reset_index(drop=True)
 
 def set_debug_mode():
@@ -183,7 +192,7 @@ def to_json(csv_data: pd.DataFrame) -> None:
 		output_file = f"youtube_studio_{timestamp}_{random_hex}.json"
 		rows, cols = csv_data.shape
 		log.info(f"Writing extracted data ({rows} rows, {cols} columns) to '{output_file}'")
-		csv_data.to_json(output_file)
+		csv_data.to_json(output_file, orient="records")
 
 def process_csv_data():
 	if DEBUG:
@@ -194,15 +203,13 @@ def process_csv_data():
 	with UseDirectory(directory):
 		clean_working_directory()
 		csv_data_list = retrieve_data_from_zip_files()
-		big_table = aggregate(csv_data_list)
-
-	if DEBUG:
-		log.debug(csv_data_list)
-		log.debug(big_table)
 	
+	print(csv_data_list[0])
+
 	for csv_data in csv_data_list:
 		to_json(csv_data)
-	to_json(big_table)
+
+	print(csv_data_list[0])
 
 def main():
 	set_debug_mode()
