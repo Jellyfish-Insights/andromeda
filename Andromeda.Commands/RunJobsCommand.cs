@@ -15,9 +15,9 @@ namespace Andromeda.Commands {
 
         public static JobsFactory[] Factories = new JobsFactory[] {
             new YouTubeFetchers(),
-            new AdWordsFetchers(),
+            //new AdWordsFetchers(),
             new FacebookFetchers(),
-            new TwitterFetchers(),
+            //new TwitterFetchers(),
             new TikTokFetchers()
         };
 

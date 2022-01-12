@@ -25,10 +25,10 @@ namespace Jobs.Fetcher.TikTok {
                         FROM
                             video_info
                         WHERE
-                            saved_time > @last_fetch AND
+                            saved_time > @last_fetch :: timestamp without time zone AND
                             account_name = @username
-                        ");
-                    cmd.Parameters.AddWithValue("last_fetch", last_fetch);
+                        ;");
+                    cmd.Parameters.AddWithValue("last_fetch", last_fetch.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmd.Parameters.AddWithValue("username", username);
                     var payloadStrings = new List<string>();
                     using (var reader = cmd.ExecuteReader()) {
@@ -69,27 +69,12 @@ namespace Jobs.Fetcher.TikTok {
             }
         }
 
-        public static string GetTikTokId(string username) {
-            using (var connection = new NpgsqlConnection(ConnectionString()))
-                using (var cmd = connection.CreateCommand()) {
-                    connection.Open();
-                    cmd.CommandText = String.Format(@"
-                        SELECT
-                            tiktok_id::text
-                        FROM
-                            video_info
-                        WHERE
-                            account_name = @username
-                        ");
-                    cmd.Parameters.AddWithValue("username", username);
-                    var payloadStrings = new List<string>();
-                    using (var reader = cmd.ExecuteReader()) {
-                        if (reader.Read()) {
-                            return reader.GetString(0);
-                        }
-                    }
-                    return null;
-                }
+        public static string GetTikTokId(string username, DataLakeTikTokContext dbContext) {
+            var now = DateTime.UtcNow;
+            var valuetobereturned = dbContext.Authors.Where(m => m.UniqueId == username)
+                                        .Select(m => m.Id)
+                                        .FirstOrDefault();
+            return valuetobereturned;
         }
 
         public static bool TikTokUserExists(string username) {
@@ -129,15 +114,13 @@ namespace Jobs.Fetcher.TikTok {
                             return returnValue;
                         }
                     }
-                    Console.WriteLine("No value return");
                     return false;
                 }
         }
 
-        public static DateTime GetLastFetch(string username, DataLakeTikTokContext dbContext) {
-            //var oldEntry = dbContext.Posts.Find(newEntry.Id);
+        public static DateTime GetLastFetch(string authorId, DataLakeTikTokContext dbContext) {
             var now = DateTime.UtcNow;
-            return dbContext.Posts.Where(m => m.Author.UniqueId == username && m.ValidityStart <= now && m.ValidityEnd > now)
+            return dbContext.AuthorStats.Where(m => m.AuthorId == authorId && m.ValidityStart <= now && m.ValidityEnd > now)
                        .OrderByDescending(m => m.ValidityStart)
                        .Select(m => m.ValidityStart)
                        .FirstOrDefault();

@@ -50,7 +50,7 @@ namespace Jobs.Fetcher.TikTok {
                             var text = File.ReadAllText($"{user}");
                             var start = text.IndexOf("@");
                             var username = text.Substring(start, text.Length - start);
-                            tiktokUsernames.Add(username);
+                            tiktokUsernames.Add(username.Trim());
                         }
                     }
                 }
