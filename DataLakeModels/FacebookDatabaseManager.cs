@@ -7,7 +7,7 @@ namespace DataLakeModels {
 
     public class FacebookDatabaseManager {
 
-        public const string ApiVersion = "11.0";
+        public const string ApiVersion = "12.0";
 
         public static string SchemaName() {
             return "facebook_v" + ApiVersion.Replace('.', '_');

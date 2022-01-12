@@ -15,9 +15,9 @@ namespace DataLakeModels {
 
             modelBuilder.Entity<Author>()
                 .HasKey(table => new { table.Id });
-            
+
             modelBuilder.Entity<AuthorStats>()
-                .HasKey(table => new { table.AuthorId, table.ValidityStart});
+                .HasKey(table => new { table.AuthorId, table.ValidityStart });
 
             modelBuilder.Entity<AuthorStats>()
                 .HasOne(table => table.Author)
@@ -46,14 +46,13 @@ namespace DataLakeModels {
                 .HasOne(table => table.Music)
                 .WithMany(post => post.Posts)
                 .HasForeignKey(table => table.MusicId);
-            
             modelBuilder.Entity<Post>()
                 .HasOne(table => table.Video)
                 .WithMany(post => post.Posts)
                 .HasForeignKey(table => table.VideoId);
 
             modelBuilder.Entity<PostStats>()
-                .HasKey(table => new { table.PostId, table.ValidityStart});
+                .HasKey(table => new { table.PostId, table.ValidityStart });
 
             modelBuilder.Entity<PostStats>()
                 .HasOne(table => table.Post)
