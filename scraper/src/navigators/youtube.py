@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+import json
+import os
 import re
-from typing import Any, Dict, Set, Tuple
+import time
+from typing import Any, Dict, Optional, Set, Tuple
 from urllib.parse import urlencode
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
@@ -10,9 +13,9 @@ import navigators.helpers.csv_processing as csv_processing
 from logger import log
 from defaults import youtube as youtube_defaults
 from models.options import Options
-from scraper_core import ElementNotFound, YouProbablyGotBlocked, BadArguments
+from scraper_core import ElementNotFound, ScraperException, YouProbablyGotBlocked, BadArguments
 from scraper_middleware import ScraperMiddleWare
-from tools import throttle
+from tools import get_home_dir, throttle, UseDirectory
 
 class YouTube(ScraperMiddleWare):
 	needs_authentication = True
@@ -25,10 +28,15 @@ class YouTube(ScraperMiddleWare):
 	THROTTLE_GET_DATA_FOR_VIDEO = 30
 
 	############################################################################
-	# CONSTRUCTOR
+	# CONSTRUCTOR & PROPERTIES
 	############################################################################
 	def __init__(self, options: Options):
+		self._channel_id: Optional[str] = None
 		super().__init__(options)
+
+	@property
+	def channel_id(self):
+		return self._channel_id or "NoChannel"
 
 	############################################################################
 	# METHODS
@@ -180,6 +188,17 @@ class YouTube(ScraperMiddleWare):
 		self.go("https://studio.youtube.com")
 		self.wait_load()
 
+		self._channel_id = self.run("""
+			const regex = new RegExp("^.*/channel/(.+)$");
+			let match = window.location.href.match(regex);
+			return match ? match[1] : null;
+		""")
+
+		if self._channel_id:
+			log.info(f"Channel ID is '{self._channel_id}'")
+		else:
+			log.info("Could not obtain channel id from URL")
+
 		content_button = self.find_one(
 			tag="a",
 			id="menu-item-1",
@@ -244,6 +263,38 @@ class YouTube(ScraperMiddleWare):
 		log.info(f"Downloading CSV file for '{video_id}'")
 		self.click(csv_button)
 		self.wait_load()
+		self.create_metadata_file(video_id)
+
+	def create_metadata_file(self, video_id: str):
+		# Wait for download to complete (it's probably < 10 KB)
+		self.wait(5)
+		home_dir = get_home_dir()
+		downloads_dir = os.path.join(home_dir, "Downloads")
+		with UseDirectory(downloads_dir, create_if_nonexistent=False):
+			files_by_modification_time = sorted(
+				filter(
+					os.path.isfile,
+					os.listdir()
+				),
+				key=lambda x: os.path.getmtime(x)
+			)
+			if not files_by_modification_time:
+				log.critical("'Downloads' directory is empty! Nothing was ever downloaded!")
+				raise ScraperException()
+			last_modified_file = files_by_modification_time[-1]
+			metadata = {
+				"channelId": self.channel_id,
+				"videoId": video_id,
+				"timeSaved": int(time.time() * 1000),
+
+				# Reserved for future use
+				"metric": None,
+				"filter": None
+			}
+			metadata_file = last_modified_file.replace("zip", "json")
+			with open(metadata_file, "w") as fp:
+				log.info(f"Writing metadata to {metadata_file}")
+				fp.write(json.dumps(metadata))
 
 	############################################################################
 	# METHODS DECORATED FROM ABSTRACT CLASS
