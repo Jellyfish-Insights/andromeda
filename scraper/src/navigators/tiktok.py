@@ -137,6 +137,11 @@ class TikTok(ScraperMiddleWare):
 
 				except KeyError:
 					log.warning("Could not fetch information from GET request")
+				except json.decoder.JSONDecodeError as e:
+					log.warning("JSON Decode Error!")
+					log.warning(e)
+					log.warning("Here's the object trying to be read by json.loads:")
+					log.warning(ent)
 
 		self.reset_har()
 

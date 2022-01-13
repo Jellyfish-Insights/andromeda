@@ -12,7 +12,7 @@ from selenium.webdriver.common import by, action_chains, keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import JavascriptException, InvalidSelectorException, \
 	ElementNotInteractableException, StaleElementReferenceException, \
-	MoveTargetOutOfBoundsException, NoSuchWindowException
+	MoveTargetOutOfBoundsException, NoSuchWindowException, TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
 
 from db import DBException
@@ -83,6 +83,11 @@ class ScraperMiddleWare(ScraperCore):
 			log.critical("Chrome window was closed from an outside agent!")
 			log.critical(err)
 			traceback.print_exc()
+			self.cleanup(1)
+		except TimeoutException as e:
+			log.critical("Selenium emitted a TimeoutException!")
+			log.critical(e)
+			log.critical("Cannot continue! Exiting gracefully...")
 			self.cleanup(1)
 		except (ScraperException, DBException, KillHandleTriggered):
 			self.cleanup(1)
