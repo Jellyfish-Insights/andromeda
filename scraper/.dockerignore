@@ -6,4 +6,5 @@ browsermob-proxy-2.1.4/
 
 src/__pycache__/
 src/chrome_profile*
-src/extracted_data/
+src/extracted_data/*
+!src/extracted_data/.gitkeep
