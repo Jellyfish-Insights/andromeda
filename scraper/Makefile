@@ -44,6 +44,7 @@ test:
 	sed -ri "s/$(data_lake_port)/$(new_data_lake_port)/g" "$(docker_compose_test)"
 	sed -ri "s/$(vnc_port):$(vnc_port)/$(new_vnc_port):$(vnc_port)/g" "$(docker_compose_test)"
 	sed -ri 's/(sleep_interval:)[ ]+"[0-9]+"/\1 "$(new_sleep_interval)"/' "$(docker_compose_test)"
+	sed -ri 's/(random_order:)[ ]+".*"/\1 "--random_order"/' "$(docker_compose_test)"
 
 	sed -ri 's/$(data_lake_name)/$(data_lake_new_name)/' "$(docker_compose_test)"
 
