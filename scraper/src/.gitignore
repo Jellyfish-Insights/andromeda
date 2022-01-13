@@ -11,5 +11,6 @@ scheduler.sh
 *.csv
 *.json
 !jobs/appsettings.json
+!tests/data/*.json
 
 jobs/test*
