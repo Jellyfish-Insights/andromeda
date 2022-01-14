@@ -7,6 +7,7 @@ services:
           dockerfile: data_lake.Dockerfile
         ports:
           - '5433:5433'
+        restart: on-failure
 
     scraper_dev:
         build:
@@ -17,8 +18,6 @@ services:
           sleep_interval: "600"
           random_order: ""
           
-          # Enables development mode. Leave empty for production
-          development: 'development'
         ports:
           - '5900:5900'
         user: app
@@ -28,3 +27,4 @@ services:
         volumes:
           - ./src/extracted_data:/opt/scraper/extracted_data
           - ./logs:/var/log/scraper
+        restart: on-failure

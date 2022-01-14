@@ -27,16 +27,28 @@ dev:
 	docker-compose -f docker-compose.dev.yml build --build-arg APP_UID=$(uid)
 	docker-compose -f docker-compose.dev.yml up -d
 
+dev_shrink:
+	mkfifo tmp_fifo
+	python3 shrink_dockerfile.py > tmp_fifo
+	docker-compose -f docker-compose.dev.yml build --build-arg APP_UID=$(uid)
+	docker-compose -f docker-compose.dev.yml up -d
+	mv scraper.Dockerfile.bkp scraper.Dockerfile
+
 prod:
 	docker-compose -f docker-compose.prod.yml build --build-arg APP_UID=$(uid)
 	docker-compose -f docker-compose.prod.yml up -d
+
+prod_shrink:
+	cp scraper.Dockerfile scraper.Dockerfile.bkp
+	python3 shrink_dockerfile.py > scraper.Dockerfile
+	docker-compose -f docker-compose.prod.yml build --build-arg APP_UID=$(uid)
+	docker-compose -f docker-compose.prod.yml up -d
+	mv scraper.Dockerfile.bkp scraper.Dockerfile
 
 stop:
 	docker-compose -f docker-compose.dev.yml -f docker-compose.prod.yml down
 
 test:
-	cd src ; python3 -m tests.test_tiktok_most_followed
-
 	sed -r "s/$(data_lake_port)/$(new_data_lake_port)/g" "data_lake.Dockerfile" > "$(test_data_lake_df)"
 	cp docker-compose.dev.yml "$(docker_compose_test)"
 
@@ -58,5 +70,4 @@ test:
 	echo "Undoing changes"
 	rm "$(test_data_lake_df)" "$(docker_compose_test)"
 	mv "$(bkp_appsettings)" "$(appsettings)"
-	rm -rf src/jobs/test*
 	

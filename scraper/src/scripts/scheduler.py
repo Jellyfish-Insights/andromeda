@@ -6,7 +6,6 @@ import argparse
 import random
 from typing import List, Optional
 
-from db import setup_db
 from logger import log
 from models.options import Options as ScraperOptions
 from scripts.job_finder import Job, find_all_jobs, get_jobs_path
@@ -151,7 +150,6 @@ def show_statistics(jobs: List[Job]):
 
 def main():
 	options = parse()
-	setup_db()
 	
 	jobs = find_all_jobs()
 	if not jobs:

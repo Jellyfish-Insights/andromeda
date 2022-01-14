@@ -1,17 +1,15 @@
+import csv
 import datetime
 import json
 import logging
-import math
 import os
 import re
 import secrets
 import sys
 import time
 import zipfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Final, List
-
-import pandas as pd
 
 from logger import log, change_logger_level
 from tools import UseDirectory, find_files, get_home_dir, get_project_root_path
@@ -19,12 +17,12 @@ from tools import UseDirectory, find_files, get_home_dir, get_project_root_path
 UNZIP_DIRECTORY = 'unzipped'
 DATE_REGEX = r"[0-9]{4}-[0-9]{2}-[0-9]{2}"
 ZIP_FILE_REGEX = re.compile(
-	rf'(?i)^(?P<filter_by>.+) (?P<date_start>{DATE_REGEX})_(?P<date_end>{DATE_REGEX}) (?P<video_name>.+)\.zip$'
+	rf'(?i)^(.+) ({DATE_REGEX})_({DATE_REGEX}) (?P<video_name>.+)\.zip$'
 )
 DATE_COLUMN_REGEX = re.compile(r"(?i)date")
 INTEGER_COLUMNS_REGEX = [
 	re.compile(rf"(?i){string}")
-	for string in ["views", "subscribers", "impressions", "likes"]
+	for string in ["views", "subscribers", "impressions", "likes", "unique viewers"]
 ]
 EXTRACTED_DATA = "extracted_data"
 DEBUG = None
@@ -33,62 +31,44 @@ DEBUG = None
 class CSV_Data:
 	filename: str
 	associated_metadata: Dict
-	video_name: str
-	date_start: datetime.date
-	date_end: datetime.date
-	filter_by: str
-	df: pd.DataFrame = None
+	data: List[Dict] = field(default_factory=list)
 
 	def __post_init__(self):
-		self.df = self.fetch_data()
-
-	def fetch_data(self):
 		"""
 		File containing data will NOT be deleted after extraction.
 		"""
+		provisory_data: List[Dict] = []
 		try:
-			df = pd.read_csv(self.filename)
-		except pd.errors.ParserError:
+			with open(self.filename, "r") as csvfile:
+				reader = csv.DictReader(csvfile)
+				for row in reader:
+					provisory_data.append(row)
+		except Exception as exc:
 			log.critical(f"Error parsing file '{self.filename}' !")
+			log.critical(exc)
 			raise
 
 		# Cast data into the correct format for being receive at C# code
-		metric = None
-		for col in df.columns:
-			if DATE_COLUMN_REGEX.search(col):
-				df["DateMeasure"] = pd.to_datetime(df[col])
-				df = df.drop(columns=[col])
-			else:
-				metric = col
-				for int_col_regex in INTEGER_COLUMNS_REGEX:
-					if int_col_regex.search(col):
-						for i in df.index:
-							df.loc[i, col] = math.floor(df.loc[i, col])
-						df[col] = df[col].astype(pd.Int64Dtype())
-
-
-		if metric is not None:
-			df = df.rename(columns={metric: "Value"})
-			print(f"Renaming '{metric}' as 'Value'")
-			df["Metric"] = metric
-
-		df["VideoId"] = self.associated_metadata["videoId"]
-		df["ChannelId"] = self.associated_metadata["channelId"]
-		df["ValidityStart"] = self.associated_metadata["timeSaved"]
-
-		return df
-
-def clean_filename(filename: str):
-	characters_to_avoid = "\"!#$&'()*;<=>?[\\]^`{|}~- "
-	new_filename = filename
-	for c in characters_to_avoid:
-		new_filename = new_filename.replace(c, "_")
-	return new_filename
+		for row in provisory_data:
+			self.data.append(dict())
+			self.data[-1]["VideoId"] = self.associated_metadata["videoId"]
+			self.data[-1]["ChannelId"] = self.associated_metadata["channelId"]
+			self.data[-1]["ValidityStart"] = self.associated_metadata["timeSaved"]
+			for col in row.keys():
+				if DATE_COLUMN_REGEX.search(col):
+					self.data[-1]["DateMeasure"] = round(datetime.datetime.fromisoformat(row[col]).timestamp())
+				else:
+					self.data[-1]["Metric"] = col
+					is_integer_metric = False
+					for int_col_regex in INTEGER_COLUMNS_REGEX:
+						if int_col_regex.search(col):
+							is_integer_metric = True
+							self.data[-1]["Value"] = round(float(row[col]))
+							break
+					if not is_integer_metric:
+						self.data[-1]["Value"] = row[col]
 
 def retrieve_data_from_csv_files(
-		filter_by: str = None,
-		date_start: datetime.date = None,
-		date_end: datetime.date = None,
 		video_name: str = None,
 		associated_metadata: dict = None) -> List[CSV_Data]:
 	"""
@@ -107,7 +87,7 @@ def retrieve_data_from_csv_files(
 			if re.search(r'Table data\.csv$', filename):
 				os.unlink(filename)
 				continue
-			csv_data_obj = CSV_Data(filename, associated_metadata, video_name, date_start, date_end, filter_by)
+			csv_data_obj = CSV_Data(filename, associated_metadata)
 			csv_data_list.append(csv_data_obj)
 			os.unlink(filename)
 	return csv_data_list
@@ -129,7 +109,7 @@ def clean_working_directory():
 			os.unlink(full_path)
 		os.rmdir(UNZIP_DIRECTORY)
 
-def retrieve_data_from_zip_files() -> List[pd.DataFrame]:
+def retrieve_data_from_zip_files() -> List[Dict]:
 	log.info("Retrieving data from zip files")
 	zip_files = find_files(ZIP_FILE_REGEX)
 	log.info(f"Found files {zip_files}")
@@ -143,14 +123,6 @@ def retrieve_data_from_zip_files() -> List[pd.DataFrame]:
 			raise ValueError("Unable to extract filename from zip file!")
 		named_groups = {**match.groupdict()}
 
-		try:
-			named_groups["date_start"] = \
-				datetime.date.fromisoformat(named_groups["date_start"])
-			named_groups["date_end"] = \
-				datetime.date.fromisoformat(named_groups["date_end"])
-		except ValueError:
-			raise ValueError("Date has inappropriate format!")
-
 		metadata_filename = f.replace("zip", "json")
 		with open(metadata_filename, "r") as fp:
 			metadata = json.load(fp)
@@ -161,17 +133,7 @@ def retrieve_data_from_zip_files() -> List[pd.DataFrame]:
 		))
 
 	os.rmdir(UNZIP_DIRECTORY)
-	return [x.df for x in csv_data_list]
-
-def aggregate(dfs: List[pd.DataFrame]) -> pd.DataFrame:
-	"""Receives a list of dataframes and outputs a single dataframe, which
-	concatenates all of them.
-
-	We are no longer using this.
-	"""
-	return pd.concat(
-		[x for x in dfs],
-	).sort_values(by=["Date"]).reset_index(drop=True)
+	return [x.data for x in csv_data_list]
 
 def set_debug_mode():
 	global DEBUG
@@ -184,15 +146,16 @@ def set_debug_mode():
 	if DEBUG:
 		log.info("DEBUG mode enabled")
 
-def to_json(csv_data: pd.DataFrame) -> None:
+def to_json(data: List[Dict]) -> None:
 	data_dir = os.path.join(get_project_root_path(), EXTRACTED_DATA)
 	timestamp = str(int(time.time() * 1000))
 	random_hex = secrets.token_hex(4)
 	with UseDirectory(data_dir):
 		output_file = f"youtube_studio_{timestamp}_{random_hex}.json"
-		rows, cols = csv_data.shape
+		rows, cols = len(data), len(data[0])
 		log.info(f"Writing extracted data ({rows} rows, {cols} columns) to '{output_file}'")
-		csv_data.to_json(output_file, orient="records")
+		with open(output_file, "w") as fp:
+			json.dump(data, fp)
 
 def process_csv_data():
 	if DEBUG:
@@ -203,13 +166,9 @@ def process_csv_data():
 	with UseDirectory(directory):
 		clean_working_directory()
 		csv_data_list = retrieve_data_from_zip_files()
-	
-	print(csv_data_list[0])
 
 	for csv_data in csv_data_list:
 		to_json(csv_data)
-
-	print(csv_data_list[0])
 
 def main():
 	set_debug_mode()

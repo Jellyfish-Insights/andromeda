@@ -37,19 +37,19 @@ RUN apt-get update \
 		wmctrl \
 		xvfb \
 		# We will need this for Chrome + Undetected Chrome
-		default-jre
+		default-jre \
 # Install Chrome
-RUN echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' \
+	&& echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' \
 		> /etc/apt/sources.list.d/google-chrome.list \
 	&& wget -O- https://dl.google.com/linux/linux_signing_key.pub 2> /dev/null \
 		| gpg --dearmor > /etc/apt/trusted.gpg.d/google.gpg \
 	&& apt-get update \
-	&& apt-get install -y google-chrome-stable
+	&& apt-get install -y google-chrome-stable \
 # Install necessary Python libraries
-RUN python3 -m pip install --no-cache-dir -r ./python_requirements.txt \
-	&& rm ./python_requirements.txt
+	&& python3 -m pip install --no-cache-dir -r ./python_requirements.txt \
+	&& rm ./python_requirements.txt \
 # Install BrowserMobProxy binaries
-RUN wget https://github.com/lightbody/browsermob-proxy/releases/download/browsermob-proxy-2.1.4/browsermob-proxy-2.1.4-bin.zip \
+	&& wget https://github.com/lightbody/browsermob-proxy/releases/download/browsermob-proxy-2.1.4/browsermob-proxy-2.1.4-bin.zip \
 		-O browsermob.zip 2> /dev/null \
 	&& unzip browsermob.zip -d /opt/ \
 	&& chown -R app:app /opt/browsermob-proxy-2.1.4 \
