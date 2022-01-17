@@ -6,7 +6,6 @@ import re
 import time
 from typing import Any, Dict, Optional, Set, Tuple
 from selenium.webdriver.remote.webelement import WebElement
-from dotenv import dotenv_values
 
 from navigators.helpers.password import SymmetricEncryption
 import navigators.helpers.csv_processing as csv_processing
@@ -93,7 +92,10 @@ class YouTube(ScraperMiddleWare):
 		password = None
 		if self.options.credentials_file:
 			log.debug(f"Reading credentials file at '{self.options.credentials_file}'")
-			yt_credentials = dotenv_values(self.options.credentials_file)
+			with open(self.options.credentials_file, "r") as fp:
+				yt_credentials: Dict = json.load(self.options.credentials_file)
+			if type(yt_credentials) != dict:
+				raise ValueError("JSON given corresponds to wrong type of object")
 			account = yt_credentials.get("account")
 			password = yt_credentials.get("password")
 		else:

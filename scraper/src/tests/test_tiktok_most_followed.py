@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from tools import dirname_from_file, get_project_root_path, UseDirectory
@@ -24,8 +25,9 @@ def install_most_followed(include_profile_faker = True):
 	path_to_tiktok_joined = os.path.join(*path_to_tiktok)
 	with UseDirectory(path_to_tiktok_joined, create_if_nonexistent=True, create_parents=True):
 		for account in tiktok_most_followed:
-			with open(f"{account}.env", "w") as fp:
-				fp.write(f"account_name={account}\n")
+			with open(f"{account}.json", "w") as fp:
+				obj = {"account_name": account}
+				json.dump(obj, fp)
 
 	if include_profile_faker:
 		path_to_profile_faker = [
@@ -37,8 +39,9 @@ def install_most_followed(include_profile_faker = True):
 		path_to_pf_joined = os.path.join(*path_to_profile_faker)
 		with UseDirectory(path_to_pf_joined, create_if_nonexistent=True, create_parents=True):
 			for account in tiktok_most_followed:
-				with open(f"{account}_.env", "w") as fp:
-					fp.write(f"\n")
+				with open(f"{account}_.json", "w") as fp:
+					obj = {}
+					json.dump(obj, fp)
 
 
 if __name__ == "__main__":
