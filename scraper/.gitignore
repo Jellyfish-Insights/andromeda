@@ -8,3 +8,5 @@ browsermob-proxy-2.1.4/
 # The following files can be generated with "make test"
 test_data_lake.Dockerfile
 docker-compose.test.yml
+
+scraper.Dockerfile.bkp

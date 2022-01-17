@@ -64,6 +64,7 @@ def concatenate_run_commands(old_commands: List[List[str]]) -> List[List[str]]:
 		directive_curr = get_directive(old_commands_cp[i])
 		directive_last = get_directive(new_commands[-1])
 		if directive_curr == directive_last == "RUN":
+			new_commands[-1][-1] += " \\"
 			old_commands_cp[i][0] = old_commands_cp[i][0].replace("RUN", "\t&&")
 			new_commands[-1].extend(old_commands_cp[i])
 		else:

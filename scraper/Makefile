@@ -28,8 +28,8 @@ dev:
 	docker-compose -f docker-compose.dev.yml up -d
 
 dev_shrink:
-	mkfifo tmp_fifo
-	python3 shrink_dockerfile.py > tmp_fifo
+	cp scraper.Dockerfile scraper.Dockerfile.bkp
+	python3 shrink_dockerfile.py scraper.Dockerfile.bkp > scraper.Dockerfile
 	docker-compose -f docker-compose.dev.yml build --build-arg APP_UID=$(uid)
 	docker-compose -f docker-compose.dev.yml up -d
 	mv scraper.Dockerfile.bkp scraper.Dockerfile
@@ -40,7 +40,7 @@ prod:
 
 prod_shrink:
 	cp scraper.Dockerfile scraper.Dockerfile.bkp
-	python3 shrink_dockerfile.py > scraper.Dockerfile
+	python3 shrink_dockerfile.py scraper.Dockerfile.bkp > scraper.Dockerfile
 	docker-compose -f docker-compose.prod.yml build --build-arg APP_UID=$(uid)
 	docker-compose -f docker-compose.prod.yml up -d
 	mv scraper.Dockerfile.bkp scraper.Dockerfile
