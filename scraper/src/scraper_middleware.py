@@ -271,7 +271,7 @@ class ScraperMiddleWare(ScraperCore):
 		try:
 			self.action.perform()
 			log.debug(f"Visiting {anchor.get_attribute('href')} briefly...")
-		except (ElementNotInteractableException, MoveTargetOutOfBoundsException):
+		except (ElementNotInteractableException, MoveTargetOutOfBoundsException, StaleElementReferenceException):
 			log.debug("Element is not interactable or is out of screen.")
 			return
 
