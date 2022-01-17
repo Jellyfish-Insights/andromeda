@@ -57,6 +57,11 @@ main() {
 	# Run our app
 	############################################################################
 	directory="/opt/scraper/"
+
+	if [ ! "$development" == "development" ] ; then
+		log_i "Removing test jobs from production environment"
+		rm -rf jobs/test*
+	fi
 	
 	log_i "Sleeping for 10 seconds to allow Postgres to init"
 	sleep 10

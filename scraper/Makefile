@@ -57,5 +57,5 @@ test:
 	echo "Undoing changes"
 	rm "$(test_data_lake_df)" "$(docker_compose_test)"
 	mv "$(bkp_appsettings)" "$(appsettings)"
-
+	rm -rf src/jobs/test*
 	
