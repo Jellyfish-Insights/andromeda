@@ -17,8 +17,6 @@ services:
           sleep_interval: "60"
           random_order: ""
 
-          # Enables development mode. Leave empty for production
-          development: ''
         user: app
         privileged: true
         depends_on:
