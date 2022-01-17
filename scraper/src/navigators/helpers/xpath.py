@@ -60,7 +60,7 @@ class XPath:
 	@staticmethod
 	def visible():
 		"""Other filters will be added as we discover them"""
-		return "not(self::script)"
+		return "not(self::script) and not(self::style)"
 
 	@staticmethod
 	def attributes(attr_dict: dict):

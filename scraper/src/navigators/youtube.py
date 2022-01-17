@@ -3,7 +3,8 @@ import json
 import os
 import re
 import time
-from typing import Any, Dict, Optional, Set, Tuple
+from difflib import SequenceMatcher
+from typing import Any, Dict, List, Optional, Set, Tuple
 from urllib.parse import urlencode
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
@@ -85,7 +86,7 @@ class YouTube(ScraperMiddleWare):
 	def logout(self) -> None:
 		self.go("https://www.youtube.com/logout")
 		self.wait_load()
-		self.go(self.build_url)
+		self.go(self.build_url())
 	
 	def get_credentials(self) -> Tuple[str, str]:
 		self.kill_handle.check()
@@ -141,6 +142,14 @@ class YouTube(ScraperMiddleWare):
 			allow_new_windows=False
 		)
 
+		use_another_acc = self.find(
+			text="use another account",
+			text_exact=True,
+			case_insensitive=True
+		)
+		if len(use_another_acc):
+			self.click(use_another_acc[0])
+
 		email_field = self.find_one(
 			tag="input",
 			attributes={"type":"email"}
@@ -188,6 +197,9 @@ class YouTube(ScraperMiddleWare):
 		self.go("https://studio.youtube.com")
 		self.wait_load()
 
+		if self.options.managed_account is not None:
+			self.access_managed_account()
+
 		self._channel_id = self.run("""
 			const regex = new RegExp("^.*/channel/(.+)$");
 			let match = window.location.href.match(regex);
@@ -230,6 +242,58 @@ class YouTube(ScraperMiddleWare):
 		video_ids = set(x[1] for x in matches if x is not None)
 		log.debug(video_ids)
 		return video_ids
+
+	def access_managed_account(self):
+		log.info("Logged into manager account. Now switching to client "
+			f"account dashboard: '{self.options.managed_account}'")
+
+		avatar_button = self.find_one(tag='button',id='avatar-btn')
+		self.click(avatar_button)
+		self.wait(5.0)
+
+		switch_account_button = self.find_one(text='switch account')
+		self.click(switch_account_button)
+		self.wait(3.0)
+
+		channel_dict: Dict[str, WebElement] = {
+			element.get_attribute("innerText"): element
+			for element in self.find(id="channel-title")
+		}
+		if len(channel_dict) == 0:
+			log.critical("No channel titles found!")
+			raise ElementNotFound
+
+		log.debug(f"Channel titles found are {channel_dict.keys()}")
+
+		candidate_account: Optional[WebElement] = None
+		for title in channel_dict.keys():
+			occurrences_in_page = self.find(text=title, case_insensitive=False)
+			if len(occurrences_in_page) == 1:
+				log.info(f"We believe we have found the desired account '{title}")
+				candidate_account = channel_dict[title]
+				break
+
+		if candidate_account is None:
+			log.warning("This account manages more than one YouTube account. "
+				f"We will try to match managed_account, given as '{self.options.managed_account}'")
+
+			managed_account = self.options.managed_account.lower()
+			longest_matches: List[Tuple[str, int]] = []
+			for title in channel_dict.keys():
+				s = SequenceMatcher(None, managed_account, title.lower())
+				longest_matches.append((title, s.find_longest_match(0, len(managed_account), 0, len(title)).size))
+			best_title, best_score = max(longest_matches, key=lambda x: x[1])
+
+			if best_score < 5:
+				log.critical("We are not confident enough to guess.")
+				raise ElementNotFound
+			
+			log.info(f"We will guess that you want to access '{best_title}'")
+			candidate_account = channel_dict[title]
+
+		self.click(candidate_account)
+		breakpoint()
+
 
 	@throttle(THROTTLE_GET_DATA_FOR_VIDEO)
 	def get_data_for_video(self, video_id: str) -> None:
