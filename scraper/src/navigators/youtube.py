@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
+import copy
 import json
 import os
 import re
 import time
-from difflib import SequenceMatcher
-from typing import Any, Dict, List, Optional, Set, Tuple
-from urllib.parse import urlencode
+from typing import Any, Dict, Optional, Set, Tuple
 from selenium.webdriver.remote.webelement import WebElement
 from dotenv import dotenv_values
 
@@ -16,7 +15,7 @@ from defaults import youtube as youtube_defaults
 from models.options import Options
 from scraper_core import ElementNotFound, ScraperException, YouProbablyGotBlocked, BadArguments
 from scraper_middleware import ScraperMiddleWare
-from tools import get_home_dir, throttle, UseDirectory
+from tools import get_home_dir, throttle, UseDirectory, find_longest_matching_substring
 
 class YouTube(ScraperMiddleWare):
 	needs_authentication = True
@@ -201,7 +200,7 @@ class YouTube(ScraperMiddleWare):
 			self.access_managed_account()
 
 		self._channel_id = self.run("""
-			const regex = new RegExp("^.*/channel/(.+)$");
+			const regex = new RegExp("^.*/channel/([^?]+).*$");
 			let match = window.location.href.match(regex);
 			return match ? match[1] : null;
 		""")
@@ -210,6 +209,9 @@ class YouTube(ScraperMiddleWare):
 			log.info(f"Channel ID is '{self._channel_id}'")
 		else:
 			log.info("Could not obtain channel id from URL")
+			if self.options.managed_account is not None:
+				log.critical("Cannot proceed without channel ID!")
+				raise ElementNotFound("Channel ID could not be extracted from URL")
 
 		content_button = self.find_one(
 			tag="a",
@@ -249,11 +251,11 @@ class YouTube(ScraperMiddleWare):
 
 		avatar_button = self.find_one(tag='button',id='avatar-btn')
 		self.click(avatar_button)
-		self.wait(5.0)
+		self.move_aimlessly(5.0, allow_new_windows=False, allow_scrolling=False)
 
 		switch_account_button = self.find_one(text='switch account')
 		self.click(switch_account_button)
-		self.wait(3.0)
+		self.move_aimlessly(3.0, allow_new_windows=False, allow_scrolling=False)
 
 		channel_dict: Dict[str, WebElement] = {
 			element.get_attribute("innerText"): element
@@ -263,10 +265,11 @@ class YouTube(ScraperMiddleWare):
 			log.critical("No channel titles found!")
 			raise ElementNotFound
 
-		log.debug(f"Channel titles found are {channel_dict.keys()}")
+		channel_titles = channel_dict.keys()
+		log.debug(f"Channel titles found are {channel_titles}")
 
 		candidate_account: Optional[WebElement] = None
-		for title in channel_dict.keys():
+		for title in channel_titles:
 			occurrences_in_page = self.find(text=title, case_insensitive=False)
 			if len(occurrences_in_page) == 1:
 				log.info(f"We believe we have found the desired account '{title}")
@@ -277,23 +280,20 @@ class YouTube(ScraperMiddleWare):
 			log.warning("This account manages more than one YouTube account. "
 				f"We will try to match managed_account, given as '{self.options.managed_account}'")
 
-			managed_account = self.options.managed_account.lower()
-			longest_matches: List[Tuple[str, int]] = []
-			for title in channel_dict.keys():
-				s = SequenceMatcher(None, managed_account, title.lower())
-				longest_matches.append((title, s.find_longest_match(0, len(managed_account), 0, len(title)).size))
-			best_title, best_score = max(longest_matches, key=lambda x: x[1])
-
-			if best_score < 5:
+			try: 
+				best_title, _ = find_longest_matching_substring(
+					self.options.managed_account,
+					channel_titles,
+					threshold=5,
+					case_sensitive=False)
+			except ValueError as exc:
 				log.critical("We are not confident enough to guess.")
-				raise ElementNotFound
+				raise ElementNotFound from exc
 			
 			log.info(f"We will guess that you want to access '{best_title}'")
 			candidate_account = channel_dict[title]
 
 		self.click(candidate_account)
-		breakpoint()
-
 
 	@throttle(THROTTLE_GET_DATA_FOR_VIDEO)
 	def get_data_for_video(self, video_id: str) -> None:
@@ -302,15 +302,25 @@ class YouTube(ScraperMiddleWare):
 		# We don't really need to navigate to this page, as the data is directly
 		# accessible in the other link, but that is what a normal user would do
 		# and we want to simulate what a normal user does
-		self.go(f"https://studio.youtube.com/video/{video_id}/analytics/tab-overview/period-default")
+		query_dict = {}
+		self.adapt_query_dict_for_managed_account(query_dict)
+		self.go(
+			f"https://studio.youtube.com/video/{video_id}/analytics"
+				"/tab-overview/period-default", 
+			query_dict
+		)
 		self.wait_load()
 		self.move_aimlessly(timeout=5.0)
 
-		url_dict = youtube_defaults.ANALYTICS_QUERY_STRING_DICT
-		url_dict["entity_id"] = video_id
-		url_encoded = urlencode(youtube_defaults.ANALYTICS_QUERY_STRING_DICT)
+		query_dict = copy.deepcopy(youtube_defaults.ANALYTICS_QUERY_STRING_DICT)
+		query_dict["entity_id"] = video_id
+		self.adapt_query_dict_for_managed_account(query_dict)
 
-		self.go(f"https://studio.youtube.com/video/{video_id}/analytics/tab-overview/period-default/explore?{url_encoded}")
+		self.go(
+			f"https://studio.youtube.com/video/{video_id}/analytics"
+				"/tab-overview/period-default/explore",
+			query_dict
+		)
 		self.wait_load()
 		self.move_aimlessly(timeout=5.0)
 
@@ -359,6 +369,10 @@ class YouTube(ScraperMiddleWare):
 			with open(metadata_file, "w") as fp:
 				log.info(f"Writing metadata to {metadata_file}")
 				fp.write(json.dumps(metadata))
+
+	def adapt_query_dict_for_managed_account(self, query_dict: Dict[str, str]):
+		if self.options.managed_account is not None:
+			query_dict["c"] = self.channel_id
 
 	############################################################################
 	# METHODS DECORATED FROM ABSTRACT CLASS
