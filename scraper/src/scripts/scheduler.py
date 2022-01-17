@@ -67,7 +67,7 @@ def write_append(*args, **kwargs):
 
 def parse() -> SchedulerOptions:
 	parser = argparse.ArgumentParser(
-		description="Schedules jobs for scraping social media. Reads from .env "
+		description="Schedules jobs for scraping social media. Reads from .json "
 		'files placed in the "jobs" directory'
 	)
 	parser.add_argument(
