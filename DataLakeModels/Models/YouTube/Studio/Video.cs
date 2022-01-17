@@ -28,16 +28,17 @@ namespace DataLakeModels.Models.YouTube.Studio {
 
         public DateTime ValidityStart { get; set; }
         public DateTime ValidityEnd { get; set; }
-        public DateTime DateMeasure { get; set; }
+        public Date DateMeasure { get; set; }
         public string ChannelId { get; set; }
         public string VideoId { get; set; }
         public string Metric { get; set; }
-        public string Value { get; set; }
+        public double Value { get; set; } // -> fix in scraper
 
         bool IEquatable<Video>.Equals(Video other) {
             return  ChannelId == other.ChannelId &&
                     VideoId == other.VideoId &&
-                    Metric  == other.Metric;
+                    Metric  == other.Metric &&
+                    DateMeasure == other.DateMeasure;
         }
 
         public override string ToString()
