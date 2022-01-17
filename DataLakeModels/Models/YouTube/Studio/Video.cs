@@ -13,7 +13,7 @@ namespace DataLakeModels.Models.YouTube.Studio {
             string channelId,
             string videoId,
             string metric,
-            string value
+            double value
         )
         {
             ValidityStart = validityStart;
@@ -28,11 +28,12 @@ namespace DataLakeModels.Models.YouTube.Studio {
 
         public DateTime ValidityStart { get; set; }
         public DateTime ValidityEnd { get; set; }
-        public Date DateMeasure { get; set; }
+        /* See "DateOnly" type introduced in .NET 6 */
+        public DateTime DateMeasure { get; set; }
         public string ChannelId { get; set; }
         public string VideoId { get; set; }
         public string Metric { get; set; }
-        public double Value { get; set; } // -> fix in scraper
+        public double Value { get; set; }
 
         bool IEquatable<Video>.Equals(Video other) {
             return  ChannelId == other.ChannelId &&

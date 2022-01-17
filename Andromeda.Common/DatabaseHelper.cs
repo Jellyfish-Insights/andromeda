@@ -12,6 +12,7 @@ namespace Andromeda.Common {
 
     public enum Databases {
         LakeYouTubeData,
+        LakeYouTubeStudio,
         LakeYouTubeAnalytics,
         LakeAdWords,
         LakeLogging,
