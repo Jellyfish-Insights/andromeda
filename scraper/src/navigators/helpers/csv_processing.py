@@ -20,10 +20,6 @@ ZIP_FILE_REGEX = re.compile(
 	rf'(?i)^(.+) ({DATE_REGEX})_({DATE_REGEX}) (?P<video_name>.+)\.zip$'
 )
 DATE_COLUMN_REGEX = re.compile(r"(?i)date")
-INTEGER_COLUMNS_REGEX = [
-	re.compile(rf"(?i){string}")
-	for string in ["views", "subscribers", "impressions", "likes", "unique viewers"]
-]
 EXTRACTED_DATA = "extracted_data"
 DEBUG = None
 
@@ -59,14 +55,7 @@ class CSV_Data:
 					self.data[-1]["DateMeasure"] = round(datetime.datetime.fromisoformat(row[col]).timestamp())
 				else:
 					self.data[-1]["Metric"] = col
-					is_integer_metric = False
-					for int_col_regex in INTEGER_COLUMNS_REGEX:
-						if int_col_regex.search(col):
-							is_integer_metric = True
-							self.data[-1]["Value"] = round(float(row[col]))
-							break
-					if not is_integer_metric:
-						self.data[-1]["Value"] = row[col]
+					self.data[-1]["Value"] = float(row[col])
 
 def retrieve_data_from_csv_files(
 		video_name: str = None,
