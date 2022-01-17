@@ -25,7 +25,24 @@ python_watchdog() {
 	) &
 }
 
+system_snapshot() {
+	sys_snapshot_log_file="/var/log/system_snapshot.log"
+	frequency=60
+	echo -e "Starting system_snapshot logger at $(date)" >> "$sys_snapshot_log_file"
+	echo -e "We will take snapshots every $frequency seconds\n\n" >> "$sys_snapshot_log_file"
+	(
+		while true ; do
+			echo "--------------------$(date)--------------------" >> "$sys_snapshot_log_file"
+			ps -eo pid,cmd,times,rss,%cpu >> "$sys_snapshot_log_file"
+			# We can't use a utility like 'free' because that shows stats for host
+			awk '$1 == "rss" { mb = $2 / 1000 / 1000 ; print "Resident memory usage: " mb " MB" }' /sys/fs/cgroup/memory/memory.stat >> "$sys_snapshot_log_file"
+			sleep $frequency
+		done
+	) &
+}
+
 main() {
+	system_snapshot
     log_i "Starting xvfb virtual display..."
     launch_xvfb
     log_i "Starting window manager..."
