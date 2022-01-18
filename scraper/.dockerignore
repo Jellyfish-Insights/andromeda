@@ -8,6 +8,3 @@ src/__pycache__/
 src/chrome_profile*
 src/extracted_data/*
 !src/extracted_data/.gitkeep
-
-
-src/jobs/test*

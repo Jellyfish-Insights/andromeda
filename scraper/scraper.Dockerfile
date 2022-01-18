@@ -90,9 +90,7 @@ RUN apt-get update \
 	&& apt-get clean \
 	&& usermod -aG sudo app \
 	&& echo "123456\n123456" \
-		| passwd app \
-# Install test data
-	&& python3 -m tests.test_tiktok_most_followed
+		| passwd app
 
 CMD [ "./bootstrap.sh" ]
 
