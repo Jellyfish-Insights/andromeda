@@ -69,8 +69,7 @@ namespace Jobs.Fetcher.TikTok {
     
         private List<AbstractJob> GetListOfJobs(List<String> tiktokAccountNames) {
             return new List<AbstractJob>() {
-                new ScrapperAccountAdd(tiktokAccountNames),
-                new PostsQuery(tiktokAccountNames)
+                       new PostsQuery(tiktokAccountNames)
             };
         }
     }
