@@ -31,11 +31,6 @@ cd '{get_project_root_path()}'
 
 """
 
-BASH_GET_RETURN_VALUE = """
-return_value=$?
-log "Return value was $return_value"
-"""
-
 DEBUG = False
 
 @dataclass
@@ -114,7 +109,6 @@ def add_scheduler_shell_script(
 	write_append(f'log "Now executing job #{index + 1} with instructions found at {basename}"')
 	write_append(f'log "Running command {redacted}"')
 	write_append(f"{cmd} {options.make_tee_string()}")
-	write_append(BASH_GET_RETURN_VALUE)
 	# A lot of java processes are left dangling for no reason
 	# This is still an open issue by BrowserMob Proxy Py
 	# https://github.com/AutomatedTester/browsermob-proxy-py/issues/8
