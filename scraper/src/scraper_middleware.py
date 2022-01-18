@@ -277,16 +277,27 @@ class ScraperMiddleWare(ScraperCore):
 			return
 
 		parent = self.driver.current_window_handle
-		children = self.driver.window_handles
+		children = [x for x in self.driver.window_handles if x != parent]
+		log.debug(f"We now have {len(children)} tabs open.")
 
-		for window in children:
-			if window != parent :
-				self.driver.switch_to.window(window)
-				self.wait_load()
-				self.move_aimlessly(timeout, allow_new_windows=False)
-				self.driver.close()
+		if tab_was_not_opened := (len(children) == 0):
+			log.debug("Ctrl+Click did not open new tab.")
+			self.move_aimlessly(timeout, allow_new_windows=False)
 
-		self.driver.switch_to.window(parent)
+		for tab in children:
+			log.debug("Switching to tab")
+			self.driver.switch_to.window(tab)
+			self.wait_load()
+			self.move_aimlessly(timeout, allow_new_windows=False)
+			log.debug("Closing tab")
+			self.driver.close()
+
+		if tab_was_not_opened:
+			log.debug("Going back in page visit history")
+			self.run("history.back();")
+		else:
+			log.debug("Going back to parent tab")
+			self.driver.switch_to.window(parent)
 
 	def hover(self, elem: WebElement) -> None:
 		self.action.move_to_element(elem)

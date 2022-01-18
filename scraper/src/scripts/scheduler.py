@@ -119,6 +119,8 @@ def add_scheduler_shell_script(
 	write_append("")
 
 def show_statistics(jobs: List[Job]):
+	frequency_length = 4
+	navigator_length = 18
 	buffer = [
 		"",
 		"",
@@ -135,9 +137,9 @@ def show_statistics(jobs: List[Job]):
 	buffer.append("Jobs are distributed as: ")
 	buffer.append("")
 	for nav_name, frequency in counter.items():
-		buffer.append(f"\t{nav_name:18s}{frequency:3d}")
-	buffer.append(f"\t{'_' * 21}")
-	buffer.append(f"\t{'Total':18s}{sum(counter.values()):3d}")
+		buffer.append(f"\t{nav_name:{navigator_length}s}{frequency:{frequency_length}d}")
+	buffer.append(f"\t{'_' * (frequency_length + navigator_length)}")
+	buffer.append(f"\t{'Total':{navigator_length}s}{sum(counter.values()):{frequency_length}d}")
 	buffer.append("")
 
 	log.info("\n".join(buffer))

@@ -125,7 +125,10 @@ class TikTok(ScraperMiddleWare):
 		relevant_entries: List[Dict] = [
 			entry
 			for entry in self.proxy.har['log']['entries']
-			if self.GET_REQUEST_URL_RE.search(entry['request']['url'])
+			if (
+				entry["request"]["method"] == "GET" and
+				self.GET_REQUEST_URL_RE.search(entry['request']['url'])
+			)
 		]
 		for entry in relevant_entries:
 			try:
@@ -142,7 +145,7 @@ class TikTok(ScraperMiddleWare):
 			except UnexpectedResponse:
 				log.warning("Skipping this entry...")
 				continue
-			
+
 		self.reset_har()
 
 	@staticmethod
@@ -173,6 +176,7 @@ class TikTok(ScraperMiddleWare):
 			log.warning("Response payload decoded to something that is not a "
 				f"dict! (type = {type(response_payload)})")
 			log.warning(f"{response_payload=}")
+			raise UnexpectedResponse
 		
 		return response_payload
 

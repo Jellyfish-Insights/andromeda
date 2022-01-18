@@ -1,0 +1,156 @@
+{
+	"pageref": "Page 0",
+	"startedDateTime": "2022-01-18T15:29:41.389-03:00",
+	"request": {
+		"method": "GET",
+		"url": "https://m.tiktok.com/api/post/item_list/?msToken=wvUItwdJNzZThRePaS3KMM9x4qwDrt4-ti5ifuFOvZngEUJSYRYgC3qKF-UvVVfYkjfzrd6rkLROQWn6FvfWmhrzSJxiRlZpMhJHujPhxRd9UDgW30bTJxCMmB5buTnaUA==&X-Bogus=DFSzswVY36kANC3jSbMpAJMaYDsh&_signature=_02B4Z6wo00001EqQ5vgAAIDDcw3EAmW2iphKkOJAAHNKf4",
+		"httpVersion": "HTTP/1.1",
+		"cookies": [],
+		"headers": [
+			{
+				"name": "Host",
+				"value": "m.tiktok.com"
+			},
+			{
+				"name": "Connection",
+				"value": "keep-alive"
+			},
+			{
+				"name": "sec-ch-ua",
+				"value": "" Not;A Brand";v="99", "Google Chrome";v="97", "Chromium";v="97""
+			},
+			{
+				"name": "x-tt-params",
+				"value": "4mOJhGnMOdadxrLEy2bkmGSR2R38w8nZC8MQKREioTAU76aXIbW+KkRzj5O7qqbOI65rqSqkFAXNltiJ1p2YyvalYQ0VbxXkcXRyJfQSSRSR7mgO/jOIAjK/QFUur+Z+q+jqnPUr7PSv0cSxOrKdyHjgotm4dR0yE/vqoWB9Yasac1VqgQ6q49pXSe35bZuv57QP7BM3uzrBk/UU+P4aiYbQw0SlD55AWolCFIMwj/izu5WQM8WO5FMNZYY88/mR9+Zz62Cxo6+3D1cZFZjIw+m5UWmGGgkvORW11ailDDacRM9n+iaoSK2MLYx4jsLoT4VTW7Oc0iDOHIIzEoBRvBCzH7A6Gy3bB7yvvRfRGt0df/ytqQX3sHTZn19exi3urdPhj5O8V2V+21JNVvTW1VKBFEIkoRKzlU9363qgGmTk7dAj7r5Abq2R57KL1VBr+6Oo/mU/uUB8u8ZMYh+UDL7InUxNRHTnvCkBfyZrM3fpGhvYiP1tlFzxcxSq849R4qTiLkeNRT5pbvOhTOV1OyQXkV4Czb6W/6SlNLNRWK1wljAqQUmAhQF1TQKMDkRk3jRvSQIKFsuuE1oS5ILMHLrDmUZS68Fzn9SDOyDIRJuW9HFRFzxtszAYoaefdU0lGya3LptcdlQ55B+1hhk29qVh48UINjwNZj1y/NpR/6rx8HU3b3TPw+n32S57CPEuaO3XTkyGqhnvCdWJD6iMJ6KrbrRvlC6fiWJgcsxvEK2emI5YzejlTFWqgwBUXe6DQQ28vkDJpNdnSCS4pmDqIb5gQWynJNz4iu1cxWLjshd3kccV+48Ny7Y723tYN/KXA8CvCaAU6bx4CK671K/Vfx9/8EgdzwC8tTpntx95urRBl/wSx5Y9owYQkGH/Y33GC5SiDxvuyVak4nncg01WztOMx5R7UPSgy7xeqNacqTy0Rx8WSm2TKtZqiPcipHPHD4uEf6PJcpDUSEt8GdjpWnVktmjzl5qLQXSW9rjaGx9UJyjWp0XUjLzIpWo2nT+7"
+			},
+			{
+				"name": "sec-ch-ua-mobile",
+				"value": "?0"
+			},
+			{
+				"name": "User-Agent",
+				"value": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36"
+			},
+			{
+				"name": "sec-ch-ua-platform",
+				"value": ""Linux""
+			},
+			{
+				"name": "Accept",
+				"value": "*/*"
+			},
+			{
+				"name": "Origin",
+				"value": "https://www.tiktok.com"
+			},
+			{
+				"name": "Sec-Fetch-Site",
+				"value": "same-site"
+			},
+			{
+				"name": "Sec-Fetch-Mode",
+				"value": "cors"
+			},
+			{
+				"name": "Sec-Fetch-Dest",
+				"value": "empty"
+			},
+			{
+				"name": "Referer",
+				"value": "https://www.tiktok.com/"
+			},
+			{
+				"name": "Accept-Encoding",
+				"value": "gzip, deflate, br"
+			},
+			{
+				"name": "Accept-Language",
+				"value": "en-US,en;q=0.9"
+			},
+			{
+				"name": "Cookie",
+				"value": "tt_csrf_token=7gH6P4LhE3c7riqtanzJaAGD; _abck=E58F7AF111EFFF5228882AA5ABFF1E15~-1~YAAQXR4GyVO6uCd+AQAA+JtybgfNPbtW2uGQlP2d0BAQ5pTdEgEoK2Sh+vFz4yRooYx9CfICI3hyLVn8x+FCrTpRaSO0GHiJ76VmU8PbUQlPkfduuZG/tFxLAo+zSyuErpDZ3/Jm8KSUfG9g+62ENX7cGe4+glR9FFiW6A70io8DNACg/JTwdNK2cbo0NOizrdj80r4SmY8A1jOVVXCr3GCsE/svIppHLylBYxGJbzb0+Okm85JHz02bvy5mI984yw4esEfbl891W1PmY5QgUHhJQVTWJkfeb65yPf+t4Zu+ShFi+TMm1SX6GCGnOTiUGqt5zMWI1hLUngowe1/yrj1ysTvhU95/jisT4IsjVJyHdLZ7wcuKlGTqjg==~-1~-1~-1; bm_sz=AA9F6EB06DC1DB97C2BA619972BF4DC5~YAAQXR4GyVS6uCd+AQAA+Jtybg5VebEf8kB4bFbwSQNu302wOrczN7OQxGlkoKwqs1b4lInCisa3Q7vp0VJc7NvVbj7sFjgAePGn3sVgfjLeBGifAgqrl0qsG1zFnYMR5FSK1gR9nf3g9kbEuDrt+BR0/KkCv2+i9viO4ZMeazyf7Ft0AdyDaAk3oypRYCZ73AkrTNKVgdF4EPuMI1omIgBphCN2c7FHroltcoF2gReCUi9UWfa6RzdNwIX7A0UKALAjY1vUpPWlUHxe6cV+VfJINFRzeV4Xx4L1+LJMX5NV2IE=~4342839~3487813; ak_bmsc=A4218BF6975BFE92F3F1C6B5B3EFEBB9~000000000000000000000000000000~YAAQXR4GyVW6uCd+AQAAn65ybg4wN2b6CSCn57oGxPTDyQA8dIbR7AtewkmA+DVvlsbSMjGfeSPG0+lXRTinnBGeJ08mfysBwgFXTeSM1rIDqr1fmkMsV2S+BCcJamWl2werZrF+IwPE2YnUNUeN+qqgV4O+bbkOHtXwlv0iVGcZCTmxXKnrTovbZDqwiCgbDYxfrIiX4FrjOF7PeXUscJNoP91tWH4iQGQHKYOjKjAcXE3i2IeFMLeDltjIts1XLnPz9eFZHX4TFDvq2t++cIUsg4oyjQdNVOTviTLuupRiAVhpmsa3nrstKbpk3nEBUUIS6o0p7eEY3GDhVhvxB5+MhIIJMjsuxAmxysN7cBUtzWYmVgU6u1FB/Kfv; msToken=taUuB_b-uwWTUhdqxEhutX3Zyel75mjtwJygQTzx5rZA5Q_2nChkqNsqo1XcsmdFVdKsHlUK51eIQ0lr8cbV1LgU4cspUPOZVpMC_LH_rPT2jcEgXVIf36RDnw==; ttwid=1%7CAvlV6tDQaw4PJdfkmWRgrzyNRrONhyzO_RiDNEFFrCs%7C1642530517%7C3007ceb79b32d9de1eff60515c4c622f5dcf8cc4551f66a21cce38c87eb5dd03"
+			},
+			{
+				"name": "Sec-Ch-Ua",
+				"value": ""
+			},
+			{
+				"name": "Sec-Ch-Ua-Platform",
+				"value": ""
+			},
+			{
+				"name": "Sec-Ch-Ua-Arch",
+				"value": ""
+			},
+			{
+				"name": "Sec-Ch-Ua-Model",
+				"value": ""
+			},
+			{
+				"name": "Sec-Ch-Ua-Platform-Version",
+				"value": ""
+			},
+			{
+				"name": "Accept-Language",
+				"value": "pt-BR;q=0.9,pt-BR;q=0.8,pl;q=0.7,en-GB;q=0.6"
+			},
+			{
+				"name": "Sec-Ch-Ua-Full-Version",
+				"value": ""
+			},
+			{
+				"name": "Sec-Ch-Ua-Mobile",
+				"value": ""
+			}
+		],
+		"queryString": [
+			{
+				"name": "msToken",
+				"value": "wvUItwdJNzZThRePaS3KMM9x4qwDrt4-ti5ifuFOvZngEUJSYRYgC3qKF-UvVVfYkjfzrd6rkLROQWn6FvfWmhrzSJxiRlZpMhJHujPhxRd9UDgW30bTJxCMmB5buTnaUA=="
+			},
+			{
+				"name": "X-Bogus",
+				"value": "DFSzswVY36kANC3jSbMpAJMaYDsh"
+			},
+			{
+				"name": "_signature",
+				"value": "_02B4Z6wo00001EqQ5vgAAIDDcw3EAmW2iphKkOJAAHNKf4"
+			}
+		],
+		"headersSize": 3601,
+		"bodySize": 0,
+		"comment": ""
+	},
+	"response": {
+		"status": 0,
+		"statusText": "",
+		"httpVersion": "unknown",
+		"cookies": [],
+		"headers": [],
+		"content": {
+			"size": 0,
+			"mimeType": "",
+			"comment": ""
+		},
+		"redirectURL": "",
+		"headersSize": -1,
+		"bodySize": -1,
+		"comment": "",
+		"_error": "No response received"
+	},
+	"cache": {},
+	"timings": {
+		"comment": "",
+		"connect": 40,
+		"ssl": 28,
+		"send": 0,
+		"blocked": 0,
+		"wait": 0,
+		"receive": 0,
+		"dns": 0
+	},
+	"serverIPAddress": "201.6.30.27",
+	"comment": "",
+	"time": 41
+}
