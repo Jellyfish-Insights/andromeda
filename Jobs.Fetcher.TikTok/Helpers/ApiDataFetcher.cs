@@ -71,6 +71,9 @@ namespace Jobs.Fetcher.TikTok.Helpers {
 
         public static List<Challenge> GetTikTokChallengesFromJson(JToken challengesJSON) {
             var newChallenges = new List<Challenge>();
+            if (challengesJSON == null) {
+                return newChallenges;
+            }
             foreach (var challenge in challengesJSON) {
                 newChallenges.Add(new Challenge() {
                     Id = challenge["id"].ToString(),
@@ -90,6 +93,9 @@ namespace Jobs.Fetcher.TikTok.Helpers {
 
         public static List<Tag> GetTikTokTagsFromJSON(JToken tagsJSON) {
             var newTags = new List<Tag>();
+            if (tagsJSON == null) {
+                return newTags;
+            }
             foreach (var tag in tagsJSON) {
                 newTags.Add(new Tag() {
                     AweMeId = tag["awemeId"].ToString(),

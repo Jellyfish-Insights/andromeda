@@ -13,7 +13,7 @@ namespace Jobs.Fetcher.TikTok {
         public PostsQuery(List<string> userIds): base(userIds) {}
 
         public override List<string> Dependencies() {
-            return new List<string>() { IdOf<ScrapperAccountAdd>() };
+            return new List<string>() {};
         }
 
         public override void RunBody(string username) {
@@ -80,21 +80,6 @@ namespace Jobs.Fetcher.TikTok {
                     var newPostStats = ApiDataFetcher.GetTikTokPostStatsJSON(post["stats"], newPost, newPost.CreateTime);
                     DbWriter.WritePostStats(newPostStats, dbContext, logger);
                 }
-            }
-        }
-    }
-
-    public class ScrapperAccountAdd : AbstractTikTokFetcher {
-
-        public ScrapperAccountAdd(List<string> userIds): base(userIds) {}
-
-        public override List<string> Dependencies() {
-            return new List<string>();
-        }
-
-        public override void RunBody(string username) {
-            if (!DatabaseManager.TikTokUserExists(username)) {
-                DbWriter.InsertUsernameOnScraper(username, GetLogger());
             }
         }
     }
