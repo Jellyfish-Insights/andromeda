@@ -4,7 +4,8 @@ import datetime
 import random
 import os
 import re
-from typing import Set, Union
+from difflib import SequenceMatcher
+from typing import List, Optional, Set, Tuple, Union
 
 from logger import log
 
@@ -153,3 +154,34 @@ def go_to_project_root():
 
 def dirname_from_file(filename: str) -> str:
 	return os.path.dirname(os.path.realpath(filename))
+
+
+def find_longest_matching_substring(
+		target: str,
+		candidates: List[str],
+		threshold: Optional[int] = None,
+		case_sensitive: bool = False
+		) -> Tuple[str, int]:
+	"""If "threshold" is used, ValueError will be raised if the best match is
+	shorter than "threshold"
+	Returns tuple containing best candidate and its score
+	"""
+	if not candidates:
+		raise ValueError("No candidate strings received.")
+	
+	_target = target.lower() if not case_sensitive else target
+	longest_matches: List[Tuple[str, int]] = []
+	for candidate in candidates:
+		_candidate = candidate.lower() if not case_sensitive else target
+		s = SequenceMatcher(None, _target, _candidate)
+		longest_matches.append(
+			(
+				candidate,
+				s.find_longest_match(0, len(_target), 0, len(_candidate)).size
+			),
+		)
+	best_candidate, best_score = max(longest_matches, key=lambda x: x[1])
+	if threshold is not None and best_score < threshold:
+		raise ValueError("None of the given strings is a good enough match")
+		
+	return (best_candidate, best_score)

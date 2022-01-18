@@ -7,6 +7,7 @@ import traceback
 import re
 from abc import abstractmethod
 from typing import Dict, List, Optional, Type, TypeVar, Any
+from urllib.parse import urlencode
 
 from selenium.webdriver.common import by, action_chains, keys
 from selenium.webdriver.support.ui import WebDriverWait
@@ -271,7 +272,7 @@ class ScraperMiddleWare(ScraperCore):
 		try:
 			self.action.perform()
 			log.debug(f"Visiting {anchor.get_attribute('href')} briefly...")
-		except (ElementNotInteractableException, MoveTargetOutOfBoundsException):
+		except (ElementNotInteractableException, MoveTargetOutOfBoundsException, StaleElementReferenceException):
 			log.debug("Element is not interactable or is out of screen.")
 			return
 
@@ -359,9 +360,13 @@ class ScraperMiddleWare(ScraperCore):
 	"""Subclasses are encouraged to reuse these, by wrapping with decorators
 	if necessary"""
 
-	def go(self, url: str) -> None:
-		log.debug(f"Navigating to {url}")
-		self.driver.get(url)
+	def go(self, url: str, query_dict: Optional[Dict] = None) -> None:
+		query_encoded = ""
+		if query_dict is not None:
+			query_encoded = "?" + urlencode(query_dict)
+		full_url = f"{url}{query_encoded}"
+		log.debug(f"Navigating to {full_url}")
+		self.driver.get(full_url)
 
 	@try_to_interact
 	def click(self, elem: WebElement):

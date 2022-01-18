@@ -1,3 +1,4 @@
+"""Old test suite. Not valid since we changed from .env to .json"""
 import tarfile
 import os
 import shutil

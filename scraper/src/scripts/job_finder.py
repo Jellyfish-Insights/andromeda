@@ -1,8 +1,8 @@
+import json
 import os
 import random
-from typing import Dict, List, Optional, Tuple, Type
+from typing import Dict, List, Optional
 from uuid import uuid4
-from dotenv.main import dotenv_values
 from dataclasses import dataclass
 
 from logger import log
@@ -54,7 +54,7 @@ def create_example_jobs_directory():
 								max_number_of_jobs
 						)
 						for i in range(number_of_jobs):
-							filename = "%02d_job_sample.env" % i
+							filename = "%02d_job_sample.json" % i
 							open(filename, "w").close()
 
 def get_options_and_nav_name_from_file(filename: str) -> Optional[Job]:
@@ -64,7 +64,10 @@ def get_options_and_nav_name_from_file(filename: str) -> Optional[Job]:
 	if nav_class is None:
 		return
 
-	options = dotenv_values(filename)
+	with open(filename, "r") as fp:
+		options = json.load(fp)
+	if type(options) != dict:
+		raise ValueError("JSON decoded to unexpected object type!")
 
 	if not nav_class.allow_empty_options:
 		minimum_file_size = 5
@@ -73,8 +76,8 @@ def get_options_and_nav_name_from_file(filename: str) -> Optional[Job]:
 			log.debug(f"File '{filename}' has under {minimum_file_size} bytes, skipping")
 			return
 
-		if not options or all(value is None for value in options.values()):
-			log.debug(f"Bad format for .env file in '{filename}', skipping")
+		if not options:
+			log.debug(f"Zero options given in .json file in '{filename}', skipping")
 			return
 
 	# Let's try to create this object and see if it will complain
@@ -93,14 +96,19 @@ def get_options_and_nav_name_from_file(filename: str) -> Optional[Job]:
 
 def find_all_jobs() -> List[Job]:
 	with UseDirectory(get_jobs_path(create=False)):
-		log.info(f"Looking for .env files containing jobs, at {os.getcwd()}")
+		log.info(f"Looking for .json files containing jobs, at {os.getcwd()}")
 		jobs_found = []
 		for dirname, dirs, files in os.walk('.'):
 			for file in files:
 				full_filename = os.path.join(dirname, file)
 				log.debug(f"Analysing file '{full_filename}'")
-				if not file.endswith(".env"):
-					log.debug(f"File '{full_filename}' does not have the .env extension, skipping")
+				
+				if file == "appsettings.json":
+					log.debug("Skipping special file appsettings.json")
+					continue
+
+				if not file.endswith(".json"):
+					log.debug(f"File '{full_filename}' does not have the .json extension, skipping")
 					continue
 
 				job = get_options_and_nav_name_from_file(full_filename)
