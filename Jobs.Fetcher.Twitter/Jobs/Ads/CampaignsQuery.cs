@@ -37,9 +37,14 @@ namespace Jobs.Fetcher.Twitter {
             var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext);
 
             void ProccessCampaignResult(string accountId, ITwitterRequestIterator<CampaignsResponse, string> iterator) {
-                while (!iterator.Completed) {
-                    var campaignsPage = iterator.NextPageAsync().GetAwaiter().GetResult();
-                    DbWriter.WriteCampaigns(accountId, campaignsPage.Content, dbContext, GetLogger());
+                try {
+                    while (!iterator.Completed) {
+                        var campaignsPage = iterator.NextPageAsync().GetAwaiter().GetResult();
+                        DbWriter.WriteCampaigns(accountId, campaignsPage.Content, dbContext, GetLogger());
+                    }
+                }catch (Exception e) {
+                    GetLogger().Error($"Could not fetch Twitter Campaigns for {username}");
+                    throw e;
                 }
             }
 

@@ -17,7 +17,7 @@ namespace Andromeda.Commands {
             new YouTubeFetchers(),
             //new AdWordsFetchers(),
             new FacebookFetchers(),
-            //new TwitterFetchers(),
+            new TwitterFetchers(),
             new TikTokFetchers()
         };
 
