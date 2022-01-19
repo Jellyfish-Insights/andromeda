@@ -121,6 +121,8 @@ class TikTok(ScraperMiddleWare):
 			self.process_har()
 
 	def process_har(self):
+		"""See HAR specifications here: https://archive.is/Ud8mh
+		"""
 		account_name = self.options.account_name
 		relevant_entries: List[Dict] = [
 			entry
@@ -155,7 +157,18 @@ class TikTok(ScraperMiddleWare):
 			if not (200 <= http_status < 300):
 				http_status_text: str = entry["response"]["statusText"]
 				log.warning(f"Received non-200 status code: '{http_status}' = '{http_status_text}'")
+				raise UnexpectedResponse
+
+			if (size := entry["response"]["content"]["size"]) <= 0:
+				log.warning(f"Response content size is non-positive integer: {size} bytes")
+				raise UnexpectedResponse
+
+			if (body_size := entry["response"]["bodySize"]) <= 0:
+				log.warning(f"Response body size is non-positive integer: {body_size} bytes")
+				raise UnexpectedResponse
+
 			return entry['response']['content']['text']
+
 		except KeyError as exc:
 			log.warning("Cannot parse response from GET request")
 			log.warning(f"{entry=}")
