@@ -8,6 +8,7 @@ namespace Andromeda.Common.Jobs {
     public enum JobScope {
         All,
         YouTube,
+        YouTubeStudio,
         AdWords,
         Facebook,
         Instagram,
