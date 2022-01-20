@@ -138,7 +138,7 @@ namespace WebHook.Controllers {
             using (var cmd = connection.CreateCommand()) {
 
                 connection.Open();
-                var insertion_command = String.Format(@"INSERT INTO {0} 
+                var insertion_command = String.Format(@"INSERT INTO {0}
                     (fetch_time, media_id, systime, exits, impressions, reach, replies, taps_forward, taps_back)
                     VALUES ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')",
                                                       table_name, fetch_time, media_id, systime, exits, impressions, reach, replies, taps_forward, taps_back);

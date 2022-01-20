@@ -54,7 +54,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                        Comments = (long) row[4],
                        AverageViewDuration = (long) row[5],
                        Dislikes = (long) row[6],
-                       SubscriberViews = subscriberViews.Where(x => x.date == date).Select(y => y.subscriberViews).FirstOrDefault(),
+                       SubscriberViews = subscriberViews.Where(x=> x.date == date).Select(y => y.subscriberViews).FirstOrDefault(),
                        SubscribersGained = (long) row[7],
                        SubscribersLost = (long) row[8],
                        VideosAddedToPlaylists = (long) row[9],

@@ -12,6 +12,7 @@ namespace Andromeda.Common.Jobs {
         AdWords,
         Facebook,
         Instagram,
-        Twitter
+        Twitter,
+        TikTok
     }
 }

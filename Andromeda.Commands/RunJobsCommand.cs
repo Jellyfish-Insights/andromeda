@@ -8,6 +8,7 @@ using Jobs.Fetcher.YouTube;
 using Jobs.Fetcher.YouTubeStudio;
 using Jobs.Fetcher.Facebook;
 using Jobs.Fetcher.Twitter;
+using Jobs.Fetcher.TikTok;
 
 namespace Andromeda.Commands {
 
@@ -17,8 +18,9 @@ namespace Andromeda.Commands {
             new YouTubeFetchers(),
             new YouTubeStudioFetchers(),
             new AdWordsFetchers(),
-            new FacebookFetchers()
-            //new TwitterFetchers()
+            new FacebookFetchers(),
+            new TwitterFetchers(),
+            new TikTokFetchers()
         };
 
         public static Dictionary<string, AbstractJob> BuildJobsDict(IEnumerable<AbstractJob> jobList) {
