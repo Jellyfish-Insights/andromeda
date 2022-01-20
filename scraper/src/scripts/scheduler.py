@@ -6,7 +6,6 @@ import argparse
 import random
 from typing import List, Optional
 
-from db import setup_db
 from logger import log
 from models.options import Options as ScraperOptions
 from scripts.job_finder import Job, find_all_jobs, get_jobs_path
@@ -30,11 +29,6 @@ trap control_c SIGINT SIGTERM SIGHUP
 
 cd '{get_project_root_path()}'
 
-"""
-
-BASH_GET_RETURN_VALUE = """
-return_value=$?
-log "Return value was $return_value"
 """
 
 DEBUG = False
@@ -68,7 +62,7 @@ def write_append(*args, **kwargs):
 
 def parse() -> SchedulerOptions:
 	parser = argparse.ArgumentParser(
-		description="Schedules jobs for scraping social media. Reads from .env "
+		description="Schedules jobs for scraping social media. Reads from .json "
 		'files placed in the "jobs" directory'
 	)
 	parser.add_argument(
@@ -115,7 +109,6 @@ def add_scheduler_shell_script(
 	write_append(f'log "Now executing job #{index + 1} with instructions found at {basename}"')
 	write_append(f'log "Running command {redacted}"')
 	write_append(f"{cmd} {options.make_tee_string()}")
-	write_append(BASH_GET_RETURN_VALUE)
 	# A lot of java processes are left dangling for no reason
 	# This is still an open issue by BrowserMob Proxy Py
 	# https://github.com/AutomatedTester/browsermob-proxy-py/issues/8
@@ -126,6 +119,8 @@ def add_scheduler_shell_script(
 	write_append("")
 
 def show_statistics(jobs: List[Job]):
+	frequency_length = 4
+	navigator_length = 18
 	buffer = [
 		"",
 		"",
@@ -142,16 +137,15 @@ def show_statistics(jobs: List[Job]):
 	buffer.append("Jobs are distributed as: ")
 	buffer.append("")
 	for nav_name, frequency in counter.items():
-		buffer.append(f"\t{nav_name:18s}{frequency:3d}")
-	buffer.append(f"\t{'_' * 21}")
-	buffer.append(f"\t{'Total':18s}{sum(counter.values()):3d}")
+		buffer.append(f"\t{nav_name:{navigator_length}s}{frequency:{frequency_length}d}")
+	buffer.append(f"\t{'_' * (frequency_length + navigator_length)}")
+	buffer.append(f"\t{'Total':{navigator_length}s}{sum(counter.values()):{frequency_length}d}")
 	buffer.append("")
 
 	log.info("\n".join(buffer))
 
 def main():
 	options = parse()
-	setup_db()
 	
 	jobs = find_all_jobs()
 	if not jobs:

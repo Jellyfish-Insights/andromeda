@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import json, re, random
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from defaults import tiktok as tiktok_defaults
 from logger import log
 from arg_parser import Options
-from scraper_core import BadArguments
+from scraper_core import BadArguments, UnexpectedResponse
 from scraper_middleware import ScraperMiddleWare
 from models.account_name import AccountName
 from models.video_info import VideoInfo
@@ -29,6 +29,8 @@ class TikTok(ScraperMiddleWare):
 	"""
 	needs_authentication = False
 	navigator_default_options: Dict[str, Any] = tiktok_defaults.NAVIGATOR_DEFAULT_OPTIONS
+
+	GET_REQUEST_URL_RE = re.compile(r'^.+/item_list/\?.*msToken=.*$')
 	############################################################################
 	# CONSTRUCTOR
 	############################################################################
@@ -119,26 +121,86 @@ class TikTok(ScraperMiddleWare):
 			self.process_har()
 
 	def process_har(self):
+		"""See HAR specifications here: https://archive.is/Ud8mh
+		"""
 		account_name = self.options.account_name
+		relevant_entries: List[Dict] = [
+			entry
+			for entry in self.proxy.har['log']['entries']
+			if (
+				entry["request"]["method"] == "GET" and
+				self.GET_REQUEST_URL_RE.search(entry['request']['url'])
+			)
+		]
+		for entry in relevant_entries:
+			try:
+				response_text = self.get_response_text(entry)
+				response_payload = self.get_payload_from_response_text(response_text)
+				items = self.get_items_from_payload(response_payload)
+				for it in items:
+					try:
+						VideoInfo.add(account_name, it)
+					except DBException:
+						log.critical("Error interacting with database!")
+						raise
 
-		for ent in self.proxy.har['log']['entries']:
-			url = ent['request']['url']
-			if re.search(r'^.+/item_list/\?.*msToken=.*$',url):
-				try:
-					response_payload = json.loads(ent['response']['content']['text'])
-					if type(response_payload) == dict:
-						items = response_payload["itemList"]
-						for it in items:
-							try:
-								VideoInfo.add(account_name, it)
-							except DBException:
-								log.critical("Error interacting with database!")
-								raise
-
-				except KeyError:
-					log.warning("Could not fetch information from GET request")
+			except UnexpectedResponse:
+				log.warning("Skipping this entry...")
+				continue
 
 		self.reset_har()
+
+	@staticmethod
+	def get_response_text(entry: dict) -> str:
+		try:
+			http_status: int = entry["response"]["status"]
+			if not (200 <= http_status < 300):
+				http_status_text: str = entry["response"]["statusText"]
+				log.warning(f"Received non-200 status code: '{http_status}' = '{http_status_text}'")
+				raise UnexpectedResponse
+
+			if (size := entry["response"]["content"]["size"]) <= 0:
+				log.warning(f"Response content size is non-positive integer: {size} bytes")
+				raise UnexpectedResponse
+
+			if (body_size := entry["response"]["bodySize"]) <= 0:
+				log.warning(f"Response body size is non-positive integer: {body_size} bytes")
+				raise UnexpectedResponse
+
+			return entry['response']['content']['text']
+
+		except KeyError as exc:
+			log.warning("Cannot parse response from GET request")
+			log.warning(f"{entry=}")
+			raise UnexpectedResponse from exc
+
+	@staticmethod
+	def get_payload_from_response_text(response_text: str) -> dict:
+		try:
+			response_payload = json.loads(response_text)
+		except json.decoder.JSONDecodeError as exc:
+			log.warning("JSON Decode Error!")
+			log.warning(exc)
+			log.warning("Here's the object trying to be read by json.loads:")
+			log.warning(f"{response_text=}")
+			raise UnexpectedResponse from exc
+		
+		if type(response_payload) != dict:
+			log.warning("Response payload decoded to something that is not a "
+				f"dict! (type = {type(response_payload)})")
+			log.warning(f"{response_payload=}")
+			raise UnexpectedResponse
+		
+		return response_payload
+
+	@staticmethod
+	def get_items_from_payload(response_payload: dict) -> List[Dict]:
+		try:
+			return response_payload["itemList"]
+		except KeyError as exc:
+			log.warning("Bad format for response payload!")
+			log.warning(f"{response_payload=}")
+			raise UnexpectedResponse from exc
 
 	############################################################################
 	# METHODS FOR NAVIGATION AND INTERACTION

@@ -6,10 +6,12 @@ scheduler.sh
 # The exceptions are for demonstration purposes. Please remove these files
 # when sharing relevant passwords
 !jobs/**/*.env
-!navigators/helpers/password.env
 
 *.csv
 *.json
 !jobs/appsettings.json
+!jobs/user_example/**/*.json
+!navigators/helpers/password.json
+!tests/data/*.json
 
 jobs/test*

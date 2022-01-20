@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
+import copy
+import json
+import os
 import re
-from typing import Any, Dict, Set, Tuple
-from urllib.parse import urlencode
+import time
+from typing import Any, Dict, Optional, Set, Tuple
 from selenium.webdriver.remote.webelement import WebElement
-from dotenv import dotenv_values
 
 from navigators.helpers.password import SymmetricEncryption
 import navigators.helpers.csv_processing as csv_processing
 from logger import log
 from defaults import youtube as youtube_defaults
 from models.options import Options
-from scraper_core import ElementNotFound, YouProbablyGotBlocked, BadArguments
+from scraper_core import ElementNotFound, ScraperException, YouProbablyGotBlocked, BadArguments
 from scraper_middleware import ScraperMiddleWare
-from tools import throttle
+from tools import get_home_dir, throttle, UseDirectory, find_longest_matching_substring
 
 class YouTube(ScraperMiddleWare):
 	needs_authentication = True
@@ -25,10 +27,15 @@ class YouTube(ScraperMiddleWare):
 	THROTTLE_GET_DATA_FOR_VIDEO = 30
 
 	############################################################################
-	# CONSTRUCTOR
+	# CONSTRUCTOR & PROPERTIES
 	############################################################################
 	def __init__(self, options: Options):
+		self._channel_id: Optional[str] = None
 		super().__init__(options)
+
+	@property
+	def channel_id(self):
+		return self._channel_id or "NoChannel"
 
 	############################################################################
 	# METHODS
@@ -77,7 +84,7 @@ class YouTube(ScraperMiddleWare):
 	def logout(self) -> None:
 		self.go("https://www.youtube.com/logout")
 		self.wait_load()
-		self.go(self.build_url)
+		self.go(self.build_url())
 	
 	def get_credentials(self) -> Tuple[str, str]:
 		self.kill_handle.check()
@@ -85,7 +92,10 @@ class YouTube(ScraperMiddleWare):
 		password = None
 		if self.options.credentials_file:
 			log.debug(f"Reading credentials file at '{self.options.credentials_file}'")
-			yt_credentials = dotenv_values(self.options.credentials_file)
+			with open(self.options.credentials_file, "r") as fp:
+				yt_credentials: Dict = json.load(self.options.credentials_file)
+			if type(yt_credentials) != dict:
+				raise ValueError("JSON given corresponds to wrong type of object")
 			account = yt_credentials.get("account")
 			password = yt_credentials.get("password")
 		else:
@@ -132,6 +142,14 @@ class YouTube(ScraperMiddleWare):
 			allow_scrolling=False,
 			allow_new_windows=False
 		)
+
+		use_another_acc = self.find(
+			text="use another account",
+			text_exact=True,
+			case_insensitive=True
+		)
+		if len(use_another_acc):
+			self.click(use_another_acc[0])
 
 		email_field = self.find_one(
 			tag="input",
@@ -180,6 +198,23 @@ class YouTube(ScraperMiddleWare):
 		self.go("https://studio.youtube.com")
 		self.wait_load()
 
+		if self.options.managed_account is not None:
+			self.access_managed_account()
+
+		self._channel_id = self.run("""
+			const regex = new RegExp("^.*/channel/([^?]+).*$");
+			let match = window.location.href.match(regex);
+			return match ? match[1] : null;
+		""")
+
+		if self._channel_id:
+			log.info(f"Channel ID is '{self._channel_id}'")
+		else:
+			log.info("Could not obtain channel id from URL")
+			if self.options.managed_account is not None:
+				log.critical("Cannot proceed without channel ID!")
+				raise ElementNotFound("Channel ID could not be extracted from URL")
+
 		content_button = self.find_one(
 			tag="a",
 			id="menu-item-1",
@@ -212,6 +247,56 @@ class YouTube(ScraperMiddleWare):
 		log.debug(video_ids)
 		return video_ids
 
+	def access_managed_account(self):
+		log.info("Logged into manager account. Now switching to client "
+			f"account dashboard: '{self.options.managed_account}'")
+
+		avatar_button = self.find_one(tag='button',id='avatar-btn')
+		self.click(avatar_button)
+		self.move_aimlessly(5.0, allow_new_windows=False, allow_scrolling=False)
+
+		switch_account_button = self.find_one(text='switch account')
+		self.click(switch_account_button)
+		self.move_aimlessly(3.0, allow_new_windows=False, allow_scrolling=False)
+
+		channel_dict: Dict[str, WebElement] = {
+			element.get_attribute("innerText"): element
+			for element in self.find(id="channel-title")
+		}
+		if len(channel_dict) == 0:
+			log.critical("No channel titles found!")
+			raise ElementNotFound
+
+		channel_titles = channel_dict.keys()
+		log.debug(f"Channel titles found are {channel_titles}")
+
+		candidate_account: Optional[WebElement] = None
+		for title in channel_titles:
+			occurrences_in_page = self.find(text=title, case_insensitive=False)
+			if len(occurrences_in_page) == 1:
+				log.info(f"We believe we have found the desired account '{title}")
+				candidate_account = channel_dict[title]
+				break
+
+		if candidate_account is None:
+			log.warning("This account manages more than one YouTube account. "
+				f"We will try to match managed_account, given as '{self.options.managed_account}'")
+
+			try: 
+				best_title, _ = find_longest_matching_substring(
+					self.options.managed_account,
+					channel_titles,
+					threshold=5,
+					case_sensitive=False)
+			except ValueError as exc:
+				log.critical("We are not confident enough to guess.")
+				raise ElementNotFound from exc
+			
+			log.info(f"We will guess that you want to access '{best_title}'")
+			candidate_account = channel_dict[title]
+
+		self.click(candidate_account)
+
 	@throttle(THROTTLE_GET_DATA_FOR_VIDEO)
 	def get_data_for_video(self, video_id: str) -> None:
 		self.kill_handle.check()
@@ -219,15 +304,25 @@ class YouTube(ScraperMiddleWare):
 		# We don't really need to navigate to this page, as the data is directly
 		# accessible in the other link, but that is what a normal user would do
 		# and we want to simulate what a normal user does
-		self.go(f"https://studio.youtube.com/video/{video_id}/analytics/tab-overview/period-default")
+		query_dict = {}
+		self.adapt_query_dict_for_managed_account(query_dict)
+		self.go(
+			f"https://studio.youtube.com/video/{video_id}/analytics"
+				"/tab-overview/period-default", 
+			query_dict
+		)
 		self.wait_load()
 		self.move_aimlessly(timeout=5.0)
 
-		url_dict = youtube_defaults.ANALYTICS_QUERY_STRING_DICT
-		url_dict["entity_id"] = video_id
-		url_encoded = urlencode(youtube_defaults.ANALYTICS_QUERY_STRING_DICT)
+		query_dict = copy.deepcopy(youtube_defaults.ANALYTICS_QUERY_STRING_DICT)
+		query_dict["entity_id"] = video_id
+		self.adapt_query_dict_for_managed_account(query_dict)
 
-		self.go(f"https://studio.youtube.com/video/{video_id}/analytics/tab-overview/period-default/explore?{url_encoded}")
+		self.go(
+			f"https://studio.youtube.com/video/{video_id}/analytics"
+				"/tab-overview/period-default/explore",
+			query_dict
+		)
 		self.wait_load()
 		self.move_aimlessly(timeout=5.0)
 
@@ -244,6 +339,42 @@ class YouTube(ScraperMiddleWare):
 		log.info(f"Downloading CSV file for '{video_id}'")
 		self.click(csv_button)
 		self.wait_load()
+		self.create_metadata_file(video_id)
+
+	def create_metadata_file(self, video_id: str):
+		# Wait for download to complete (it's probably < 10 KB)
+		self.wait(5)
+		home_dir = get_home_dir()
+		downloads_dir = os.path.join(home_dir, "Downloads")
+		with UseDirectory(downloads_dir, create_if_nonexistent=False):
+			files_by_modification_time = sorted(
+				filter(
+					os.path.isfile,
+					os.listdir()
+				),
+				key=lambda x: os.path.getmtime(x)
+			)
+			if not files_by_modification_time:
+				log.critical("'Downloads' directory is empty! Nothing was ever downloaded!")
+				raise ScraperException()
+			last_modified_file = files_by_modification_time[-1]
+			metadata = {
+				"channelId": self.channel_id,
+				"videoId": video_id,
+				"timeSaved": int(time.time() * 1000),
+
+				# Reserved for future use
+				"metric": None,
+				"filter": None
+			}
+			metadata_file = last_modified_file.replace("zip", "json")
+			with open(metadata_file, "w") as fp:
+				log.info(f"Writing metadata to {metadata_file}")
+				fp.write(json.dumps(metadata))
+
+	def adapt_query_dict_for_managed_account(self, query_dict: Dict[str, str]):
+		if self.options.managed_account is not None:
+			query_dict["c"] = self.channel_id
 
 	############################################################################
 	# METHODS DECORATED FROM ABSTRACT CLASS
