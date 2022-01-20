@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Andromeda.Common.Jobs;
 using Jobs.Fetcher.AdWords;
 using Jobs.Fetcher.YouTube;
+using Jobs.Fetcher.YouTubeStudio;
 using Jobs.Fetcher.Facebook;
 using Jobs.Fetcher.Twitter;
 
@@ -14,6 +15,7 @@ namespace Andromeda.Commands {
 
         public static JobsFactory[] Factories = new JobsFactory[] {
             new YouTubeFetchers(),
+            new YouTubeStudioFetchers(),
             new AdWordsFetchers(),
             new FacebookFetchers()
             //new TwitterFetchers()

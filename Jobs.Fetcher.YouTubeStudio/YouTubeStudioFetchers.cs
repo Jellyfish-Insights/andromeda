@@ -6,24 +6,26 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using DataLakeModels.Models.YouTube.Studio;
-using Jobs.Fetcher.YouTubeStudio.Helpers;
 using Andromeda.Common.Jobs;
 
 namespace Jobs.Fetcher.YouTubeStudio
 {
-    sealed class YouTubeStudioFetchers : FetcherJobsFactory
+    public sealed class YouTubeStudioFetchers : FetcherJobsFactory
     {
         public override JobScope Scope {get;} = JobScope.YouTubeStudio;
         public override IEnumerable<AbstractJob> GetJobs(
             JobType type, JobScope scope, IEnumerable<string> names, JobConfiguration config
         ){
-            return null;
+            if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
+                return NoJobs;
+            }
+            return new List<YouTubeStudioFetcherJob>{new YouTubeStudioFetcherJob()};
         }
         public static void Main(string[] args)
         {
-            const string pathToData = @"../../../Data/";
-            var videos = ImportFromFileSystem.GetVideosFromPath(pathToData);
-            Console.WriteLine($"Decoded {videos.Count()} videos.");
+            var ytsFetcherJob = new YouTubeStudioFetcherJob();
+            ytsFetcherJob.RunningAsStandAlone = true;
+            ytsFetcherJob.Run();
         }
     }
 }
