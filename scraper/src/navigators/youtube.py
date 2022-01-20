@@ -361,7 +361,7 @@ class YouTube(ScraperMiddleWare):
 			metadata = {
 				"channelId": self.channel_id,
 				"videoId": video_id,
-				"timeSaved": int(time.time() * 1000),
+				"timeSaved": int(time.time()),
 
 				# Reserved for future use
 				"metric": None,
