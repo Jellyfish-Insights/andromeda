@@ -49,7 +49,6 @@ class CSV_Data:
 			self.data.append(dict())
 			self.data[-1]["VideoId"] = self.associated_metadata["videoId"]
 			self.data[-1]["ChannelId"] = self.associated_metadata["channelId"]
-			self.data[-1]["ValidityStart"] = self.associated_metadata["timeSaved"]
 			for col in row.keys():
 				if DATE_COLUMN_REGEX.search(col):
 					self.data[-1]["DateMeasure"] = round(datetime.datetime.fromisoformat(row[col]).timestamp())
