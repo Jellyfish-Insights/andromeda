@@ -13,7 +13,7 @@ namespace Jobs.Fetcher.TikTok {
         public PostsQuery(List<string> userIds): base(userIds) {}
 
         public override List<string> Dependencies() {
-            return new List<string>() { IdOf<ScrapperAccountAdd>() };
+            return new List<string>() {};
         }
 
         public override void RunBody(string username) {
@@ -24,14 +24,24 @@ namespace Jobs.Fetcher.TikTok {
                     Logger.Warning($"TikTok Scraper tables do not exist.");
                     return;
                 }
-                var authorId = DatabaseManager.GetTikTokId(username);
-                if (authorId == null) {
+
+                /*var authorId = DatabaseManager.GetTikTokId(username);
+                   if (authorId == null) {
                     Logger.Error($"Could not find TikTok's AuthorID for ({username})");
                     return;
-                }
-                var lastFetch = DatabaseManager.GetLastFetch(authorId, dbContext);
-                foreach (var post in ApiDataFetcher.GetPosts(username, lastFetch)) {
-                    var newAuthor = ApiDataFetcher.GetTikTokAuthorFromJSON(post["author"]);
+                   }*/var authorId = DatabaseManager.GetTikTokId(username.Substring(1), dbContext);
+                var lastFetch = authorId != null? DatabaseManager.GetLastFetch(authorId, dbContext) : DateTime.MinValue;
+                foreach (var post in ApiDataFetcher.GetPosts(username, lastFetch, Logger)) {
+                    Logger.Information("Found TikTok Post for '" + username + "' of ID '" + post["id"] + "'.");
+
+                    DataLakeModels.Models.TikTok.Author newAuthor = null;
+                    if (post["author"].ToString() == username.Substring(1)) {
+                        Logger.Warning($"Author data is incomplete");
+                        newAuthor = ApiDataFetcher.GetTikTokAuthorFromPostJSON(post);
+                    } else {
+                        newAuthor = ApiDataFetcher.GetTikTokAuthorFromAuthorJSON(post["author"]);
+                    }
+
                     DbWriter.WriteAuthor(newAuthor, dbContext, logger);
 
                     var newMusic = ApiDataFetcher.GetTikTokMusicFromJSON(post["music"]);
@@ -70,21 +80,6 @@ namespace Jobs.Fetcher.TikTok {
                     var newPostStats = ApiDataFetcher.GetTikTokPostStatsJSON(post["stats"], newPost, newPost.CreateTime);
                     DbWriter.WritePostStats(newPostStats, dbContext, logger);
                 }
-            }
-        }
-    }
-
-    public class ScrapperAccountAdd : AbstractTikTokFetcher {
-
-        public ScrapperAccountAdd(List<string> userIds): base(userIds) {}
-
-        public override List<string> Dependencies() {
-            return new List<string>();
-        }
-
-        public override void RunBody(string username) {
-            if (!DatabaseManager.TikTokUserExists(username)) {
-                DbWriter.InsertUsernameOnScraper(username, GetLogger());
             }
         }
     }

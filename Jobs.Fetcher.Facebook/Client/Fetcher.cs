@@ -122,9 +122,19 @@ namespace Jobs.Fetcher.Facebook {
             }
 
             var url = ApiMan.EndPoint(node, edge.Name, url_params);
-            var stringTask = ApiMan.CachedRequest(edge.TableName, url);
-            stringTask.Wait();
-            return stringTask.Result;
+            Task<JObject> stringTask;
+            try {
+                stringTask = ApiMan.CachedRequest(edge.TableName, url);
+                stringTask.Wait();
+                return stringTask.Result;
+            }catch (Exception e) {
+                Logger.Information($"Caught exception ({e.Message})");
+                if (e.Message == "One or more errors occurred. (Invalid Parameter)") {
+                    return (JObject) e.Message;
+                } else {
+                    throw e;
+                }
+            }
         }
 
         private IEnumerable<JObject> PaginateEndpoint(Table table, JObject source, int max_iters) {

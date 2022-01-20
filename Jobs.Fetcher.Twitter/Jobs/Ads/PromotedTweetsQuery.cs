@@ -35,9 +35,14 @@ namespace Jobs.Fetcher.Twitter {
             var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext);
 
             void ProccessPromotedTweetResult(string adsAccountId, ITwitterRequestIterator<PromotedTweetsResponse, string> iterator) {
-                while (!iterator.Completed) {
-                    var promotedTweetsPage = iterator.NextPageAsync().GetAwaiter().GetResult();
-                    DbWriter.WritePromotedTweets(adsAccountId, promotedTweetsPage.Content, dbContext, GetLogger());
+                try {
+                    while (!iterator.Completed) {
+                        var promotedTweetsPage = iterator.NextPageAsync().GetAwaiter().GetResult();
+                        DbWriter.WritePromotedTweets(adsAccountId, promotedTweetsPage.Content, dbContext, GetLogger());
+                    }
+                }catch (Exception e) {
+                    GetLogger().Error($"Could not fetch Twitter Promoted Tweets for {username}");
+                    throw e;
                 }
             }
 
