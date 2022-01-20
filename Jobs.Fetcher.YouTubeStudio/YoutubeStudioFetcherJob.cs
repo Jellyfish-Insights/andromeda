@@ -34,12 +34,13 @@ namespace Jobs.Fetcher.YouTubeStudio {
 
             Logger.Information($"Reading files from {pathToData}");
 
-            var videos = ImportFromFileSystem.GetVideosFromPath(pathToData);
+            var videos = ImportFromFileSystem.GetDTOsFromPath(pathToData, Logger);
             if (videos == null || videos.Count == 0) {
-                Console.WriteLine("No videos to work with. Terminating.");
+                Logger.Information("No videos to work with. Terminating.");
                 return;
             }
-            Console.WriteLine($"Decoded {videos.Count} videos.");
+            Logger.Information($"Decoded {videos.Count} videos.");
+            DbWriter.Write(videos, Logger);
         }
     }
 }

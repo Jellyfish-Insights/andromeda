@@ -13,13 +13,12 @@ namespace DataLakeModels {
             modelBuilder.HasDefaultSchema(String.Format("youtube_studio_{0}", YtStudioVersion));
 
             modelBuilder.Entity<Video>()
-            // ChannelId == other.ChannelId &&
-            //         VideoId == other.VideoId &&
-            //         Metric  == other.Metric &&
-            //         DateMeasure == other.DateMeasure;
                 .HasKey(table => new {
+                    table.ChannelId,
                     table.VideoId,
-                    table.ValidityStart
+                    table.ValidityStart,
+                    table.Metric,
+                    table.DateMeasure
                 });
 
         }

@@ -39,7 +39,11 @@ namespace DataLakeModels.Models.YouTube.Studio {
             return  ChannelId == other.ChannelId &&
                     VideoId == other.VideoId &&
                     Metric  == other.Metric &&
-                    DateMeasure == other.DateMeasure;
+                    DateMeasure == other.DateMeasure  &&
+                    (
+                        ValidityStart >= other.ValidityStart &&
+                        ValidityStart < other.ValidityEnd
+                    );
         }
 
         public override string ToString()

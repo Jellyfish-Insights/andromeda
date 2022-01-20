@@ -4,6 +4,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
+using Serilog.Core;
 using Newtonsoft.Json;
 using DataLakeModels.Models.YouTube.Studio;
 
@@ -11,8 +12,9 @@ using DataLakeModels.Models.YouTube.Studio;
 namespace Jobs.Fetcher.YouTubeStudio.Helpers {
     public class Video_DTO
     {
-            public long ValidityStart {get; set;}
-            public long DateMeasure {get; set;}
+            /* In seconds */
+            public uint ValidityStart {get; set;}
+            public uint DateMeasure {get; set;}
             public string ChannelId {get; set;}
             public string VideoId {get; set;}
             public string Metric {get; set;}
@@ -32,20 +34,19 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
     }
 
 
-
-    public class ImportFromFileSystem
+    public static class ImportFromFileSystem
     {
-        static private readonly Regex jsonFileRegex = new Regex(@"\.json$",
+        private static readonly Regex jsonFileRegex = new Regex(@"\.json$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public static List<string> FindFiles(string path)
+        public static List<string> FindFiles(string path, Logger logger)
         {
             List<string> allFiles;
             try {
                 allFiles = new List<string>(Directory.GetFiles(path));
             }
             catch (System.IO.DirectoryNotFoundException) {
-                Console.WriteLine($"The directory {path} does not exist.");
+                logger.Error($"The directory {path} does not exist.");
                 return null;
             }
             var jsonFiles = allFiles
@@ -54,7 +55,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             return jsonFiles;
         }
 
-        public static List<Video_DTO> VideoDTOsFromFile (string pathToFile)
+        public static List<Video_DTO> VideoDTOsFromFile (string pathToFile, Logger logger)
         {
             JsonSerializerSettings settings = new JsonSerializerSettings();
             settings.MissingMemberHandling = MissingMemberHandling.Error;
@@ -63,10 +64,10 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             try {
                 fileContents = File.ReadAllText(pathToFile);
             } catch (System.IO.FileNotFoundException) {
-                Console.WriteLine($"File not found: '{pathToFile}'");
+                logger.Error($"File not found: '{pathToFile}'");
                 return null;
             } catch (System.UnauthorizedAccessException) {
-                Console.WriteLine($"You are not authorized to read this file: '{pathToFile}'");
+                logger.Error($"You are not authorized to read this file: '{pathToFile}'");
                 return null;
             }
 
@@ -74,77 +75,58 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             try {
                 videos = JsonConvert.DeserializeObject<List<Video_DTO>>(fileContents, settings);
             } catch (Newtonsoft.Json.JsonReaderException exc) {
-                Console.WriteLine($"File '{pathToFile}' contains invalid JSON");
-                Console.WriteLine(exc);
+                logger.Error($"File '{pathToFile}' contains invalid JSON");
+                logger.Error(exc.ToString());
                 return null;
             }
             catch (Newtonsoft.Json.JsonSerializationException exc) {
-                Console.WriteLine($"File '{pathToFile}' contains field unknown to destination object");
-                Console.WriteLine(exc);
+                logger.Error($"File '{pathToFile}' contains field unknown to destination object");
+                logger.Error(exc.ToString());
                 return null;
             }
             return videos;
         }
 
-        static DateTime EpochToDateTime(long epochMilliseconds)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            return origin.AddSeconds(epochMilliseconds / 1000);
-        }
 
-        public static Video DTOToVideo (Video_DTO dto)
-        {
-            var validityStart = EpochToDateTime(dto.ValidityStart);
-            var dateMeasure = EpochToDateTime(dto.DateMeasure);
-            var validityEnd = DateTime.MaxValue;
-            return new Video {
-                ValidityStart = validityStart,
-                ValidityEnd = validityEnd,
-                DateMeasure = dateMeasure,
-                ChannelId = dto.ChannelId,
-                VideoId = dto.VideoId,
-                Metric = dto.Metric,
-                Value = dto.Value
-            };
-        }
 
-        public static List<Video> FileToVideos (string pathToFile)
+        public static List<Video_DTO> FileToDTOList (string pathToFile, Logger logger)
         {
-            var videoDTOs = VideoDTOsFromFile(pathToFile);
-            var videos = new List<Video>();
+            var videoDTOs = VideoDTOsFromFile(pathToFile, logger);
+            var dtoList = new List<Video_DTO>();
             foreach (var videoDTO in videoDTOs) {
                 if (videoDTO == null) {
-                    Console.WriteLine("Cannot parse DTO: is null.");
+                    logger.Error("Cannot parse DTO: is null.");
                     continue;
                 }
-                videos.Add(DTOToVideo(videoDTO));
+                dtoList.Add(videoDTO);
             }
 
-            return videos;
+            return dtoList;
         }
 
-        public static List<Video> GetVideosFromPath (string path)
+        public static List<Video_DTO> GetDTOsFromPath (string path, Logger logger)
         {
-            var files = ImportFromFileSystem.FindFiles(path);
+            var files = ImportFromFileSystem.FindFiles(path, logger);
             if (files == null || files.Count() == 0) {
-                Console.WriteLine("No files to work with. Terminating.");
+                logger.Debug("No files to work with. Terminating.");
                 return null;
             }
 
-            Console.WriteLine($"We found {files.Count()} files:");
-            files.ForEach(Console.WriteLine);
+            var printFiles = string.Join("\n\t", files);
+            logger.Information($"We found {files.Count()} files:"
+                + $"\n\t{printFiles}");
 
-            var videoList = new List<Video>();
+            var dtoList = new List<Video_DTO>();
             foreach (var file in files) {
-                var videos = ImportFromFileSystem.FileToVideos(file);
-                if (videos == null || videos.Count() == 0) {
-                    Console.WriteLine($"Failed to decode file '{file}'. Skipping...");
+                var dto = ImportFromFileSystem.FileToDTOList(file, logger);
+                if (dto == null || dto.Count() == 0) {
+                    logger.Warning($"Failed to decode file '{file}'. Skipping...");
                     continue;
                 }
-                videoList.AddRange(videos);
+                dtoList.AddRange(dto);
             }
 
-            return videoList;
+            return dtoList;
         }
     }
 }
