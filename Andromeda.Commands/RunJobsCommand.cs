@@ -16,9 +16,8 @@ namespace Andromeda.Commands {
         public static JobsFactory[] Factories = new JobsFactory[] {
             new YouTubeFetchers(),
             new AdWordsFetchers(),
-            new FacebookFetchers(),
-            new TwitterFetchers(),
-            new TikTokFetchers()
+            new FacebookFetchers()
+            //new TwitterFetchers()
         };
 
         public static Dictionary<string, AbstractJob> BuildJobsDict(IEnumerable<AbstractJob> jobList) {
