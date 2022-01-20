@@ -185,7 +185,6 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             }
 
             var fromDate = DateHelper.Min(now - TimeMargin, mostRecentMetricDate);
-
             var toDate = now;
             var reportRequest = analyticsService.Reports.Query();
             reportRequest.Ids = $"channel=={channelId}";
