@@ -76,7 +76,6 @@ namespace Jobs.Fetcher.Twitter {
                 }
 
                 return Credentials;
-
             } catch (Exception e) {
 
                 // TODO log the error

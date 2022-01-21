@@ -17,7 +17,6 @@ services:
         environment:
           sleep_interval: "600"
           random_order: ""
-          
         ports:
           - '5900:5900'
         user: app
