@@ -42,6 +42,7 @@ system_snapshot() {
 }
 
 main() {
+	log_i "You are running this container as $(id)"
 	system_snapshot
     log_i "Starting xvfb virtual display..."
     launch_xvfb
