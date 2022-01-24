@@ -1,0 +1,30 @@
+version: '3.4'
+
+services:
+    data_lake:
+        build:
+          context: .
+          dockerfile: data_lake.Dockerfile
+        ports:
+          - '5433:5433'
+        restart: on-failure
+
+    scraper_dev:
+        build:
+          context: .
+          dockerfile: scraper.Dockerfile
+          target: scraper_dev
+        environment:
+          sleep_interval: "600"
+          random_order: ""
+          
+        ports:
+          - '5900:5900'
+        user: app
+        privileged: true
+        depends_on:
+          - data_lake
+        volumes:
+          - ./src/extracted_data:/opt/scraper/extracted_data
+          - ./logs:/var/log/scraper
+        restart: on-failure
