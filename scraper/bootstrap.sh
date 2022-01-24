@@ -42,6 +42,7 @@ system_snapshot() {
 }
 
 main() {
+	log_i "You are running this container as $(id)"
 	system_snapshot
     log_i "Starting xvfb virtual display..."
     launch_xvfb
@@ -87,7 +88,7 @@ launch_xvfb() {
     if [ -f "${xvfbLockFilePath}" ]
     then
         log_i "Removing xvfb lock file '${xvfbLockFilePath}'..."
-        if ! rm -v "${xvfbLockFilePath}"
+        if ! rm -v -f "${xvfbLockFilePath}"
         then
             log_e "Failed to remove xvfb lock file"
             exit 1
