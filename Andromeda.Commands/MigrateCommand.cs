@@ -12,6 +12,9 @@ namespace Andromeda.Commands {
                 case Databases.LakeYouTubeData:
                     DatabaseOperations.Migrate<DataLakeYouTubeDataContext>();
                     break;
+                case Databases.LakeYouTubeStudio:
+                    DatabaseOperations.Migrate<DataLakeYouTubeStudioContext>();
+                    break;
                 case Databases.LakeYouTubeAnalytics:
                     DatabaseOperations.Migrate<DataLakeYouTubeAnalyticsContext>();
                     break;
@@ -41,6 +44,7 @@ namespace Andromeda.Commands {
 
         public static void MigrateDataLake() {
             DatabaseOperations.Migrate<DataLakeYouTubeDataContext>();
+            DatabaseOperations.Migrate<DataLakeYouTubeStudioContext>();
             DatabaseOperations.Migrate<DataLakeYouTubeAnalyticsContext>();
             DatabaseOperations.Migrate<DataLakeAdWordsContext>();
             DatabaseOperations.Migrate<DataLakeTwitterDataContext>();
