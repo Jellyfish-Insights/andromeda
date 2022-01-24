@@ -10,10 +10,9 @@ using DataLakeModels.Models.YouTube.Studio;
 
 
 namespace Jobs.Fetcher.YouTubeStudio.Helpers {
-    public class Video_DTO
+    public class Video_DTO : IEquatable<Video_DTO>
     {
             /* In seconds */
-            public uint ValidityStart {get; set;}
             public uint DateMeasure {get; set;}
             public string ChannelId {get; set;}
             public string VideoId {get; set;}
@@ -23,13 +22,20 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             public override string ToString()
             {
                 return $@"
-                    ValidityStart: {ValidityStart},
                     DateMeasure: {DateMeasure},
                     ChannelId: {ChannelId},
                     VideoId: {VideoId},
                     Metric: {Metric},
                     Value: {Value}
                 ";
+            }
+
+            public bool Equals(Video_DTO other) {
+                return DateMeasure == other.DateMeasure
+                    && ChannelId == other.ChannelId
+                    && VideoId == other.VideoId
+                    && Metric == other.Metric
+                    && Value == other.Value;
             }
     }
 
@@ -87,23 +93,6 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             return videos;
         }
 
-
-
-        public static List<Video_DTO> FileToDTOList (string pathToFile, Logger logger)
-        {
-            var videoDTOs = VideoDTOsFromFile(pathToFile, logger);
-            var dtoList = new List<Video_DTO>();
-            foreach (var videoDTO in videoDTOs) {
-                if (videoDTO == null) {
-                    logger.Error("Cannot parse DTO: is null.");
-                    continue;
-                }
-                dtoList.Add(videoDTO);
-            }
-
-            return dtoList;
-        }
-
         public static List<Video_DTO> GetDTOsFromPath (string path, Logger logger)
         {
             var files = ImportFromFileSystem.FindFiles(path, logger);
@@ -118,7 +107,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
 
             var dtoList = new List<Video_DTO>();
             foreach (var file in files) {
-                var dto = ImportFromFileSystem.FileToDTOList(file, logger);
+                var dto = ImportFromFileSystem.VideoDTOsFromFile(file, logger);
                 if (dto == null || dto.Count() == 0) {
                     logger.Warning($"Failed to decode file '{file}'. Skipping...");
                     continue;
