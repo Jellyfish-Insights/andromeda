@@ -1,6 +1,0 @@
-FROM postgres
-ENV POSTGRES_USER fee
-ENV POSTGRES_PASSWORD dbpassword
-ENV POSTGRES_DB data_lake
-EXPOSE 5433
-CMD ["-p", "5433"]
