@@ -207,7 +207,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 }
             }
             catch {
-                //logger.Information("Could not get Subscriber Views");
+                logger.Error($"Could not get Subscriber Views for video {video.VideoId}");
             }
             return subscriberViewsList;
         }
