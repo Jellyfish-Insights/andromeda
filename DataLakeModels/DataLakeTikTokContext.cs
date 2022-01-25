@@ -6,12 +6,12 @@ namespace DataLakeModels {
 
     public partial class DataLakeTikTokContext : AbstractDataLakeContext {
 
-        public static string TikTokCrawlerVersion = "1";
+        public static string TikTokScraperVersion = "1";
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.HasDefaultSchema($"tiktok_v{TikTokCrawlerVersion}");
+            modelBuilder.HasDefaultSchema($"tiktok_v{TikTokScraperVersion}");
 
             modelBuilder.Entity<Author>()
                 .HasKey(table => new { table.Id });
