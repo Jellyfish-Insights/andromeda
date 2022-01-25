@@ -14,7 +14,7 @@ namespace DataLakeModels.Models.Twitter.Ads {
         public bool Servable { get; set; }
         public string PurchaseOrderNumber { get; set; }
         public string EffectiveStatus { get; set; }
-        public long? DailyBudgetAmountLocalMicro { get; set; }
+        public long DailyBudgetAmountLocalMicro { get; set; }
         public string FundingInstrumentId { get; set; }
         public int? DurationInDays { get; set; }
         public bool StandardDelivery { get; set; }

@@ -159,7 +159,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             reportRequest.Dimensions = "day";
             reportRequest.Sort = "day";
 
-            Thread.Sleep(100);
+            Thread.Sleep(500);
             var report = reportRequest.ExecuteAsync().Result;
 
             if (report.Rows != null) {
@@ -197,7 +197,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
 
             var subscriberViewsList = new List<(DateTime date, long subscriberViews)>();
 
-            Thread.Sleep(100);
+            Thread.Sleep(500);
             try {
                 var report = reportRequest.ExecuteAsync().Result;
                 if (report.Rows != null) {
@@ -209,6 +209,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             catch {
                 //logger.Information("Could not get Subscriber Views");
             }
+
             return subscriberViewsList;
         }
 

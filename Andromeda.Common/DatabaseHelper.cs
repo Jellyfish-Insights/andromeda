@@ -17,8 +17,7 @@ namespace Andromeda.Common {
         LakeLogging,
         LakeFacebook,
         LakeTwitterData,
-        LakeTwitterAds,
-        LakeTikTok
+        LakeTwitterAds
     }
 
     public enum YearDatabase {

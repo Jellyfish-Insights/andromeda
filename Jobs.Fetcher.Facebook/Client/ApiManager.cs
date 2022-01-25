@@ -17,7 +17,6 @@ namespace Jobs.Fetcher.Facebook {
     public class ApiManager {
         const string BASE_URL = "graph.facebook.com";
         // values taken from: https://developers.facebook.com/docs/graph-api/using-graph-api/error-handling/
-        const int INVALID_PARAMETER = 100;
         const int APPLICATION_LEVEL_THROTTLING = 4;
         const int APPLICATION_QUOTA_WINDOW = 60 * 60; // seconds
         const int ACCOUNT_LEVEL_THROTTLING = 17;
@@ -170,7 +169,7 @@ namespace Jobs.Fetcher.Facebook {
                     } else {
                         var errorCode = (int) result["error"]["code"];
                         var errorMessage = (string) result["error"]["message"];
-                        if (errorMessage != null && errorCode != INVALID_PARAMETER) {
+                        if (errorMessage != null) {
                             LoggerFactory.GetFacebookLogger().Error(errorMessage);
                         }
                         var elapsed = this.GetUtcTime().Subtract(result["fetch_time"].ToObject<DateTime>()).TotalSeconds;
@@ -197,8 +196,6 @@ namespace Jobs.Fetcher.Facebook {
                             if (result["error"] == null) {
                                 return result;
                             }
-                        } else if (errorCode == INVALID_PARAMETER) {
-                            throw new Exception("Invalid Parameter");
                         } else {
                             if (retries == 0) {
                                 result = await RequestOrCache(client, retries + 1, prefix, url, true);
