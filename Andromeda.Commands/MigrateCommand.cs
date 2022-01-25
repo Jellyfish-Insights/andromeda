@@ -31,6 +31,9 @@ namespace Andromeda.Commands {
                     Jobs.Fetcher.Facebook.DatabaseInitializer.Init(force_update);
                     Jobs.Fetcher.Facebook.DatabaseInitializer.Init(new List<string> { "instagram" });
                     break;
+                case Databases.LakeTikTok:
+                    DatabaseOperations.Migrate<DataLakeTikTokContext>();
+                    break;
                 default:
                     throw new Exception("Invalid database");
             }
@@ -43,6 +46,7 @@ namespace Andromeda.Commands {
             DatabaseOperations.Migrate<DataLakeTwitterDataContext>();
             DatabaseOperations.Migrate<DataLakeTwitterAdsContext>();
             DatabaseOperations.Migrate<DataLakeLoggingContext>();
+            DatabaseOperations.Migrate<DataLakeTikTokContext>();
             Console.WriteLine("Successfully migrated data-lake.");
         }
 
