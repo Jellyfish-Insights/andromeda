@@ -36,7 +36,7 @@ namespace Jobs.Fetcher.Twitter {
         private void RunBody(string username, ITwitterClient client, DataLakeTwitterAdsContext dbContext) {
             var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext);
 
-            void ProccessCampaignResult(string accountId, ITwitterRequestIterator<CampaignsResponse, string> iterator) {
+            void ProcessCampaignResult(string accountId, ITwitterRequestIterator<CampaignsResponse, string> iterator) {
                 try {
                     while (!iterator.Completed) {
                         var campaignsPage = iterator.NextPageAsync().GetAwaiter().GetResult();
@@ -49,7 +49,7 @@ namespace Jobs.Fetcher.Twitter {
             }
 
             foreach (var adsAccountId in adsAccountIds) {
-                ApiDataFetcher.GetCampaigns(adsAccountId, client as TwitterAdsClient, ProccessCampaignResult);
+                ApiDataFetcher.GetCampaigns(adsAccountId, client as TwitterAdsClient, ProcessCampaignResult);
             }
         }
     }
