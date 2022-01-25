@@ -33,9 +33,6 @@ namespace Jobs.Fetcher.TikTok {
                     var payloadStrings = new List<string>();
                     using (var reader = cmd.ExecuteReader()) {
                         while (reader.Read()) {
-                            /*var log = new RowLog();
-                               log.AddInput("videos",
-                                        MutableEntityExtentions.AutoPK(reader.Prim<long>("id")));*/
                             payloadStrings.Add(reader.GetString(0));
                         }
                     }

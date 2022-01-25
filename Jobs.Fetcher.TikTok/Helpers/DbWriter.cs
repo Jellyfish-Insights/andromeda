@@ -53,7 +53,6 @@ namespace Jobs.Fetcher.TikTok.Helpers {
         }
 
         public static void WritePost(Post newEntry, DataLakeTikTokContext dbContext, Logger logger) {
-            //var oldEntry = dbContext.Posts.Find(newEntry.Id);
             var now = DateTime.UtcNow;
             var oldEntry = dbContext.Posts.SingleOrDefault(m => m.Id == newEntry.Id && m.ValidityStart <= now && m.ValidityEnd > now);
             Insert<Post, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);

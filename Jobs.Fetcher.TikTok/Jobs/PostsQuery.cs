@@ -18,46 +18,70 @@ namespace Jobs.Fetcher.TikTok {
 
         public override void RunBody(string username) {
             using (var dbContext = new DataLakeTikTokContext()) {
-                //Create a second loop for each TikTok client. Check with Erik and Victor if the Get option will receive an ID or username
                 var logger = GetLogger();
                 if (!DatabaseManager.TikTokScraperTablesExist()) {
                     Logger.Warning($"TikTok Scraper tables do not exist.");
                     return;
                 }
 
-                /*var authorId = DatabaseManager.GetTikTokId(username);
-                   if (authorId == null) {
-                    Logger.Error($"Could not find TikTok's AuthorID for ({username})");
-                    return;
-                   }*/var authorId = DatabaseManager.GetTikTokId(username.Substring(1), dbContext);
+                var authorId = DatabaseManager.GetTikTokId(username.Substring(1), dbContext);
                 var lastFetch = authorId != null? DatabaseManager.GetLastFetch(authorId, dbContext) : DateTime.MinValue;
                 foreach (var post in ApiDataFetcher.GetPosts(username, lastFetch, Logger)) {
                     Logger.Information("Found TikTok Post for '" + username + "' of ID '" + post["id"] + "'.");
 
                     DataLakeModels.Models.TikTok.Author newAuthor = null;
-                    if (post["author"].ToString() == username.Substring(1)) {
-                        Logger.Warning($"Author data is incomplete");
-                        newAuthor = ApiDataFetcher.GetTikTokAuthorFromPostJSON(post);
-                    } else {
-                        newAuthor = ApiDataFetcher.GetTikTokAuthorFromAuthorJSON(post["author"]);
+                    try{
+                        if (post["author"].ToString() == username.Substring(1)) {
+                            Logger.Warning($"Author data is incomplete");
+                            newAuthor = ApiDataFetcher.GetTikTokAuthorFromPostJson(post);
+                        } else {
+                            newAuthor = ApiDataFetcher.GetTikTokAuthorFromAuthorJson(post["author"]);
+                        }
+                        DbWriter.WriteAuthor(newAuthor, dbContext, logger);
+                    }catch(Exception e){
+                        Logger.Error(&"Could not get author data.");
+                        return;
                     }
 
-                    DbWriter.WriteAuthor(newAuthor, dbContext, logger);
+                    try{
+                        var newMusic = ApiDataFetcher.GetTikTokMusicFromJson(post["music"]);
+                        DbWriter.WriteMusic(newMusic, dbContext, logger);
+                    }catch(Exception e){
+                        Logger.Error(&"Could not get music data.");
+                        return;
+                    }
 
-                    var newMusic = ApiDataFetcher.GetTikTokMusicFromJSON(post["music"]);
-                    DbWriter.WriteMusic(newMusic, dbContext, logger);
+                    try{
+                        var newChallenges = ApiDataFetcher.GetTikTokChallengesFromJson(post["challenges"]);
+                        DbWriter.WriteChallenges(newChallenges, dbContext, logger);
+                    }catch(Exception e){
+                        Logger.Error(&"Could not get challenges data.");
+                        return;
+                    }
 
-                    var newChallenges = ApiDataFetcher.GetTikTokChallengesFromJson(post["challenges"]);
-                    DbWriter.WriteChallenges(newChallenges, dbContext, logger);
+                    try{
+                        var newTags = ApiDataFetcher.GetTikTokTagsFromJson(post["textExtra"]);
+                        DbWriter.WriteTags(newTags, dbContext, logger);
+                    }catch(Exception e){
+                        Logger.Error(&"Could not get tags data.");
+                        return;
+                    }
 
-                    var newTags = ApiDataFetcher.GetTikTokTagsFromJSON(post["textExtra"]);
-                    DbWriter.WriteTags(newTags, dbContext, logger);
+                    try{
+                        var newEffectStickers = ApiDataFetcher.GetTikTokEffectStickersFromJson(post["effectStickers"]);
+                        DbWriter.WriteEffectStickers(newEffectStickers, dbContext, logger);
+                    }catch(Exception e){
+                        Logger.Error(&"Could not get Effect Stickers data.");
+                        return;
+                    }
 
-                    var newEffectStickers = ApiDataFetcher.GetTikTokEffectStickersFromJSON(post["effectStickers"]);
-                    DbWriter.WriteEffectStickers(newEffectStickers, dbContext, logger);
-
-                    var newVideo = ApiDataFetcher.GetTikTokVideoFromJSON(post["video"], post["id"].ToString());
-                    DbWriter.WriteVideo(newVideo, dbContext, logger);
+                    try{
+                        var newVideo = ApiDataFetcher.GetTikTokVideoFromJson(post["video"], post["id"].ToString());
+                        DbWriter.WriteVideo(newVideo, dbContext, logger);
+                    }catch(Exception e){
+                        Logger.Error(&"Could not get video data.");
+                        return;
+                    }
 
                     var challengeIds = new List<string>();
                     foreach (var challenge in newChallenges) {
@@ -71,47 +95,32 @@ namespace Jobs.Fetcher.TikTok {
                     foreach (var effectSticker in newEffectStickers) {
                         effectStickerIds.Add(effectSticker.Id);
                     }
-                    var newPost = ApiDataFetcher.GetTikTokPostFromJSON(post, newAuthor, newVideo, newMusic, challengeIds, tagIds, effectStickerIds);
-                    DbWriter.WritePost(newPost, dbContext, logger);
 
-                    var newAuthorStats = ApiDataFetcher.GetTikTokAuthorStatsFromJSON(post["authorStats"], newAuthor, newPost.CreateTime);
-                    DbWriter.WriteAuthorStats(newAuthorStats, dbContext, logger);
+                    try{
+                        var newPost = ApiDataFetcher.GetTikTokPostFromJson(post, newAuthor, newVideo, newMusic, challengeIds, tagIds, effectStickerIds);
+                        DbWriter.WritePost(newPost, dbContext, logger);
+                    }catch(Exception e){
+                        Logger.Error(&"Could not get post data.");
+                        return;
+                    }
 
-                    var newPostStats = ApiDataFetcher.GetTikTokPostStatsJSON(post["stats"], newPost, newPost.CreateTime);
-                    DbWriter.WritePostStats(newPostStats, dbContext, logger);
+                    try{
+                        var newAuthorStats = ApiDataFetcher.GetTikTokAuthorStatsFromJson(post["authorStats"], newAuthor, newPost.CreateTime);
+                        DbWriter.WriteAuthorStats(newAuthorStats, dbContext, logger);
+                    }catch(Exception e){
+                        Logger.Error(&"Could not get author stats data.");
+                        return;
+                    }
+
+                    try{
+                        var newPostStats = ApiDataFetcher.GetTikTokPostStatsJson(post["stats"], newPost, newPost.CreateTime);
+                        DbWriter.WritePostStats(newPostStats, dbContext, logger);
+                    }catch(Exception e){
+                        Logger.Error(&"Could not get post stats data.");
+                        return;
+                    }
                 }
             }
         }
-    }
-
-    public class ScrapperAccountAdd : AbstractTikTokFetcher {
-
-        public ScrapperAccountAdd(List<string> userIds): base(userIds) {}
-
-        public override List<string> Dependencies() {
-            return new List<string>();
-        }
-
-        public override void RunBody(string username) {
-            if (!DatabaseManager.TikTokUserExists(username)) {
-                DbWriter.InsertUsernameOnScraper(username, GetLogger());
-            }
-        }
-    }
-
-    public class ScrapperAccountAdd : AbstractTikTokFetcher {
-
-        public ScrapperAccountAdd(List<string> userIds): base(userIds) {}
-
-        public override List<string> Dependencies() {
-            return new List<string>();
-        }
-
-        public override void RunBody(string username) {
-            if(!DatabaseManager.TikTokUserExists(username)){
-                DbWriter.InsertUsernameOnScraper(username, GetLogger());
-            }
-        }
-
     }
 }

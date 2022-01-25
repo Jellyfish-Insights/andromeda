@@ -24,57 +24,57 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             return allPosts;
         }
 
-        public static Video GetTikTokVideoFromJSON(JToken videoJSON, string postId) {
+        public static Video GetTikTokVideoFromJson(JToken videoJson, string postId) {
             var shareCovers = new List<string>();
-            foreach (var shareCover in videoJSON["shareCover"]) {
+            foreach (var shareCover in videoJson["shareCover"]) {
                 shareCovers.Add(shareCover.ToString());
             }
             var newVideo = new Video() {
-                Id = videoJSON["id"].ToString(),
-                Height = videoJSON["height"].ToObject<int>(),
-                Width = videoJSON["width"].ToObject<int>(),
-                Duration = videoJSON["duration"].ToObject<int>(),
-                Ratio = videoJSON["ratio"].ToString(),
-                Cover = videoJSON["cover"].ToString(),
-                OriginCover = videoJSON["originCover"].ToString(),
-                DynamicCover = videoJSON["dynamicCover"].ToString(),
-                PlayAddress = videoJSON["playAddr"].ToString(),
-                DownloadAddress = videoJSON["downloadAddr"].ToString(),
+                Id = videoJson["id"].ToString(),
+                Height = videoJson["height"].ToObject<int>(),
+                Width = videoJson["width"].ToObject<int>(),
+                Duration = videoJson["duration"].ToObject<int>(),
+                Ratio = videoJson["ratio"].ToString(),
+                Cover = videoJson["cover"].ToString(),
+                OriginCover = videoJson["originCover"].ToString(),
+                DynamicCover = videoJson["dynamicCover"].ToString(),
+                PlayAddress = videoJson["playAddr"].ToString(),
+                DownloadAddress = videoJson["downloadAddr"].ToString(),
                 ShareCover = shareCovers,
-                ReflowCover = videoJSON["reflowCover"].ToString(),
-                BitRate = videoJSON["bitrate"].ToObject<int>(),
-                EncodedType = videoJSON["encodedType"].ToString(),
-                Format = videoJSON["format"].ToString(),
-                VideoQuality = videoJSON["videoQuality"].ToString(),
-                EncodedUserTag = videoJSON["encodeUserTag"].ToString(),
-                CodecType = videoJSON["codecType"].ToString(),
-                Definition = videoJSON["definition"].ToString()
+                ReflowCover = videoJson["reflowCover"].ToString(),
+                BitRate = videoJson["bitrate"].ToObject<int>(),
+                EncodedType = videoJson["encodedType"].ToString(),
+                Format = videoJson["format"].ToString(),
+                VideoQuality = videoJson["videoQuality"].ToString(),
+                EncodedUserTag = videoJson["encodeUserTag"].ToString(),
+                CodecType = videoJson["codecType"].ToString(),
+                Definition = videoJson["definition"].ToString()
             };
 
             return newVideo;
         }
 
-        public static Music GetTikTokMusicFromJSON(JToken musicJSON) {
+        public static Music GetTikTokMusicFromJson(JToken musicJson) {
             return new Music() {
-                       Id = musicJSON["id"].ToString(),
-                       Title = musicJSON["title"].ToString(),
-                       PlayUrl = musicJSON["playUrl"].ToString(),
-                       CoverThumb = musicJSON["coverThumb"].ToString(),
-                       CoverMedium = musicJSON["coverMedium"].ToString(),
-                       CoverLarge = musicJSON["coverLarge"].ToString(),
-                       AuthorName = musicJSON["authorName"].ToString(),
-                       Original = musicJSON["original"].ToObject<bool>(),
-                       Duration = musicJSON["duration"].ToObject<int>(),
-                       Album = musicJSON["album"].ToString()
+                       Id = musicJson["id"].ToString(),
+                       Title = musicJson["title"].ToString(),
+                       PlayUrl = musicJson["playUrl"].ToString(),
+                       CoverThumb = musicJson["coverThumb"].ToString(),
+                       CoverMedium = musicJson["coverMedium"].ToString(),
+                       CoverLarge = musicJson["coverLarge"].ToString(),
+                       AuthorName = musicJson["authorName"].ToString(),
+                       Original = musicJson["original"].ToObject<bool>(),
+                       Duration = musicJson["duration"].ToObject<int>(),
+                       Album = musicJson["album"].ToString()
             };
         }
 
-        public static List<Challenge> GetTikTokChallengesFromJson(JToken challengesJSON) {
+        public static List<Challenge> GetTikTokChallengesFromJson(JToken challengesJson) {
             var newChallenges = new List<Challenge>();
-            if (challengesJSON == null) {
+            if (challengesJson == null) {
                 return newChallenges;
             }
-            foreach (var challenge in challengesJSON) {
+            foreach (var challenge in challengesJson) {
                 newChallenges.Add(new Challenge() {
                     Id = challenge["id"].ToString(),
                     Title = challenge["title"].ToString(),
@@ -91,12 +91,12 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             return newChallenges;
         }
 
-        public static List<Tag> GetTikTokTagsFromJSON(JToken tagsJSON) {
+        public static List<Tag> GetTikTokTagsFromJson(JToken tagsJson) {
             var newTags = new List<Tag>();
-            if (tagsJSON == null) {
+            if (tagsJson == null) {
                 return newTags;
             }
-            foreach (var tag in tagsJSON) {
+            foreach (var tag in tagsJson) {
                 newTags.Add(new Tag() {
                     AweMeId = tag["awemeId"].ToString(),
                     Start = tag["start"].ToObject<int>(),
@@ -114,12 +114,12 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             return newTags;
         }
 
-        public static List<EffectSticker> GetTikTokEffectStickersFromJSON(JToken effectStickersJSON) {
+        public static List<EffectSticker> GetTikTokEffectStickersFromJson(JToken effectStickersJson) {
             var effectStickers = new List<EffectSticker>();
-            if (effectStickersJSON == null) {
+            if (effectStickersJson == null) {
                 return effectStickers;
             }
-            foreach (var sticker in effectStickersJSON) {
+            foreach (var sticker in effectStickersJson) {
                 var newEffectSticker = new EffectSticker() {
                     Name = sticker["name"].ToString(),
                     Id = sticker["ID"].ToString()
@@ -129,58 +129,44 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             return effectStickers;
         }
 
-        public static Author GetTikTokAuthorFromAuthorJSON(JToken authorJSON) {
+        public static Author GetTikTokAuthorFromAuthorJson(JToken authorJson) {
             return new Author() {
-                       Id = authorJSON["id"].ToString(),
-                       UniqueId = authorJSON["uniqueId"].ToString(),
-                       Nickname = authorJSON["nickname"].ToString(),
-                       AvatarThumbnail = authorJSON["avatarThumb"].ToString(),
-                       AvatarMedium = authorJSON["avatarMedium"].ToString(),
-                       AvatarLarge = authorJSON["avatarLarger"].ToString(),
-                       Signature = authorJSON["signature"].ToString(),
-                       Verified = authorJSON["verified"].ToObject<bool>(),
-                       SecurityUId = authorJSON["secUid"].ToString(),
-                       Secret = authorJSON["secret"].ToObject<bool>(),
-                       FTC = authorJSON["ftc"].ToObject<bool>(),
-                       Relation = authorJSON["relation"].ToObject<int>(),
-                       OpenFavorite = authorJSON["openFavorite"].ToObject<int>(),
-                       CommentSetting = authorJSON["commentSetting"].ToObject<int>(),
-                       DuetSetting = authorJSON["duetSetting"].ToObject<int>(),
-                       StitchSetting = authorJSON["stitchSetting"].ToObject<int>(),
-                       PrivateAccount = authorJSON["privateAccount"].ToObject<bool>()
+                       Id = authorJson["id"].ToString(),
+                       UniqueId = authorJson["uniqueId"].ToString(),
+                       Nickname = authorJson["nickname"].ToString(),
+                       AvatarThumbnail = authorJson["avatarThumb"].ToString(),
+                       AvatarMedium = authorJson["avatarMedium"].ToString(),
+                       AvatarLarge = authorJson["avatarLarger"].ToString(),
+                       Signature = authorJson["signature"].ToString(),
+                       Verified = authorJson["verified"].ToObject<bool>(),
+                       SecurityUId = authorJson["secUid"].ToString(),
+                       Secret = authorJson["secret"].ToObject<bool>(),
+                       FTC = authorJson["ftc"].ToObject<bool>(),
+                       Relation = authorJson["relation"].ToObject<int>(),
+                       OpenFavorite = authorJson["openFavorite"].ToObject<int>(),
+                       CommentSetting = authorJson["commentSetting"].ToObject<int>(),
+                       DuetSetting = authorJson["duetSetting"].ToObject<int>(),
+                       StitchSetting = authorJson["stitchSetting"].ToObject<int>(),
+                       PrivateAccount = authorJson["privateAccount"].ToObject<bool>()
             };
         }
 
-        public static Author GetTikTokAuthorFromPostJSON(JToken postJSON) {
+        public static Author GetTikTokAuthorFromPostJson(JToken postJson) {
             return new Author() {
-                       Id = postJSON["authorId"].ToString(),
-                       UniqueId = postJSON["author"].ToString(),
-                       Nickname = postJSON["nickname"].ToString()/*,
-                                                                    AvatarThumbnail = authorJSON["avatarThumb"].ToString(),
-                                                                    AvatarMedium = authorJSON["avatarMedium"].ToString(),
-                                                                    AvatarLarge = authorJSON["avatarLarger"].ToString(),
-                                                                    Signature = authorJSON["signature"].ToString(),
-                                                                    Verified = authorJSON["verified"].ToObject<bool>(),
-                                                                    SecurityUId = authorJSON["secUid"].ToString(),
-                                                                    Secret = authorJSON["secret"].ToObject<bool>(),
-                                                                    FTC = authorJSON["ftc"].ToObject<bool>(),
-                                                                    Relation = authorJSON["relation"].ToObject<int>(),
-                                                                    OpenFavorite = authorJSON["openFavorite"].ToObject<int>(),
-                                                                    CommentSetting = authorJSON["commentSetting"].ToObject<int>(),
-                                                                    DuetSetting = authorJSON["duetSetting"].ToObject<int>(),
-                                                                    StitchSetting = authorJSON["stitchSetting"].ToObject<int>(),
-                                                                    PrivateAccount = authorJSON["privateAccount"].ToObject<bool>()*/
+                       Id = postJson["authorId"].ToString(),
+                       UniqueId = postJson["author"].ToString(),
+                       Nickname = postJson["nickname"].ToString()
             };
         }
 
-        public static AuthorStats GetTikTokAuthorStatsFromJSON(JToken authorStatsJSON, Author author, DateTime postTime) {
+        public static AuthorStats GetTikTokAuthorStatsFromJson(JToken authorStatsJson, Author author, DateTime postTime) {
             return new AuthorStats() {
-                       FollowingCount = authorStatsJSON["followingCount"].ToObject<long>(),
-                       FollowerCount = authorStatsJSON["followerCount"].ToObject<long>(),
-                       HeartCount = authorStatsJSON["heartCount"].ToObject<long>(),
-                       VideoCount = authorStatsJSON["videoCount"].ToObject<long>(),
-                       DiggCount = authorStatsJSON["diggCount"].ToObject<long>(),
-                       Heart = authorStatsJSON["heart"].ToObject<long>(),
+                       FollowingCount = authorStatsJson["followingCount"].ToObject<long>(),
+                       FollowerCount = authorStatsJson["followerCount"].ToObject<long>(),
+                       HeartCount = authorStatsJson["heartCount"].ToObject<long>(),
+                       VideoCount = authorStatsJson["videoCount"].ToObject<long>(),
+                       DiggCount = authorStatsJson["diggCount"].ToObject<long>(),
+                       Heart = authorStatsJson["heart"].ToObject<long>(),
                        EventDate = DateTime.Today,
                        ValidityStart = DateTime.UtcNow,
                        ValidityEnd = DateTime.MaxValue,
@@ -189,28 +175,28 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             };
         }
 
-        public static Post GetTikTokPostFromJSON(JToken postJSON, Author author, Video video, Music music, List<string> challengeIds, List<string> tagIds, List<string> effectStickerIds) {
+        public static Post GetTikTokPostFromJson(JToken postJson, Author author, Video video, Music music, List<string> challengeIds, List<string> tagIds, List<string> effectStickerIds) {
             return new Post() {
-                       Id = postJSON["id"].ToString(),
-                       CreateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc).AddSeconds(postJSON["createTime"].ToObject<int>()),
-                       Description = postJSON["desc"].ToString(),
-                       DuetInfo = postJSON["duetInfo"]["duetFromId"].ToString(),
-                       OriginalItem = postJSON["originalItem"].ToObject<bool>(),
-                       OfficialItem = postJSON["officalItem"].ToObject<bool>(),
-                       Secret = postJSON["secret"].ToObject<bool>(),
-                       ForFriend = postJSON["forFriend"].ToObject<bool>(),
-                       Digged = postJSON["digged"].ToObject<bool>(),
-                       ItemCommentStatus = postJSON["itemCommentStatus"].ToObject<int>(),
-                       ShowNotPass = postJSON["showNotPass"].ToObject<bool>(),
-                       VL1 = postJSON["vl1"].ToObject<bool>(),
-                       ItemMute = postJSON["itemMute"].ToObject<bool>(),
-                       Private = postJSON["privateItem"].ToObject<bool>(),
-                       DuetEnabled = postJSON["duetEnabled"].ToObject<bool>(),
-                       StitchEnabled = postJSON["stitchEnabled"].ToObject<bool>(),
-                       ShareEnabled = postJSON["shareEnabled"].ToObject<bool>(),
-                       IsAd = postJSON["isAd"].ToObject<bool>(),
-                       DuetDisplay = postJSON["duetDisplay"].ToObject<int>(),
-                       StitchDisplay = postJSON["stitchDisplay"].ToObject<int>(),
+                       Id = postJson["id"].ToString(),
+                       CreateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc).AddSeconds(postJson["createTime"].ToObject<int>()),
+                       Description = postJson["desc"].ToString(),
+                       DuetInfo = postJson["duetInfo"]["duetFromId"].ToString(),
+                       OriginalItem = postJson["originalItem"].ToObject<bool>(),
+                       OfficialItem = postJson["officalItem"].ToObject<bool>(),
+                       Secret = postJson["secret"].ToObject<bool>(),
+                       ForFriend = postJson["forFriend"].ToObject<bool>(),
+                       Digged = postJson["digged"].ToObject<bool>(),
+                       ItemCommentStatus = postJson["itemCommentStatus"].ToObject<int>(),
+                       ShowNotPass = postJson["showNotPass"].ToObject<bool>(),
+                       VL1 = postJson["vl1"].ToObject<bool>(),
+                       ItemMute = postJson["itemMute"].ToObject<bool>(),
+                       Private = postJson["privateItem"].ToObject<bool>(),
+                       DuetEnabled = postJson["duetEnabled"].ToObject<bool>(),
+                       StitchEnabled = postJson["stitchEnabled"].ToObject<bool>(),
+                       ShareEnabled = postJson["shareEnabled"].ToObject<bool>(),
+                       IsAd = postJson["isAd"].ToObject<bool>(),
+                       DuetDisplay = postJson["duetDisplay"].ToObject<int>(),
+                       StitchDisplay = postJson["stitchDisplay"].ToObject<int>(),
                        ValidityStart = DateTime.UtcNow,
                        ValidityEnd = DateTime.MaxValue,
                        AuthorId = author.Id,
@@ -225,12 +211,12 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             };
         }
 
-        public static PostStats GetTikTokPostStatsJSON(JToken postStatsJSON, Post post, DateTime postTime) {
+        public static PostStats GetTikTokPostStatsJson(JToken postStatsJson, Post post, DateTime postTime) {
             return new PostStats() {
-                       DiggCount = postStatsJSON["diggCount"].ToObject<long>(),
-                       ShareCount = postStatsJSON["shareCount"].ToObject<long>(),
-                       CommentCount = postStatsJSON["commentCount"].ToObject<long>(),
-                       PlayCount = postStatsJSON["playCount"].ToObject<long>(),
+                       DiggCount = postStatsJson["diggCount"].ToObject<long>(),
+                       ShareCount = postStatsJson["shareCount"].ToObject<long>(),
+                       CommentCount = postStatsJson["commentCount"].ToObject<long>(),
+                       PlayCount = postStatsJson["playCount"].ToObject<long>(),
                        EventDate = DateTime.Today,
                        ValidityStart = DateTime.UtcNow,
                        ValidityEnd = DateTime.MaxValue,
