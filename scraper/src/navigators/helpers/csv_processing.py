@@ -51,7 +51,7 @@ class CSV_Data:
 			self.data[-1]["ChannelId"] = self.associated_metadata["channelId"]
 			for col in row.keys():
 				if DATE_COLUMN_REGEX.search(col):
-					self.data[-1]["DateMeasure"] = round(datetime.datetime.fromisoformat(row[col]).timestamp())
+					self.data[-1]["EventDate"] = round(datetime.datetime.fromisoformat(row[col]).timestamp())
 				else:
 					self.data[-1]["Metric"] = col
 					self.data[-1]["Value"] = float(row[col])
