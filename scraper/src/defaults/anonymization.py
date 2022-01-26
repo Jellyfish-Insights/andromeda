@@ -23,7 +23,7 @@ FAKE_UA_UNSET_HEADERS = [
 	"Sec-Ch-Ua-Mobile",
 	"Sec-Ch-Ua-Model",
 	"Sec-Ch-Ua-Platform",
-	"Sec-Ch-Ua-Platform-Version",
+	"Sec-Ch-Ua-Platform-Version"
 ]
 
 # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
