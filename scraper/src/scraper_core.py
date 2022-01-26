@@ -8,7 +8,6 @@ import random
 from typing import Dict, Optional
 import browsermobproxy, undetected_chromedriver.v2 as uc
 from selenium.common.exceptions import WebDriverException, SessionNotCreatedException
-from fake_useragent import UserAgent
 
 from defaults import core as core_defaults, anonymization
 from logger import log
@@ -124,7 +123,7 @@ class ScraperCore:
 			log.critical(err)
 			traceback.print_exc()
 			self.server.stop()
-			raise		
+			raise
 
 		# Will raise an exception if any page takes more than PAGE_LOAD_TIMEOUT
 		# seconds to load
@@ -152,7 +151,7 @@ class ScraperCore:
 			time.sleep(timeout_seconds / 2)
 			log.warning("Process still hasn't exited, forcing cleanup.")
 			self.cleanup()
-		
+
 		t = threading.Thread(
 			target=stop_program,
 			args=(self.kill_handle,),
@@ -163,7 +162,7 @@ class ScraperCore:
 	def cleanup(self, exit_code: int = 0) -> None:
 		if self.cleaned_up:
 			return
-		
+
 		log.info("Cleaning...")
 		try:
 			self.proxy.close()
@@ -178,7 +177,7 @@ class ScraperCore:
 		try:
 			self.driver.quit()
 		except AttributeError:
-			log.debug("Driver was not running yet, or had already been killed.")			
+			log.debug("Driver was not running yet, or had already been killed.")
 
 		if not self.options.keep_logs:
 			# Removing log files created by BrowserMob and Undetected Chrome
@@ -199,10 +198,10 @@ class ScraperCore:
 		prefix = core_defaults.PROFILE_DIR
 		throwaway_suffix = "throwaway"
 		throwaway_dirname = f"{prefix}___{throwaway_suffix}"
-		
+
 		if os.path.isdir(throwaway_dirname):
 			shutil.rmtree(throwaway_dirname, ignore_errors=True)
-		
+
 		if self.options.use_disposable_profile:
 			log.debug(f"Using disposable profile '{throwaway_dirname}'")
 			os.mkdir(throwaway_dirname)
@@ -254,14 +253,6 @@ class ScraperCore:
 		log.info("Using fake user agent as a Chrome argument was deprecated "
 			"due to inadvertently disabling JavaScript.")
 		return
-		try:
-			ua = UserAgent()
-			userAgent = ua.random
-			log.info(f"Using fake user agent = {userAgent}")
-			chrome_options.add_argument(f"--user-agent={userAgent}")
-		except Exception as e:
-			log.warning("Could not use fake user agent.")
-			log.warning(e)
 
 	def fake_locale(self):
 		def create_fake_lang_header():
@@ -277,7 +268,7 @@ class ScraperCore:
 				q -= 0.1
 
 			return ",".join(languages)
-		
+
 		header_value = create_fake_lang_header()
 		self.set_header({"Accept-Language": header_value})
 

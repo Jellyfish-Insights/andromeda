@@ -44,7 +44,7 @@ class CSV_Data:
 			log.critical(exc)
 			raise
 
-		# Cast data into the correct format for being receive at C# code
+		# Cast data into the correct format for being received at C# code
 		for row in provisory_data:
 			self.data.append(dict())
 			self.data[-1]["VideoId"] = self.associated_metadata["videoId"]
@@ -150,7 +150,7 @@ def process_csv_data():
 		directory = os.path.join(get_project_root_path(), "tests", "data")
 	else:
 		directory = os.path.join(get_home_dir(), "Downloads")
-	
+
 	with UseDirectory(directory):
 		clean_working_directory()
 		csv_data_list = retrieve_data_from_zip_files()
@@ -160,10 +160,6 @@ def process_csv_data():
 
 def main():
 	set_debug_mode()
-	if DEBUG:
-		change_logger_level(logging.DEBUG)
-	else:
-		change_logger_level(logging.DEBUG)
 	process_csv_data()
 
 if __name__ == "__main__":
