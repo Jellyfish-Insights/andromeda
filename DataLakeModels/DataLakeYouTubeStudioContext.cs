@@ -18,7 +18,7 @@ namespace DataLakeModels {
                     table.VideoId,
                     table.ValidityStart,
                     table.Metric,
-                    table.DateMeasure
+                    table.EventDate
                 });
 
         }

@@ -13,7 +13,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
     public class Video_DTO : IEquatable<Video_DTO>
     {
             /* In seconds */
-            public uint DateMeasure {get; set;}
+            public uint EventDate {get; set;}
             public string ChannelId {get; set;}
             public string VideoId {get; set;}
             public string Metric {get; set;}
@@ -22,7 +22,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             public override string ToString()
             {
                 return $@"
-                    DateMeasure: {DateMeasure},
+                    EventDate: {EventDate},
                     ChannelId: {ChannelId},
                     VideoId: {VideoId},
                     Metric: {Metric},
@@ -31,7 +31,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             }
 
             public bool Equals(Video_DTO other) {
-                return DateMeasure == other.DateMeasure
+                return EventDate == other.EventDate
                     && ChannelId == other.ChannelId
                     && VideoId == other.VideoId
                     && Metric == other.Metric
