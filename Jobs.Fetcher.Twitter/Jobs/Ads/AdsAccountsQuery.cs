@@ -35,15 +35,19 @@ namespace Jobs.Fetcher.Twitter {
 
             var user = DbReader.GetUserByUsername(username, dataContext);
             if (user == null) {
-                GetLogger().Error($"User {username} not found in database");
+                Logger.Error($"User {username} not found in database");
                 return;
             }
 
             void ProccessAdsAccountResult(ITwitterRequestIterator<AdsAccountsResponse, string> iterator) {
-
-                while (!iterator.Completed) {
-                    var adsAccountPage = iterator.NextPageAsync().GetAwaiter().GetResult();
-                    DbWriter.WriteAdsAccounts(user.Id, username, adsAccountPage.Content, adsContext, GetLogger());
+                try {
+                    while (!iterator.Completed) {
+                        var adsAccountPage = iterator.NextPageAsync().GetAwaiter().GetResult();
+                        DbWriter.WriteAdsAccounts(user.Id, username, adsAccountPage.Content, adsContext, Logger);
+                    }
+                }catch (Exception e) {
+                    Logger.Error($"Could not fetch Twitter Video Libraries for {username}");
+                    throw e;
                 }
             }
 
