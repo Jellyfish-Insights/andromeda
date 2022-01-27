@@ -54,7 +54,6 @@ namespace Jobs.Fetcher.TikTok {
                         }
                     }
                 }
-
             }
             catch (Exception e) when (e is FileNotFoundException || e is DirectoryNotFoundException)
             {
