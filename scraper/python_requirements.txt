@@ -1,0 +1,6 @@
+browsermob-proxy==0.8.0
+cryptography==2.8
+psycopg2-binary==2.9.1
+selenium==4.1.0
+SQLAlchemy==1.4.28
+undetected-chromedriver==3.0.6
