@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Serilog.Core;
 using DataLakeModels;
 using Jobs.Fetcher.TikTok.Helpers;
+using DataLakeModels.Models.TikTok;
 
 namespace Jobs.Fetcher.TikTok {
 
@@ -29,7 +30,7 @@ namespace Jobs.Fetcher.TikTok {
                 foreach (var post in ApiDataFetcher.GetPosts(username, lastFetch, Logger)) {
                     Logger.Information("Found TikTok Post for '" + username + "' of ID '" + post["id"] + "'.");
 
-                    DataLakeModels.Models.TikTok.Author newAuthor = null;
+                    Author newAuthor = null;
                     try {
                         if (post["author"].ToString() == username.Substring(1)) {
                             Logger.Warning($"Author data is incomplete");
@@ -39,48 +40,53 @@ namespace Jobs.Fetcher.TikTok {
                         }
                         DbWriter.WriteAuthor(newAuthor, dbContext, logger);
                     }catch (Exception e) {
-                        Logger.Error(&"Could not get author data.");
-                        return;
+                        Logger.Error("Could not get author data.");
+                        throw e;
                     }
 
+                    Music newMusic = null;
                     try {
-                        var newMusic = ApiDataFetcher.GetTikTokMusicFromJson(post["music"]);
+                        newMusic = ApiDataFetcher.GetTikTokMusicFromJson(post["music"]);
                         DbWriter.WriteMusic(newMusic, dbContext, logger);
                     }catch (Exception e) {
-                        Logger.Error(&"Could not get music data.");
-                        return;
+                        Logger.Error("Could not get music data.");
+                        throw e;
                     }
 
+                    var newChallenges = new List<Challenge>();
                     try {
-                        var newChallenges = ApiDataFetcher.GetTikTokChallengesFromJson(post["challenges"]);
+                        newChallenges = ApiDataFetcher.GetTikTokChallengesFromJson(post["challenges"]);
                         DbWriter.WriteChallenges(newChallenges, dbContext, logger);
                     }catch (Exception e) {
-                        Logger.Error(&"Could not get challenges data.");
-                        return;
+                        Logger.Error("Could not get challenges data.");
+                        throw e;
                     }
 
+                    var newTags = new List<Tag>();
                     try {
-                        var newTags = ApiDataFetcher.GetTikTokTagsFromJson(post["textExtra"]);
+                        newTags = ApiDataFetcher.GetTikTokTagsFromJson(post["textExtra"]);
                         DbWriter.WriteTags(newTags, dbContext, logger);
                     }catch (Exception e) {
-                        Logger.Error(&"Could not get tags data.");
-                        return;
+                        Logger.Error("Could not get tags data.");
+                        throw e;
                     }
 
+                    var newEffectStickers = new List<EffectSticker>();
                     try {
-                        var newEffectStickers = ApiDataFetcher.GetTikTokEffectStickersFromJson(post["effectStickers"]);
+                        newEffectStickers = ApiDataFetcher.GetTikTokEffectStickersFromJson(post["effectStickers"]);
                         DbWriter.WriteEffectStickers(newEffectStickers, dbContext, logger);
                     }catch (Exception e) {
-                        Logger.Error(&"Could not get Effect Stickers data.");
-                        return;
+                        Logger.Error("Could not get Effect Stickers data.");
+                        throw e;
                     }
 
+                    Video newVideo = null;
                     try {
-                        var newVideo = ApiDataFetcher.GetTikTokVideoFromJson(post["video"], post["id"].ToString());
+                        newVideo = ApiDataFetcher.GetTikTokVideoFromJson(post["video"], post["id"].ToString());
                         DbWriter.WriteVideo(newVideo, dbContext, logger);
                     }catch (Exception e) {
-                        Logger.Error(&"Could not get video data.");
-                        return;
+                        Logger.Error("Could not get video data.");
+                        throw e;
                     }
 
                     var challengeIds = new List<string>();
@@ -96,28 +102,29 @@ namespace Jobs.Fetcher.TikTok {
                         effectStickerIds.Add(effectSticker.Id);
                     }
 
+                    Post newPost = null;
                     try {
-                        var newPost = ApiDataFetcher.GetTikTokPostFromJson(post, newAuthor, newVideo, newMusic, challengeIds, tagIds, effectStickerIds);
+                        newPost = ApiDataFetcher.GetTikTokPostFromJson(post, newAuthor, newVideo, newMusic, challengeIds, tagIds, effectStickerIds);
                         DbWriter.WritePost(newPost, dbContext, logger);
                     }catch (Exception e) {
-                        Logger.Error(&"Could not get post data.");
-                        return;
+                        Logger.Error("Could not get post data.");
+                        throw e;
                     }
 
                     try {
                         var newAuthorStats = ApiDataFetcher.GetTikTokAuthorStatsFromJson(post["authorStats"], newAuthor, newPost.CreateTime);
                         DbWriter.WriteAuthorStats(newAuthorStats, dbContext, logger);
                     }catch (Exception e) {
-                        Logger.Error(&"Could not get author stats data.");
-                        return;
+                        Logger.Error("Could not get author stats data.");
+                        throw e;
                     }
 
                     try {
                         var newPostStats = ApiDataFetcher.GetTikTokPostStatsJson(post["stats"], newPost, newPost.CreateTime);
                         DbWriter.WritePostStats(newPostStats, dbContext, logger);
                     }catch (Exception e) {
-                        Logger.Error(&"Could not get post stats data.");
-                        return;
+                        Logger.Error("Could not get post stats data.");
+                        throw e;
                     }
                 }
             }
