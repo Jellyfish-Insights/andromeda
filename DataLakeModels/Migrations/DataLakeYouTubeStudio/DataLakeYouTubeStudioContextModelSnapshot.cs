@@ -22,21 +22,22 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
 
             modelBuilder.Entity("DataLakeModels.Models.YouTube.Studio.Video", b =>
                 {
+                    b.Property<string>("ChannelId");
+
                     b.Property<string>("VideoId");
 
                     b.Property<DateTime>("ValidityStart");
 
-                    b.Property<string>("ChannelId");
-
-                    b.Property<DateTime>("DateMeasure");
-
                     b.Property<string>("Metric");
+
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("ValidityEnd");
 
                     b.Property<double>("Value");
 
-                    b.HasKey("VideoId", "ValidityStart");
+                    b.HasKey("ChannelId", "VideoId", "ValidityStart", "Metric", "EventDate");
 
                     b.ToTable("Videos");
                 });

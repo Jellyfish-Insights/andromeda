@@ -32,12 +32,12 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
         {
             var validityStart = DateTime.UtcNow;
             var validityEnd = DateTime.MaxValue;
-            var dateMeasure = EpochToDateTime(dto.DateMeasure);
+            var EventDate = EpochToDateTime(dto.EventDate);
 
             return new Video {
                 ValidityStart = validityStart,
                 ValidityEnd = validityEnd,
-                DateMeasure = dateMeasure,
+                EventDate = EventDate,
                 ChannelId = dto.ChannelId,
                 VideoId = dto.VideoId,
                 Metric = dto.Metric,
@@ -51,7 +51,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
                     var newObj = DTOToVideo(videoDTO);
                     var storedObj = dlContext.Videos.SingleOrDefault(v =>
                         v.VideoId == newObj.VideoId
-                        && v.DateMeasure.ToUniversalTime().Date == newObj.DateMeasure.ToUniversalTime().Date
+                        && v.EventDate.ToUniversalTime().Date == newObj.EventDate.ToUniversalTime().Date
                         && v.Metric == newObj.Metric
                         && v.ValidityEnd > DateTime.UtcNow
                     );

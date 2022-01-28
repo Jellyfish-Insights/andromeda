@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
 {
     [DbContext(typeof(DataLakeYouTubeStudioContext))]
-    [Migration("20220117204512_FirstMigration")]
+    [Migration("20220128143944_FirstMigration")]
     partial class FirstMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,21 +24,22 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
 
             modelBuilder.Entity("DataLakeModels.Models.YouTube.Studio.Video", b =>
                 {
+                    b.Property<string>("ChannelId");
+
                     b.Property<string>("VideoId");
 
                     b.Property<DateTime>("ValidityStart");
 
-                    b.Property<string>("ChannelId");
-
-                    b.Property<DateTime>("DateMeasure");
-
                     b.Property<string>("Metric");
+
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("ValidityEnd");
 
                     b.Property<double>("Value");
 
-                    b.HasKey("VideoId", "ValidityStart");
+                    b.HasKey("ChannelId", "VideoId", "ValidityStart", "Metric", "EventDate");
 
                     b.ToTable("Videos");
                 });

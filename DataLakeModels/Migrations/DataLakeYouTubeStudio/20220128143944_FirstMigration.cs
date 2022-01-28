@@ -17,15 +17,15 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
                 {
                     ValidityStart = table.Column<DateTime>(nullable: false),
                     ValidityEnd = table.Column<DateTime>(nullable: false),
-                    DateMeasure = table.Column<DateTime>(nullable: false),
-                    ChannelId = table.Column<string>(nullable: true),
+                    EventDate = table.Column<DateTime>(type: "date", nullable: false),
+                    ChannelId = table.Column<string>(nullable: false),
                     VideoId = table.Column<string>(nullable: false),
-                    Metric = table.Column<string>(nullable: true),
+                    Metric = table.Column<string>(nullable: false),
                     Value = table.Column<double>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Videos", x => new { x.VideoId, x.ValidityStart });
+                    table.PrimaryKey("PK_Videos", x => new { x.ChannelId, x.VideoId, x.ValidityStart, x.Metric, x.EventDate });
                 });
         }
 
