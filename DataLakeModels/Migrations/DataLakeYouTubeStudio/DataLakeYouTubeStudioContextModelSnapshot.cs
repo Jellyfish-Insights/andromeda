@@ -30,7 +30,8 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
 
                     b.Property<string>("Metric");
 
-                    b.Property<DateTime>("EventDate");
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("ValidityEnd");
 

@@ -28,7 +28,7 @@ namespace DataLakeModels.Models.YouTube.Studio {
 
         public DateTime ValidityStart { get; set; }
         public DateTime ValidityEnd { get; set; }
-        /* See "DateOnly" type introduced in .NET 6 */
+        [Column(TypeName = "date")]
         public DateTime EventDate { get; set; }
         public string ChannelId { get; set; }
         public string VideoId { get; set; }
