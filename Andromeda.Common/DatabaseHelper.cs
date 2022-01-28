@@ -32,6 +32,7 @@ namespace Andromeda.Common {
             string settingsField;
             switch (db) {
                 case Databases.LakeYouTubeData:
+                case Databases.LakeYouTubeStudio:
                 case Databases.LakeYouTubeAnalytics:
                 case Databases.LakeAdWords:
                 case Databases.LakeLogging:
