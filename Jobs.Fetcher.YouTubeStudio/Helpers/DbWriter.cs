@@ -45,34 +45,38 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             };
         }
 
-        public static void Write(IEnumerable<Video_DTO> videoDTOs, Logger logger) {
-            using (var dlContext = new DataLakeYouTubeStudioContext()) {
-                foreach (var videoDTO in videoDTOs) {
-                    var newObj = DTOToVideo(videoDTO);
-                    var storedObj = dlContext.Videos.SingleOrDefault(v =>
-                        v.VideoId == newObj.VideoId
-                        && v.EventDate.ToUniversalTime().Date == newObj.EventDate.ToUniversalTime().Date
-                        && v.Metric == newObj.Metric
-                        && v.ValidityEnd > DateTime.UtcNow
-                    );
+        public static void WriteDTOs(IEnumerable<Video_DTO> videoDTOs, Logger logger) {
+            foreach (var videoDTO in videoDTOs) {
+                var video = DTOToVideo(videoDTO);
+                WriteVideo(video, logger);
+            }
+        }
 
-                    var modified = compareOldAndNew(storedObj, newObj);
-                    switch (modified) {
-                        case Modified.New:
-                            logger.Debug("Found new video: {VideoId}", newObj.VideoId);
-                            dlContext.Add(newObj);
-                            break;
-                        case Modified.Updated:
-                            logger.Debug("Found update to: {VideoId}", newObj.VideoId);
-                            storedObj.ValidityEnd = newObj.ValidityStart;
-                            dlContext.Update(storedObj);
-                            dlContext.Add(newObj);
-                            break;
-                        default:
-                            break;
-                    }
-                    dlContext.SaveChanges();
+        public static void WriteVideo(Video video, Logger logger) {
+            using (var dlContext = new DataLakeYouTubeStudioContext()) {
+                var storedObj = dlContext.Videos.SingleOrDefault(v =>
+                    v.VideoId == video.VideoId
+                    && v.EventDate.ToUniversalTime().Date == video.EventDate.ToUniversalTime().Date
+                    && v.Metric == video.Metric
+                    && v.ValidityEnd > DateTime.UtcNow
+                );
+
+                var modified = compareOldAndNew(storedObj, video);
+                switch (modified) {
+                    case Modified.New:
+                        logger.Debug("Found new video: {VideoId}", video.VideoId);
+                        dlContext.Add(video);
+                        break;
+                    case Modified.Updated:
+                        logger.Debug("Found update to: {VideoId}", video.VideoId);
+                        storedObj.ValidityEnd = video.ValidityStart;
+                        dlContext.Update(storedObj);
+                        dlContext.Add(video);
+                        break;
+                    default:
+                        break;
                 }
+                dlContext.SaveChanges();
 
             }
         }

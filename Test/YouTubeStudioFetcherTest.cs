@@ -263,7 +263,7 @@ namespace Test.YouTubeStudio {
                 DeleteAllVideos(context);
                 var now = DateTime.UtcNow;
                 var video_DTOs = new List<Video_DTO>{video_dto_01, video_dto_02};
-                DbWriter.Write(video_DTOs, Logger);
+                DbWriter.WriteDTOs(video_DTOs, Logger);
 
                 var videos = context.Videos;
                 var videosList = videos.ToList();
@@ -311,7 +311,7 @@ namespace Test.YouTubeStudio {
                 DeleteAllVideos(context);
                 var now = DateTime.UtcNow;
                 var video_DTOs = new List<Video_DTO>{video_dto_01, video_dto_02};
-                DbWriter.Write(video_DTOs, Logger);
+                DbWriter.WriteDTOs(video_DTOs, Logger);
 
                 var videos = context.Videos;
                 var videosList = videos.ToList();
@@ -361,7 +361,7 @@ namespace Test.YouTubeStudio {
                 DeleteAllVideos(context);
                 var now = DateTime.UtcNow;
                 var video_DTOs = new List<Video_DTO>{video_dto_01, video_dto_02};
-                DbWriter.Write(video_DTOs, Logger);
+                DbWriter.WriteDTOs(video_DTOs, Logger);
 
                 var videos = context.Videos;
                 var videosList = videos.ToList();
@@ -417,7 +417,7 @@ namespace Test.YouTubeStudio {
                 DeleteAllVideos(context);
                 var now = DateTime.UtcNow;
                 var video_DTOs = new List<Video_DTO>{video_dto_01, video_dto_02};
-                DbWriter.Write(video_DTOs, Logger);
+                DbWriter.WriteDTOs(video_DTOs, Logger);
 
                 var videos = context.Videos;
                 var videosList = videos.ToList();
