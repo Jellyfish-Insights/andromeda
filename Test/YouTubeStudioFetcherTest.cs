@@ -62,7 +62,7 @@ namespace Test.YouTubeStudio {
                 {
                     ""videoId"": ""a38f0c8e8a66c85b5a13e9e5a6fe6a56"",
                     ""channelId"": ""3ac57fb4e69e34d0"",
-                    ""dateMeasure"": 1407734809,
+                    ""eventDate"": 1407734809,
                     ""metric"": ""Impressions"",
                     ""value"": 6811
                 }
@@ -70,7 +70,7 @@ namespace Test.YouTubeStudio {
             var expected = new Video_DTO{
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1407734809,
+                EventDate = 1407734809,
                 Metric = "Impressions",
                 Value = 6811
             };
@@ -90,14 +90,14 @@ namespace Test.YouTubeStudio {
                 {
                     ""videoId"": ""a38f0c8e8a66c85b5a13e9e5a6fe6a56"",
                     ""channelId"": ""3ac57fb4e69e34d0"",
-                    ""dateMeasure"": 1371063987,
+                    ""eventDate"": 1371063987,
                     ""metric"": ""Impressions"",
                     ""value"": 3201
                 },
                 {
                     ""videoId"": ""a38f0c8e8a66c85b5a13e9e5a6fe6a56"",
                     ""channelId"": ""3ac57fb4e69e34d0"",
-                    ""dateMeasure"": 1548401269,
+                    ""eventDate"": 1548401269,
                     ""metric"": ""Shares"",
                     ""value"": 9764
                 }
@@ -105,14 +105,14 @@ namespace Test.YouTubeStudio {
             var expected_01 = new Video_DTO{
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1371063987,
+                EventDate = 1371063987,
                 Metric = "Impressions",
                 Value = 3201
             };
             var expected_02 = new Video_DTO{
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1548401269,
+                EventDate = 1548401269,
                 Metric = "Shares",
                 Value = 9764
             };
@@ -224,7 +224,7 @@ namespace Test.YouTubeStudio {
             return v =>
                 v.VideoId == videoDTO.VideoId
                 && v.ChannelId == videoDTO.ChannelId
-                && v.DateMeasure == DbWriter.EpochToDateTime(videoDTO.DateMeasure)
+                && v.EventDate == DbWriter.EpochToDateTime(videoDTO.EventDate)
                 && v.Metric == videoDTO.Metric
                 && v.Value == videoDTO.Value;
         }
@@ -247,14 +247,14 @@ namespace Test.YouTubeStudio {
             var video_dto_01 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1371063987,
+                EventDate = 1371063987,
                 Metric = "Impressions",
                 Value = 3201
             };
             var video_dto_02 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1371063987,
+                EventDate = 1371063987,
                 Metric = "Views",
                 Value = 5
             };
@@ -295,14 +295,14 @@ namespace Test.YouTubeStudio {
             var video_dto_01 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1639969200, /* 2021-20-12 */
+                EventDate = 1639969200, /* 2021-20-12 */
                 Metric = "Impressions",
                 Value = 1234
             };
             var video_dto_02 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1640401200, /* 2021-25-12 */
+                EventDate = 1640401200, /* 2021-25-12 */
                 Metric = "Impressions",
                 Value = 5678
             };
@@ -345,14 +345,14 @@ namespace Test.YouTubeStudio {
             var video_dto_01 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1639969250,
+                EventDate = 1639969250,
                 Metric = "Impressions",
                 Value = 1234
             };
             var video_dto_02 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1639969251,
+                EventDate = 1639969251,
                 Metric = "Impressions",
                 Value = 5678
             };
@@ -393,22 +393,22 @@ namespace Test.YouTubeStudio {
         [Trait("Category","YouTubeStudio")]
         public void SameVideo_SameMetric_DiffDates_02_Test()
         {
-            /* In case we insert first the one with the later DateMeasure,
+            /* In case we insert first the one with the later EventDate,
             does it make any difference? It shouldn't, the matter here is
-            order of insertion, not which one has the higher DateMeasure */
+            order of insertion, not which one has the higher EventDate */
             Logger.Information("Inserting same video with same metric, "
                 + "same date, different values...");
             var video_dto_01 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1639969251,
+                EventDate = 1639969251,
                 Metric = "Impressions",
                 Value = 1234
             };
             var video_dto_02 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
-                DateMeasure = 1639969250,
+                EventDate = 1639969250,
                 Metric = "Impressions",
                 Value = 5678
             };
