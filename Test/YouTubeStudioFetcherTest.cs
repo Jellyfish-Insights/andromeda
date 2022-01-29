@@ -224,7 +224,7 @@ namespace Test.YouTubeStudio {
             return v =>
                 v.VideoId == videoDTO.VideoId
                 && v.ChannelId == videoDTO.ChannelId
-                && v.EventDate == DbWriter.EpochToDateTime(videoDTO.EventDate)
+                && v.EventDate == DbWriter.EpochToDateTime(videoDTO.EventDate).ToUniversalTime().Date
                 && v.Metric == videoDTO.Metric
                 && v.Value == videoDTO.Value;
         }

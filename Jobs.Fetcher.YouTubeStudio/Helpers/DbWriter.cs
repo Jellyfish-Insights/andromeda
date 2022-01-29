@@ -32,12 +32,12 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
         {
             var validityStart = DateTime.UtcNow;
             var validityEnd = DateTime.MaxValue;
-            var EventDate = EpochToDateTime(dto.EventDate);
+            var eventTime = EpochToDateTime(dto.EventDate);
 
             return new Video {
                 ValidityStart = validityStart,
                 ValidityEnd = validityEnd,
-                EventDate = EventDate,
+                EventDate = eventTime.ToUniversalTime().Date,
                 ChannelId = dto.ChannelId,
                 VideoId = dto.VideoId,
                 Metric = dto.Metric,
