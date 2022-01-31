@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Serilog.Core;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Andromeda.Common.Jobs;
 using System.Collections.Generic;
 
@@ -48,9 +49,10 @@ namespace Jobs.Fetcher.TikTok {
                         }
                         foreach (var user in Directory.GetFiles(CredentialsDir)) {
                             var text = File.ReadAllText($"{user}");
-                            var start = text.IndexOf("@");
-                            var username = text.Substring(start, text.Length - start);
-                            tiktokUsernames.Add(username.Trim());
+                            var userJson = JObject.Parse(text);
+                            var username = userJson["account_name"];
+                            Console.WriteLine($"The username ({username}).");
+                            tiktokUsernames.Add(username.ToString());
                         }
                     }
                 }
