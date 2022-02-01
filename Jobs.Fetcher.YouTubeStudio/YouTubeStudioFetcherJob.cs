@@ -40,7 +40,7 @@ namespace Jobs.Fetcher.YouTubeStudio {
                 return;
             }
             Logger.Information($"Decoded {videos.Count} videos.");
-            DbWriter.Write(videos, Logger);
+            DbWriter.WriteDTOs(videos, Logger);
         }
     }
 }
