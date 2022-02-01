@@ -14,13 +14,12 @@ namespace DataLakeModels {
 
             modelBuilder.Entity<Video>()
                 .HasKey(table => new {
-                    table.ChannelId,
-                    table.VideoId,
-                    table.ValidityStart,
-                    table.Metric,
-                    table.EventDate
-                });
-
+                table.ChannelId,
+                table.VideoId,
+                table.ValidityStart,
+                table.Metric,
+                table.EventDate
+            });
         }
 
         public virtual DbSet<Video> Videos { get; set; }
