@@ -11,11 +11,10 @@ using Jobs.Fetcher.YouTubeStudio.Helpers;
 namespace Jobs.Fetcher.YouTubeStudio {
     public class YouTubeStudioFetcherJob : AbstractJob {
 
-        public bool RunningAsStandAlone {get;set;} = false;
+        public bool RunningAsStandAlone { get; set; } = false;
         public YouTubeStudioFetcherJob() {}
 
-        public override List<string> Dependencies()
-        {
+        public override List<string> Dependencies() {
             return new List<string>();
         }
 
@@ -27,8 +26,7 @@ namespace Jobs.Fetcher.YouTubeStudio {
             string pathToData;
             if (RunningAsStandAlone) {
                 pathToData = @"../../../Data/";
-            }
-            else {
+            } else {
                 pathToData = @"../../Data/";
             }
 

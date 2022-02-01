@@ -12,7 +12,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
 
         private static Modified compareOldAndNew(
             Video storedObj, Video newObj
-        ) {
+            ) {
             if (storedObj == null)
                 return Modified.New;
 
@@ -22,26 +22,24 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             return Modified.Equal;
         }
 
-        public static DateTime EpochToDateTime(uint epochSeconds)
-        {
+        public static DateTime EpochToDateTime(uint epochSeconds) {
             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             return origin.AddSeconds(epochSeconds);
         }
 
-        public static Video DTOToVideo (Video_DTO dto)
-        {
+        public static Video DTOToVideo(Video_DTO dto) {
             var validityStart = DateTime.UtcNow;
             var validityEnd = DateTime.MaxValue;
             var eventTime = EpochToDateTime(dto.EventDate);
 
             return new Video {
-                ValidityStart = validityStart,
-                ValidityEnd = validityEnd,
-                EventDate = eventTime.ToUniversalTime().Date,
-                ChannelId = dto.ChannelId,
-                VideoId = dto.VideoId,
-                Metric = dto.Metric,
-                Value = dto.Value
+                       ValidityStart = validityStart,
+                       ValidityEnd = validityEnd,
+                       EventDate = eventTime.ToUniversalTime().Date,
+                       ChannelId = dto.ChannelId,
+                       VideoId = dto.VideoId,
+                       Metric = dto.Metric,
+                       Value = dto.Value
             };
         }
 
@@ -55,11 +53,11 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
         public static void WriteVideo(Video video, Logger logger) {
             using (var dlContext = new DataLakeYouTubeStudioContext()) {
                 var storedObj = dlContext.Videos.SingleOrDefault(v =>
-                    v.VideoId == video.VideoId
-                    && v.EventDate.ToUniversalTime().Date == video.EventDate.ToUniversalTime().Date
-                    && v.Metric == video.Metric
-                    && v.ValidityEnd > DateTime.UtcNow
-                );
+                                                                 v.VideoId == video.VideoId
+                                                                 && v.EventDate.ToUniversalTime().Date == video.EventDate.ToUniversalTime().Date
+                                                                 && v.Metric == video.Metric
+                                                                 && v.ValidityEnd > DateTime.UtcNow
+                                                                 );
 
                 var modified = compareOldAndNew(storedObj, video);
                 switch (modified) {
@@ -77,7 +75,6 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
                         break;
                 }
                 dlContext.SaveChanges();
-
             }
         }
     }
