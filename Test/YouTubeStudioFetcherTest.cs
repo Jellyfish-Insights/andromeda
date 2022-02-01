@@ -13,20 +13,18 @@ using Andromeda.Common;
 using Andromeda.Common.Logging;
 
 /**
- Run tests with:
- dotnet test --filter "Category=YouTubeStudio"
+   Run tests with:
+   dotnet test --filter "Category=YouTubeStudio"
  */
 namespace Test.YouTubeStudio {
 
-    public class FileSystemFixture : IDisposable
-    {
+    public class FileSystemFixture : IDisposable {
         public List<string> CreatedFiles = new List<string>();
         public int TestFileCount = 0;
         public readonly Logger Logger = LoggerFactory.GetTestLogger
-            ("YouTubeStudioFetcherTest_FileSystem");
+                                            ("YouTubeStudioFetcherTest_FileSystem");
 
-        public void Dispose()
-        {
+        public void Dispose() {
             Logger.Debug("Cleaning...");
             foreach (var file in CreatedFiles) {
                 File.Delete(file);
@@ -35,12 +33,10 @@ namespace Test.YouTubeStudio {
         }
     }
 
-    public class FileSystemTests : IClassFixture<FileSystemFixture>
-    {
+    public class FileSystemTests : IClassFixture<FileSystemFixture> {
         private readonly FileSystemFixture Fixture;
         private readonly Logger Logger;
-        public FileSystemTests(FileSystemFixture fixture)
-        {
+        public FileSystemTests(FileSystemFixture fixture) {
             Fixture = fixture;
             Logger = Fixture.Logger;
         }
@@ -54,7 +50,7 @@ namespace Test.YouTubeStudio {
         /* */
 
         [Fact]
-        [Trait("Category","YouTubeStudio")]
+        [Trait("Category", "YouTubeStudio")]
         public void JsonDecodeSingle_Test() {
             Logger.Information("Trying to decode single video...");
             var jsonString = @"
@@ -67,7 +63,7 @@ namespace Test.YouTubeStudio {
                     ""value"": 6811
                 }
             ]";
-            var expected = new Video_DTO{
+            var expected = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
                 EventDate = 1407734809,
@@ -82,7 +78,7 @@ namespace Test.YouTubeStudio {
         }
 
         [Fact]
-        [Trait("Category","YouTubeStudio")]
+        [Trait("Category", "YouTubeStudio")]
         public void JsonDecodeMany_Test() {
             Logger.Information("Trying to decode many videos...");
             var jsonString = @"
@@ -102,14 +98,14 @@ namespace Test.YouTubeStudio {
                     ""value"": 9764
                 }
             ]";
-            var expected_01 = new Video_DTO{
+            var expected_01 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
                 EventDate = 1371063987,
                 Metric = "Impressions",
                 Value = 3201
             };
-            var expected_02 = new Video_DTO{
+            var expected_02 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
                 EventDate = 1548401269,
@@ -125,7 +121,7 @@ namespace Test.YouTubeStudio {
         }
 
         [Fact]
-        [Trait("Category","YouTubeStudio")]
+        [Trait("Category", "YouTubeStudio")]
         public void JsonDecodeBadData01_Test() {
             Logger.Information("Trying to decode bad data (01/02)...");
             var jsonString = @"
@@ -140,7 +136,7 @@ namespace Test.YouTubeStudio {
         }
 
         [Fact]
-        [Trait("Category","YouTubeStudio")]
+        [Trait("Category", "YouTubeStudio")]
         public void JsonDecodeBadData02_Test() {
             Logger.Information("Trying to decode bad data (02/02)...");
             var jsonString = @"
@@ -155,9 +151,8 @@ namespace Test.YouTubeStudio {
         }
 
         [Fact]
-        [Trait("Category","YouTubeStudio")]
-        public void IntToDateTime_Test()
-        {
+        [Trait("Category", "YouTubeStudio")]
+        public void IntToDateTime_Test() {
             Logger.Information("Running conversion test (uint -> DateTime)");
             const uint ts_01 = 1643068800;
             var dt_01 = new DateTime(2022, 01, 25, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -175,14 +170,12 @@ namespace Test.YouTubeStudio {
     }
 
     /*  We don't want to have the database dropped every time, so we define
-    a fixture that is run once for all classes marked as belonging to
-    "Database collection". As they are in the same collection, they will be
-    run sequentially, not in parallel - Docs: https://archive.is/wip/WOZIq
-    */
-    public class DatabaseFixture
-    {
-        public DatabaseFixture()
-        {
+       a fixture that is run once for all classes marked as belonging to
+       "Database collection". As they are in the same collection, they will be
+       run sequentially, not in parallel - Docs: https://archive.is/wip/WOZIq
+     */
+    public class DatabaseFixture {
+        public DatabaseFixture() {
             DatabaseReset.Drop(Databases.LakeYouTubeStudio);
             DatabaseReset.Migrate(Databases.LakeYouTubeStudio);
         }
@@ -193,12 +186,10 @@ namespace Test.YouTubeStudio {
     {}
 
     [Collection("Database collection")]
-    public abstract class AbstractDatabaseTest
-    {
+    public abstract class AbstractDatabaseTest {
         private readonly DatabaseFixture Fixture;
         protected readonly Logger Logger;
-        public AbstractDatabaseTest(DatabaseFixture fixture, string testName)
-        {
+        public AbstractDatabaseTest(DatabaseFixture fixture, string testName) {
             Fixture = fixture;
             using (var context = new DataLakeYouTubeStudioContext()) {
                 DeleteAllVideos(context);
@@ -207,11 +198,10 @@ namespace Test.YouTubeStudio {
         }
 
         /* Defines an epsilon within we will consider two times to be the same
-		(due to unforeseeable delays in I/O, database access, etc.) */
-		private readonly TimeSpan Tolerance = TimeSpan.FromSeconds(2);
+           (due to unforeseeable delays in I/O, database access, etc.) */
+        private readonly TimeSpan Tolerance = TimeSpan.FromSeconds(2);
 
-        protected void DeleteAllVideos(DataLakeYouTubeStudioContext ctx)
-        {
+        protected void DeleteAllVideos(DataLakeYouTubeStudioContext ctx) {
             var videos = ctx.Videos;
             foreach (var v in videos) {
                 ctx.Remove(v);
@@ -219,29 +209,26 @@ namespace Test.YouTubeStudio {
             ctx.SaveChanges();
         }
 
-        protected Func<Video, bool> FindDTO(Video_DTO videoDTO)
-        {
+        protected Func<Video, bool> FindDTO(Video_DTO videoDTO) {
             return v =>
-                v.VideoId == videoDTO.VideoId
-                && v.ChannelId == videoDTO.ChannelId
-                && v.EventDate == DbWriter.EpochToDateTime(videoDTO.EventDate).ToUniversalTime().Date
-                && v.Metric == videoDTO.Metric
-                && v.Value == videoDTO.Value;
+                   v.VideoId == videoDTO.VideoId
+                   && v.ChannelId == videoDTO.ChannelId
+                   && v.EventDate == DbWriter.EpochToDateTime(videoDTO.EventDate).ToUniversalTime().Date
+                   && v.Metric == videoDTO.Metric
+                   && v.Value == videoDTO.Value;
         }
 
-        protected bool AreDatesTheSame(DateTime dt, DateTime other)
-        {
+        protected bool AreDatesTheSame(DateTime dt, DateTime other) {
             TimeSpan timeDelta = (dt - other).Duration();
             return timeDelta < Tolerance;
         }
     }
 
-    public class DBTest_01 : AbstractDatabaseTest
-    {
-        public DBTest_01(DatabaseFixture fixture) : base(fixture, "DBTest_01") {}
+    public class DBTest_01 : AbstractDatabaseTest {
+        public DBTest_01(DatabaseFixture fixture): base(fixture, "DBTest_01") {}
 
         [Fact]
-        [Trait("Category","YouTubeStudio")]
+        [Trait("Category", "YouTubeStudio")]
         public void SameVideo_DiffMetrics_Test() {
             Logger.Information("Inserting same video with different metrics...");
             var video_dto_01 = new Video_DTO {
@@ -262,7 +249,7 @@ namespace Test.YouTubeStudio {
             using (var context = new DataLakeYouTubeStudioContext()) {
                 DeleteAllVideos(context);
                 var now = DateTime.UtcNow;
-                var video_DTOs = new List<Video_DTO>{video_dto_01, video_dto_02};
+                var video_DTOs = new List<Video_DTO> { video_dto_01, video_dto_02 };
                 DbWriter.WriteDTOs(video_DTOs, Logger);
 
                 var videos = context.Videos;
@@ -279,19 +266,17 @@ namespace Test.YouTubeStudio {
                 Assert.True(AreDatesTheSame(DateTime.MaxValue, video_02.ValidityEnd));
                 Assert.True(AreDatesTheSame(video_02.ValidityStart, now));
             }
-		}
-	}
+        }
+    }
 
-    public class DBTest_02 : AbstractDatabaseTest
-    {
-        public DBTest_02(DatabaseFixture fixture) : base(fixture, "DBTest_02") {}
+    public class DBTest_02 : AbstractDatabaseTest {
+        public DBTest_02(DatabaseFixture fixture): base(fixture, "DBTest_02") {}
 
         [Fact]
-        [Trait("Category","YouTubeStudio")]
-        public void SameVideo_SameMetrics_DiffDates_Test()
-        {
+        [Trait("Category", "YouTubeStudio")]
+        public void SameVideo_SameMetrics_DiffDates_Test() {
             Logger.Information("Inserting same video with same metric, "
-                + "different dates...");
+                               + "different dates...");
             var video_dto_01 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
@@ -310,7 +295,7 @@ namespace Test.YouTubeStudio {
             using (var context = new DataLakeYouTubeStudioContext()) {
                 DeleteAllVideos(context);
                 var now = DateTime.UtcNow;
-                var video_DTOs = new List<Video_DTO>{video_dto_01, video_dto_02};
+                var video_DTOs = new List<Video_DTO> { video_dto_01, video_dto_02 };
                 DbWriter.WriteDTOs(video_DTOs, Logger);
 
                 var videos = context.Videos;
@@ -327,21 +312,17 @@ namespace Test.YouTubeStudio {
                 Assert.True(AreDatesTheSame(DateTime.MaxValue, video_02.ValidityEnd));
                 Assert.True(AreDatesTheSame(video_02.ValidityStart, now));
             }
-
         }
     }
 
-
-    public class DBTest_03 : AbstractDatabaseTest
-    {
-        public DBTest_03(DatabaseFixture fixture) : base(fixture, "DBTest_03") {}
+    public class DBTest_03 : AbstractDatabaseTest {
+        public DBTest_03(DatabaseFixture fixture): base(fixture, "DBTest_03") {}
 
         [Fact]
-        [Trait("Category","YouTubeStudio")]
-        public void SameVideo_SameMetric_DiffDates_01_Test()
-        {
+        [Trait("Category", "YouTubeStudio")]
+        public void SameVideo_SameMetric_DiffDates_01_Test() {
             Logger.Information("Inserting same video with same metric, "
-                + "same date, different values...");
+                               + "same date, different values...");
             var video_dto_01 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
@@ -360,7 +341,7 @@ namespace Test.YouTubeStudio {
             using (var context = new DataLakeYouTubeStudioContext()) {
                 DeleteAllVideos(context);
                 var now = DateTime.UtcNow;
-                var video_DTOs = new List<Video_DTO>{video_dto_01, video_dto_02};
+                var video_DTOs = new List<Video_DTO> { video_dto_01, video_dto_02 };
                 DbWriter.WriteDTOs(video_DTOs, Logger);
 
                 var videos = context.Videos;
@@ -373,31 +354,28 @@ namespace Test.YouTubeStudio {
                 Assert.NotNull(video_02);
 
                 Assert.True(AreDatesTheSame(
-                        video_02.ValidityStart, video_01.ValidityEnd));
+                                video_02.ValidityStart, video_01.ValidityEnd));
                 Logger.Debug("Video 01 is: \n" + video_01.ToString());
                 Logger.Debug("Video 02 is: \n" + video_02.ToString());
 
                 var validVideo = videosList.SingleOrDefault(v =>
-                        AreDatesTheSame(v.ValidityEnd, DateTime.MaxValue));
+                                                            AreDatesTheSame(v.ValidityEnd, DateTime.MaxValue));
                 Logger.Debug("Of the two, the valid video is: \n" + validVideo.ToString());
             }
-
         }
     }
 
-    public class DBTest_04 : AbstractDatabaseTest
-    {
-        public DBTest_04(DatabaseFixture fixture) : base(fixture, "DBTest_04") {}
+    public class DBTest_04 : AbstractDatabaseTest {
+        public DBTest_04(DatabaseFixture fixture): base(fixture, "DBTest_04") {}
 
         [Fact]
-        [Trait("Category","YouTubeStudio")]
-        public void SameVideo_SameMetric_DiffDates_02_Test()
-        {
+        [Trait("Category", "YouTubeStudio")]
+        public void SameVideo_SameMetric_DiffDates_02_Test() {
             /* In case we insert first the one with the later EventDate,
-            does it make any difference? It shouldn't, the matter here is
-            order of insertion, not which one has the higher EventDate */
+               does it make any difference? It shouldn't, the matter here is
+               order of insertion, not which one has the higher EventDate */
             Logger.Information("Inserting same video with same metric, "
-                + "same date, different values...");
+                               + "same date, different values...");
             var video_dto_01 = new Video_DTO {
                 VideoId = "a38f0c8e8a66c85b5a13e9e5a6fe6a56",
                 ChannelId = "3ac57fb4e69e34d0",
@@ -416,7 +394,7 @@ namespace Test.YouTubeStudio {
             using (var context = new DataLakeYouTubeStudioContext()) {
                 DeleteAllVideos(context);
                 var now = DateTime.UtcNow;
-                var video_DTOs = new List<Video_DTO>{video_dto_01, video_dto_02};
+                var video_DTOs = new List<Video_DTO> { video_dto_01, video_dto_02 };
                 DbWriter.WriteDTOs(video_DTOs, Logger);
 
                 var videos = context.Videos;
@@ -429,15 +407,14 @@ namespace Test.YouTubeStudio {
                 Assert.NotNull(video_02);
 
                 Assert.True(AreDatesTheSame(
-                        video_02.ValidityStart, video_01.ValidityEnd));
+                                video_02.ValidityStart, video_01.ValidityEnd));
                 Logger.Debug("Video 01 is: \n" + video_01.ToString());
                 Logger.Debug("Video 02 is: \n" + video_02.ToString());
 
                 var validVideo = videosList.SingleOrDefault(v =>
-                        AreDatesTheSame(v.ValidityEnd, DateTime.MaxValue));
+                                                            AreDatesTheSame(v.ValidityEnd, DateTime.MaxValue));
                 Logger.Debug("Of the two, the valid video is: \n" + validVideo.ToString());
             }
-
         }
     }
 }
