@@ -8,45 +8,39 @@ using Serilog.Core;
 using Newtonsoft.Json;
 using DataLakeModels.Models.YouTube.Studio;
 
-
 namespace Jobs.Fetcher.YouTubeStudio.Helpers {
-    public class Video_DTO : IEquatable<Video_DTO>
-    {
-            /* In seconds */
-            public uint EventDate {get; set;}
-            public string ChannelId {get; set;}
-            public string VideoId {get; set;}
-            public string Metric {get; set;}
-            public double Value {get; set;}
+    public class Video_DTO : IEquatable<Video_DTO> {
+        /* In seconds */
+        public uint EventDate { get; set; }
+        public string ChannelId { get; set; }
+        public string VideoId { get; set; }
+        public string Metric { get; set; }
+        public double Value { get; set; }
 
-            public override string ToString()
-            {
-                return $@"
+        public override string ToString() {
+            return $@"
                     EventDate: {EventDate},
                     ChannelId: {ChannelId},
                     VideoId: {VideoId},
                     Metric: {Metric},
                     Value: {Value}
                 ";
-            }
+        }
 
-            public bool Equals(Video_DTO other) {
-                return EventDate == other.EventDate
-                    && ChannelId == other.ChannelId
-                    && VideoId == other.VideoId
-                    && Metric == other.Metric
-                    && Value == other.Value;
-            }
+        public bool Equals(Video_DTO other) {
+            return EventDate == other.EventDate
+                   && ChannelId == other.ChannelId
+                   && VideoId == other.VideoId
+                   && Metric == other.Metric
+                   && Value == other.Value;
+        }
     }
 
-
-    public static class ImportFromFileSystem
-    {
+    public static class ImportFromFileSystem {
         private static readonly Regex jsonFileRegex = new Regex(@"\.json$",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                                                                RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        public static List<string> FindFiles(string path, Logger logger)
-        {
+        public static List<string> FindFiles(string path, Logger logger) {
             List<string> allFiles;
             try {
                 allFiles = new List<string>(Directory.GetFiles(path));
@@ -56,13 +50,12 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
                 return null;
             }
             var jsonFiles = allFiles
-                        .Where(x => jsonFileRegex.Matches(x).Count != 0)
-                        .ToList();
+                                .Where(x => jsonFileRegex.Matches(x).Count != 0)
+                                .ToList();
             return jsonFiles;
         }
 
-        public static List<Video_DTO> VideoDTOsFromFile (string pathToFile, Logger logger)
-        {
+        public static List<Video_DTO> VideoDTOsFromFile(string pathToFile, Logger logger) {
             JsonSerializerSettings settings = new JsonSerializerSettings();
             settings.MissingMemberHandling = MissingMemberHandling.Error;
             string fileContents;
@@ -93,8 +86,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             return videos;
         }
 
-        public static List<Video_DTO> GetDTOsFromPath (string path, Logger logger)
-        {
+        public static List<Video_DTO> GetDTOsFromPath(string path, Logger logger) {
             var files = ImportFromFileSystem.FindFiles(path, logger);
             if (files == null || files.Count() == 0) {
                 logger.Debug("No files to work with. Terminating.");
@@ -103,7 +95,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
 
             var printFiles = string.Join("\n\t", files);
             logger.Information($"We found {files.Count()} files:"
-                + $"\n\t{printFiles}");
+                               + $"\n\t{printFiles}");
 
             var dtoList = new List<Video_DTO>();
             foreach (var file in files) {
