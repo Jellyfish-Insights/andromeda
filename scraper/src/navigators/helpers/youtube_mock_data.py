@@ -26,7 +26,7 @@ class Video:
 
 @dataclass
 class Metric:
-	dateMeasure: int
+	eventDate: int
 	metric: str
 	value: int
 
@@ -64,7 +64,7 @@ def mock_data(n_videos: int):
 		n_rows = random.randint(MIN_ROWS_PER_VIDEO, MAX_ROWS_PER_VIDEO)
 		for _ in range(n_rows):
 			metric = Metric(
-				dateMeasure=random.randint(v.createdTime,int(time.time())),
+				eventDate=random.randint(v.createdTime,int(time.time())),
 				metric=random.choice(METRICS),
 				value=random.randint(MIN_VALUE, MAX_VALUE)
 			)
