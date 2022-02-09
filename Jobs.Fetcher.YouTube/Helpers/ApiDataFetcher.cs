@@ -226,17 +226,25 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             }
         }
 
-        private static IList<IList<object>> RunViewerPercentageReport(YouTubeAnalyticsService analyticsService, string channelId, DateTime fromDate, DateTime toDate, YTD.Video video) {
+        private static IList<IList<object>> RunViewerPercentageReport(YouTubeAnalyticsService analyticsService, string channelId, DateTime fromDate, DateTime toDate, YTD.Video video, Logger logger) {
             var reportRequest = analyticsService.Reports.Query();
+            var startDate = fromDate.ToString("yyyy-MM-dd");
+            var endDate = toDate.ToString("yyyy-MM-dd");
             reportRequest.Ids = $"channel=={channelId}";
-            reportRequest.StartDate = fromDate.ToString("yyyy-MM-dd");
-            reportRequest.EndDate = toDate.ToString("yyyy-MM-dd");
+            reportRequest.StartDate = startDate;
+            reportRequest.EndDate = endDate;
             reportRequest.Metrics = "viewerPercentage";
             reportRequest.Filters = String.Format("video=={0}", video.VideoId);
             reportRequest.Dimensions = "gender,ageGroup";
             reportRequest.Sort = "gender,ageGroup";
             Thread.Sleep(2000);
-            return reportRequest.ExecuteAsync().Result.Rows;
+            try{
+                return reportRequest.ExecuteAsync().Result.Rows;
+            }
+            catch {
+                logger.Error($"Could not get Viewer Percentage Report for video {video.VideoId} from channel {channelId} from {startDate} to {endDate}.");
+                return (IList<IList<object>>)Enumerable.Empty<IList<object>>();
+            }
         }
 
         private const int MaxDaysToReplicateInIteration = 100;
@@ -251,7 +259,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
 
                 if (lastFetchedDate == null) {
                     // maybe the video simply doesn't support this report, check for early termination
-                    if (!RunViewerPercentageReport(analyticsService, channelId, video.PublishedAt, now, video).Any()) {
+                    if (!RunViewerPercentageReport(analyticsService, channelId, video.PublishedAt, now, video, logger).Any()) {
                         logger.Debug("Report not available for video {VideoId}", video.VideoId);
                         return;
                     }
@@ -263,7 +271,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
 
                 int replicatedDays = 0;
                 foreach (var date in DateHelper.DaysInRange(initialDate.Date, now.Date)) {
-                    var viewerPercentages = RunViewerPercentageReport(analyticsService, channelId, video.PublishedAt.Date, date, video);
+                    var viewerPercentages = RunViewerPercentageReport(analyticsService, channelId, video.PublishedAt.Date, date, video, logger);
                     lastFetchedDate.Date = date;
                     if (!viewerPercentages.Any()) {
                         continue;
