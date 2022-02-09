@@ -238,7 +238,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             reportRequest.Dimensions = "gender,ageGroup";
             reportRequest.Sort = "gender,ageGroup";
             Thread.Sleep(2000);
-            try{
+            try {
                 return reportRequest.ExecuteAsync().Result.Rows;
             }
             catch {
