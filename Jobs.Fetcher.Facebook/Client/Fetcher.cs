@@ -130,7 +130,8 @@ namespace Jobs.Fetcher.Facebook {
             }catch (Exception e) {
                 Logger.Information($"Caught exception ({e.Message})");
                 if (e.Message == "One or more errors occurred. (Invalid Parameter)") {
-                    return JObject.Parse(e.Message);
+                    Logger.Information($"Instagram post from before the account was for business.");
+                    return new JObject();
                 } else {
                     throw e;
                 }
@@ -328,7 +329,9 @@ namespace Jobs.Fetcher.Facebook {
             }
             JObject row = FetchInsights(node["id"].ToString(), edge, new Range<DateTime>(startN - new TimeSpan(3, 0, 0, 0), upperLimit));
             JObject nobj;
-            if (edge.Transposed && row.SelectToken("data").Count() > 0) {
+            if(!row.HasValues){
+                return null;
+            } else if (edge.Transposed && row.SelectToken("data").Count() > 0) {
                 nobj = new JObject();
                 List<JObject> result = new List<JObject>();
                 result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
