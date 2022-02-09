@@ -130,7 +130,7 @@ namespace Jobs.Fetcher.Facebook {
             }catch (Exception e) {
                 Logger.Information($"Caught exception ({e.Message})");
                 if (e.Message == "One or more errors occurred. (Invalid Parameter)") {
-                    return (JObject) e.Message;
+                    return JObject.Parse(e.Message);
                 } else {
                     throw e;
                 }
