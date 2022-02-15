@@ -106,7 +106,7 @@ namespace Jobs.Fetcher.Facebook {
             try {
                 response = await client.GetAsync(url, HttpCompletionOption.ResponseContentRead);
             } catch (Exception) {
-                throw new FacebookApiException($"Error fetching Facebook url!");
+                throw new FacebookApiException($"Error fetching Facebook url! ({url})");
             }
             Logger.Verbose("Api returned");
             Logger.Verbose("Sleeping for {SLEEP_TIME}s", RequestDelay);
