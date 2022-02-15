@@ -13,6 +13,7 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
                 columns: table => new
                 {
                     GroupId = table.Column<string>(nullable: false),
+                    ChannelId = table.Column<string>(nullable: true),
                     Title = table.Column<string>(nullable: true),
                     RegistrationDate = table.Column<DateTime>(nullable: false),
                     UpdateDate = table.Column<DateTime>(nullable: false)
@@ -28,6 +29,7 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
                 columns: table => new
                 {
                     ItemId = table.Column<string>(nullable: false),
+                    ChannelId = table.Column<string>(nullable: true),
                     RegistrationDate = table.Column<DateTime>(nullable: false),
                     UpdateDate = table.Column<DateTime>(nullable: false),
                     GroupId = table.Column<string>(nullable: true)

@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
 {
     [DbContext(typeof(DataLakeYouTubeStudioContext))]
-    [Migration("20220214180129_AddsGroupsAndItems")]
+    [Migration("20220215195812_AddsGroupsAndItems")]
     partial class AddsGroupsAndItems
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,6 +27,8 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
                     b.Property<string>("GroupId")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<string>("ChannelId");
+
                     b.Property<DateTime>("RegistrationDate");
 
                     b.Property<string>("Title");
@@ -42,6 +44,8 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
                 {
                     b.Property<string>("ItemId")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ChannelId");
 
                     b.Property<string>("GroupId");
 

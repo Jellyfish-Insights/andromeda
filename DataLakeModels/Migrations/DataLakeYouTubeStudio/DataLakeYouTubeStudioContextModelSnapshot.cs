@@ -25,6 +25,8 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
                     b.Property<string>("GroupId")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<string>("ChannelId");
+
                     b.Property<DateTime>("RegistrationDate");
 
                     b.Property<string>("Title");
@@ -40,6 +42,8 @@ namespace DataLakeModels.Migrations.DataLakeYouTubeStudio
                 {
                     b.Property<string>("ItemId")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<string>("ChannelId");
 
                     b.Property<string>("GroupId");
 

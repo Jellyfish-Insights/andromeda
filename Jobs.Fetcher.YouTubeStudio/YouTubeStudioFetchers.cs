@@ -20,28 +20,22 @@ namespace Jobs.Fetcher.YouTubeStudio {
             JobScope scope,
             IEnumerable<string> names,
             JobConfiguration config
-        ) {
+            ) {
             if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
                 return NoJobs;
             }
 
-            var jobs = new List<AbstractJob> {
-                new YouTubeStudioFetcherJob()
-            };
-
             List<(YouTubeService, YouTubeAnalyticsService)> services =
-                                            Credentials.GetAllServices();
+                Credentials.GetAllServices();
             Console.WriteLine($"We were able to retrieve {services.Count} services.");
-            foreach (var servicePair in services) {
-                var (ytd, yta) = servicePair;
-                var newJobs = new List<YTSGroupsAbstractJob> {
-                    new Groups_EnsureAllItemsAreInDB(ytd, yta),
-                    new Groups_EnsureAllGroupsAreInDB(ytd, yta),
-                    new Groups_AssociateGroupsAndItems(ytd, yta),
-                    new Groups_InsertOrphanItems(ytd, yta)
-                };
-                jobs.AddRange(newJobs);
-            }
+
+            var jobs = new List<AbstractJob> {
+                new YouTubeStudioFetcherJob(),
+                new Groups_EnsureAllItemsAreInDB(services),
+                new Groups_EnsureAllGroupsAreInDB(services),
+                new Groups_AssociateGroupsAndItems(services),
+                new Groups_InsertOrphanItems(services)
+            };
             return jobs;
         }
     }

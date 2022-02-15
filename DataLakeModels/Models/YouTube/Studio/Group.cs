@@ -9,9 +9,10 @@ namespace DataLakeModels.Models.YouTube.Studio {
         public Group() {}
 
         public string GroupId { get; set; }
+        public string ChannelId { get; set; }
         public string Title { get; set; }
         public DateTime RegistrationDate { get; set; }
-        public DateTime UpdateDate { get; set; }
+        public DateTime? UpdateDate { get; set; }
         public List<Item> Items { get; set; }
 
         public override bool Equals(object obj) {

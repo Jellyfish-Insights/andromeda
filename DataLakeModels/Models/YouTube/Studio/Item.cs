@@ -8,6 +8,7 @@ namespace DataLakeModels.Models.YouTube.Studio {
         public Item() {}
 
         public string ItemId { get; set; }
+        public string ChannelId { get; set; }
         public DateTime RegistrationDate { get; set; }
         public DateTime UpdateDate { get; set; }
         public string GroupId { get; set; }

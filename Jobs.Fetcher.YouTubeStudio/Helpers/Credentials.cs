@@ -26,24 +26,23 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
         private static readonly string SecretsFile =
             $"{CredentialsDir}/client_secret.json";
         private static readonly List<(YouTubeService, YouTubeAnalyticsService)>
-            NoServices = new List<(YouTubeService, YouTubeAnalyticsService)>();
+        NoServices = new List<(YouTubeService, YouTubeAnalyticsService)>();
 
         public static List<(YouTubeService, YouTubeAnalyticsService)>
-        GetAllServices()
-        {
+        GetAllServices() {
             var ytServices = new List<(YouTubeService, YouTubeAnalyticsService)>();
             try
             {
                 var usrDirs = Directory.GetDirectories(CredentialsDir);
                 if (usrDirs.Any(dir =>
-                        dir.Contains("youtube")
-                        || dir.Contains("facebook")
-                        || dir.Contains("instagram")
-                )){
+                                dir.Contains("youtube")
+                                || dir.Contains("facebook")
+                                || dir.Contains("instagram")
+                                )) {
                     Console.WriteLine("Detected old folder structure. Loading "
-                        + "only the old structure credentials. Please, consider "
-                        + "changing to the new folder structure"
-                    );
+                                      + "only the old structure credentials. Please, consider "
+                                      + "changing to the new folder structure"
+                                      );
                     return ServicesFromDirectory($"{CredentialsDir}/youtube/");
                 } else {
                     foreach (var usrDir in usrDirs) {
@@ -59,26 +58,24 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
                 return ytServices;
             }
             catch (Exception e)
-            when (e is FileNotFoundException || e is DirectoryNotFoundException)
-            {
-                Console.WriteLine($"Missing or invalid YouTube credentials!\n{e.Message}");
-                if (e is DirectoryNotFoundException) {
-                    Console.WriteLine("Check if the path above exists!");
-                }
-                return NoServices;
-            };
+                when(e is FileNotFoundException || e is DirectoryNotFoundException) {
+                    Console.WriteLine($"Missing or invalid YouTube credentials!\n{e.Message}");
+                    if (e is DirectoryNotFoundException) {
+                        Console.WriteLine("Check if the path above exists!");
+                    }
+                    return NoServices;
+                };
         }
 
         private static List<(YouTubeService, YouTubeAnalyticsService)>
-        ServicesFromDirectory (string directory)
-        {
+        ServicesFromDirectory(string directory) {
             Console.WriteLine($"Getting services from directory {directory}");
             var ytServices = new List<(YouTubeService, YouTubeAnalyticsService)>();
             var dirs = Directory.GetDirectories(directory).ToList();
             if (dirs.Count == 0) {
                 const string newDirectory = "channel_1";
                 Console.WriteLine($"Directory {directory} is empty. A new "
-                    + $"directory '{newDirectory}' will be created");
+                                  + $"directory '{newDirectory}' will be created");
                 var path = $"{directory}/{newDirectory}";
                 Directory.CreateDirectory(path);
                 dirs.Add(path);
@@ -95,18 +92,18 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
         (
             string clientSecretFileName,
             string dataStoreFolder
-        ){
+        ) {
             const string ApplicationName = "Andromeda";
             var credential = GetUserCredential(clientSecretFileName, dataStoreFolder);
             var dataService = new YouTubeService(
                 new BaseClientService.Initializer() {
-                    HttpClientInitializer = credential,
-                    ApplicationName = ApplicationName
+                HttpClientInitializer = credential,
+                ApplicationName = ApplicationName
             });
             var analyticsService = new YouTubeAnalyticsService(
                 new BaseClientService.Initializer() {
-                    HttpClientInitializer = credential,
-                    ApplicationName = ApplicationName
+                HttpClientInitializer = credential,
+                ApplicationName = ApplicationName
             });
             return (dataService, analyticsService);
         }
@@ -124,10 +121,10 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
 
             Console.WriteLine($"clientSecretFileName is {clientSecretFileName}");
             using (var stream = new FileStream(
-                        clientSecretFileName,
-                        FileMode.Open,
-                        FileAccess.Read)
-            ){
+                       clientSecretFileName,
+                       FileMode.Open,
+                       FileAccess.Read)
+                   ) {
                 Console.WriteLine($"dataStoreFolder is {dataStoreFolder}");
                 return GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.FromStream(stream).Secrets,
