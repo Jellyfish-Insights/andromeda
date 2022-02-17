@@ -135,16 +135,21 @@ namespace Jobs.Fetcher.YouTube.Helpers {
 
         private static IEnumerable<IList<object>> FetchVideoDailyMetrics(YTA.VideoDailyMetric mostRecentRecord, string channelId, YTD.Video video, DateTime now, YouTubeAnalyticsService analyticsService, Logger logger, bool reprocessMetrics = false) {
             DateTime mostRecentMetricDate;
-            if (mostRecentRecord == null || reprocessMetrics) {
-                TimeSpan PublishedAtOffset;
-                if (reprocessMetrics) {
-                    PublishedAtOffset = new TimeSpan(30, 0, 0, 0);
+            try {
+                if (mostRecentRecord == null || reprocessMetrics) {
+                    TimeSpan PublishedAtOffset;
+                    if (reprocessMetrics) {
+                        PublishedAtOffset = new TimeSpan(30, 0, 0, 0);
+                    } else {
+                        PublishedAtOffset = TimeMargin;
+                    }
+                    mostRecentMetricDate = (video.PublishedAt != null) ? video.PublishedAt - PublishedAtOffset : now;
                 } else {
-                    PublishedAtOffset = TimeMargin;
+                    mostRecentMetricDate = mostRecentRecord.Date;
                 }
-                mostRecentMetricDate = (video.PublishedAt != null) ? video.PublishedAt - PublishedAtOffset : now;
-            } else {
-                mostRecentMetricDate = mostRecentRecord.Date;
+            } catch (Exception e) {
+                logger.Error($"Error fetching most recent Metric for video {video.VideoId}");
+                throw e;
             }
 
             var fromDate = DateHelper.Min(now - TimeMargin, mostRecentMetricDate);
@@ -172,16 +177,21 @@ namespace Jobs.Fetcher.YouTube.Helpers {
 
         public static List<(DateTime date, long subscriberViews)> FetchSubscriberViews(YTA.VideoDailyMetric mostRecentRecord, string channelId, YTD.Video video, DateTime now, YouTubeAnalyticsService analyticsService, Logger logger, bool reprocessMetrics = false) {
             DateTime mostRecentMetricDate;
-            if (mostRecentRecord == null || reprocessMetrics) {
-                TimeSpan PublishedAtOffset;
-                if (reprocessMetrics) {
-                    PublishedAtOffset = new TimeSpan(30, 0, 0, 0);
+            try {
+                if (mostRecentRecord == null || reprocessMetrics) {
+                    TimeSpan PublishedAtOffset;
+                    if (reprocessMetrics) {
+                        PublishedAtOffset = new TimeSpan(30, 0, 0, 0);
+                    } else {
+                        PublishedAtOffset = TimeMargin;
+                    }
+                    mostRecentMetricDate = (video.PublishedAt != null) ? video.PublishedAt - PublishedAtOffset : now;
                 } else {
-                    PublishedAtOffset = TimeMargin;
+                    mostRecentMetricDate = mostRecentRecord.Date;
                 }
-                mostRecentMetricDate = (video.PublishedAt != null) ? video.PublishedAt - PublishedAtOffset : now;
-            } else {
-                mostRecentMetricDate = mostRecentRecord.Date;
+            } catch (Exception e) {
+                logger.Error($"Error fetching most recent Metric for video {video.VideoId}");
+                throw e;
             }
 
             var fromDate = DateHelper.Min(now - TimeMargin, mostRecentMetricDate);
