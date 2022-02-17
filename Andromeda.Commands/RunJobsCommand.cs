@@ -26,7 +26,7 @@ namespace Andromeda.Commands {
         public static Dictionary<string, AbstractJob> BuildJobsDict(IEnumerable<AbstractJob> jobList) {
             var jobDict = new Dictionary<string, AbstractJob>();
             foreach (var job in jobList) {
-                try{
+                try {
                     jobDict.Add(job.Id(), job);
                 }
                 catch (ArgumentException) {
