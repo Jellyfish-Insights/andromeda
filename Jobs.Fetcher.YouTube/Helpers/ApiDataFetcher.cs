@@ -210,10 +210,12 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             Thread.Sleep(100);
             try {
                 var report = reportRequest.ExecuteAsync().Result;
-                if (report.Rows != null) {
+                if (report.Rows != null && report.Rows.Count > 0) {
                     foreach (var row in report.Rows) {
                         subscriberViewsList.Add((Convert.ToDateTime(row[1]).Date, (long) row[2]));
                     }
+                }else{
+                    logger.Warning($"Empty rows of Subscriber Views for video {video.VideoId}");
                 }
             }
             catch {
