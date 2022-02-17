@@ -370,12 +370,18 @@ namespace Jobs.Fetcher.Facebook {
                     }
                     break;
                 case Modified.Updated:
-                    if (edge.Source.IsRoot) {
-                        DatabaseManager.VersionEntityModified(edge, nobj, new string[] {}, "systime");
-                    } else {
-                        DatabaseManager.VersionEntityModified(edge, nobj, edge.Source.Name + "_id", "systime");
+                    try {
+                        if (edge.Source.IsRoot) {
+                            DatabaseManager.VersionEntityModified(edge, nobj, new string[] {}, "systime");
+                        } else {
+                            DatabaseManager.VersionEntityModified(edge, nobj, edge.Source.Name + "_id", "systime");
+                        }
+                        DatabaseManager.InsertInsights(edge, nobj);
+                    } catch (Exception e) {
+                        Logger.Error($"Error updating {edge.TableName} with insights of values: ({nobj})");
+                        throw e;
                     }
-                    DatabaseManager.InsertInsights(edge, nobj);
+
                     break;
             }
             return (mod, nobj);
