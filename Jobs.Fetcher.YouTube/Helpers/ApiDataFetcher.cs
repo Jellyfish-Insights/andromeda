@@ -214,7 +214,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     foreach (var row in report.Rows) {
                         subscriberViewsList.Add((Convert.ToDateTime(row[1]).Date, (long) row[2]));
                     }
-                }else{
+                } else {
                     logger.Warning($"Empty rows of Subscriber Views for video {video.VideoId}");
                 }
             }
