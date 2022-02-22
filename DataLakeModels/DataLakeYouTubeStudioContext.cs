@@ -14,7 +14,6 @@ namespace DataLakeModels {
 
             modelBuilder.Entity<Video>()
                 .HasKey(table => new {
-                table.ChannelId,
                 table.VideoId,
                 table.ValidityStart,
                 table.Metric,
