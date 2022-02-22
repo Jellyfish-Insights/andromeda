@@ -23,7 +23,7 @@ namespace Test.Helpers {
         }
 
         public void SomeContentMetricsWereFound(VideoDailyMetric[] metrics) {
-            DbWriter.Write(metrics);
+            DbWriter.Write(metrics, LoggerFactory.GetTestLogger());
         }
 
         public void SomeVierPercentageMetricsWereFound((string videoId, DateTime date, IEnumerable<ViewerPercentage> viewerPercentages)[] metrics, DateTime now) {
