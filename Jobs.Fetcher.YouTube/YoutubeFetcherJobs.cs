@@ -52,7 +52,7 @@ namespace Jobs.Fetcher.YouTube {
             var videos = DbReader.GetVideos();
             videos.AsParallel()
                 .WithDegreeOfParallelism(DegreeOfParallelism)
-                .ForAll(video => DbWriter.Write(ApiDataFetcher.FetchDailyMetrics(AnalyticsService, channelId, video, Logger)));
+                .ForAll(video => DbWriter.Write(ApiDataFetcher.FetchDailyMetrics(AnalyticsService, channelId, video, Logger), Logger));
         }
     }
 
@@ -78,7 +78,7 @@ namespace Jobs.Fetcher.YouTube {
                     var ratio = Math.Abs((double) item.Lifetime - item.Total) / ((double) item.Lifetime);
                     if (forceFetch || Math.Abs(ratio) > comparisonThreshold && item.Lifetime > comparisonMinLimit) {
                         Logger.Information($"Reprocessing video {item.Id.VideoId}");
-                        DbWriter.Write(ApiDataFetcher.FetchDailyMetrics(AnalyticsService, channelId, item.Id, Logger, true));
+                        DbWriter.Write(ApiDataFetcher.FetchDailyMetrics(AnalyticsService, channelId, item.Id, Logger, true), Logger);
                     }
                 }
             }
