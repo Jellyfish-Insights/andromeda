@@ -31,6 +31,14 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             return Modified.Equal;
         }
 
+        public static bool CheckIfZeroed(VideoDailyMetric newMetric) {
+            return (newMetric.Views == 0 &&
+                    newMetric.Likes == 0 &&
+                    newMetric.Shares == 0 &&
+                    newMetric.Comments == 0 &&
+                    newMetric.Dislikes == 0);
+        }
+
         public static void Write(IEnumerable<Video> videos, string channelId, Logger logger) {
             using (var dlContext = new DataLakeYouTubeDataContext()) {
                 var now = DateTime.UtcNow;
@@ -119,7 +127,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             }
         }
 
-        public static void Write(IEnumerable<VideoDailyMetric> dailyMetrics) {
+        public static void Write(IEnumerable<VideoDailyMetric> dailyMetrics, Logger logger) {
             using (var dlContext = new DataLakeYouTubeAnalyticsContext()) {
                 var now = DateTime.UtcNow;
                 foreach (var newObj in dailyMetrics) {
@@ -134,9 +142,13 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                             dlContext.Add(newObj);
                             break;
                         case Modified.Updated:
-                            storedObj.ValidityEnd = newObj.ValidityStart;
-                            dlContext.Update(storedObj);
-                            dlContext.Add(newObj);
+                            if (!CheckIfZeroed(newObj)) {
+                                storedObj.ValidityEnd = newObj.ValidityStart;
+                                dlContext.Update(storedObj);
+                                dlContext.Add(newObj);
+                            } else {
+                                logger.Warning($"Video {newObj.VideoId} received a zeroed update");
+                            }
                             break;
                         default:
                             break;
