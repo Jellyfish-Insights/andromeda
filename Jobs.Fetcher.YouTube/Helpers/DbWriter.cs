@@ -147,7 +147,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                                 dlContext.Update(storedObj);
                                 dlContext.Add(newObj);
                             } else {
-                                logger.Warning($"Video {newObj.VideoId} received a zeroed update");
+                                logger.Warning($"Video {newObj.VideoId} received a zeroed update. Ignoring...");
                             }
                             break;
                         default:
