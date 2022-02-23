@@ -32,11 +32,17 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         }
 
         public static bool CheckIfZeroed(VideoDailyMetric newMetric) {
-            return (newMetric.Views == 0 &&
+            return (newMetric.AverageViewDuration == 0 &&
+                    newMetric.Comments == 0 &&
+                    newMetric.Dislikes == 0 &&
                     newMetric.Likes == 0 &&
                     newMetric.Shares == 0 &&
-                    newMetric.Comments == 0 &&
-                    newMetric.Dislikes == 0);
+                    newMetric.SubscribersGained == 0 &&
+                    newMetric.SubscribersLost == 0 &&
+                    newMetric.VideosAddedToPlaylists == 0 &&
+                    newMetric.VideosRemovedFromPlaylists == 0 &&
+                    newMetric.Views == 0 &&
+                    newMetric.SubscriberViews == 0);
         }
 
         public static void Write(IEnumerable<Video> videos, string channelId, Logger logger) {
