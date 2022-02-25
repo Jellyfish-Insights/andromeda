@@ -49,7 +49,9 @@ namespace Jobs.Fetcher.YouTube {
 
         override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
-            var videos = DbReader.GetVideos();
+            var videos = DbReader.GetVideos()
+                            .Where(v => v.ChannelId == channelId);
+            Logger.Information($"We will get data for {videos.Count()} videos.");
             videos.AsParallel()
                 .WithDegreeOfParallelism(DegreeOfParallelism)
                 .ForAll(video => DbWriter.Write(ApiDataFetcher.FetchDailyMetrics(AnalyticsService, channelId, video, Logger), Logger));
@@ -96,10 +98,13 @@ namespace Jobs.Fetcher.YouTube {
 
         override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var(channelId, uploadsListId) = ApiDataFetcher.FetchChannelInfo(DataService);
-            var videos = DbReader.GetVideos();
+            var videos = DbReader.GetVideos()
+                            .Where(v => v.ChannelId == channelId);
+            Logger.Information($"We will get data for {videos.Count()} videos.");
             videos.AsParallel()
                 .WithDegreeOfParallelism(DegreeOfParallelism)
                 .ForAll(video => ApiDataFetcher.FetchViewerPercentageMetrics(AnalyticsService, channelId, video, Logger));
+            Logger.Information($"Function 'RunViewerPercentageReport' was called {ApiDataFetcher.ViewerPercentageCallCount} times");
         }
     }
 
