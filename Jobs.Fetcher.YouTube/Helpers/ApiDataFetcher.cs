@@ -281,8 +281,8 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             }
             catch {
                 logger.Error($"Could not get Viewer Percentage Report for video "
-                    + $"{video.VideoId} from channel {channelId} from "
-                    + $"{parameters["StartDate"]} to {parameters["EndDate"]}.");
+                             + $"{video.VideoId} from channel {channelId} from "
+                             + $"{parameters["StartDate"]} to {parameters["EndDate"]}.");
                 return (IList<IList<object>>)Enumerable.Empty<IList<object>>();
             }
         }
