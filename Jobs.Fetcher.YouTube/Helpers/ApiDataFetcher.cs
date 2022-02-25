@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using DataLakeModels;
 using YTD = DataLakeModels.Models.YouTube.Data;
 using YTA = DataLakeModels.Models.YouTube.Analytics;
@@ -14,6 +15,8 @@ using System.Threading;
 namespace Jobs.Fetcher.YouTube.Helpers {
 
     public static class ApiDataFetcher {
+
+        public static int ViewerPercentageCallCount { get; set; } = 0;
 
         public static (string, string) FetchChannelInfo(YouTubeService service) {
             var request = service.Channels.List("id,contentDetails");
@@ -218,8 +221,14 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     logger.Warning($"Empty rows of Subscriber Views for video {video.VideoId}");
                 }
             }
-            catch {
+            catch (Exception exc) {
                 logger.Error($"Could not get Subscriber Views for video {video.VideoId}");
+                if (exc.InnerException is Google.GoogleApiException) {
+                    logger.Error("Google API raised an error!");
+                } else {
+                    logger.Error("An unknown exception was raised!");
+                    logger.Error(exc.ToString());
+                }
             }
             return subscriberViewsList;
         }
@@ -240,21 +249,40 @@ namespace Jobs.Fetcher.YouTube.Helpers {
 
         private static IList<IList<object>> RunViewerPercentageReport(YouTubeAnalyticsService analyticsService, string channelId, DateTime fromDate, DateTime toDate, YTD.Video video, Logger logger) {
             var reportRequest = analyticsService.Reports.Query();
-            var startDate = fromDate.ToString("yyyy-MM-dd");
-            var endDate = toDate.ToString("yyyy-MM-dd");
-            reportRequest.Ids = $"channel=={channelId}";
-            reportRequest.StartDate = startDate;
-            reportRequest.EndDate = endDate;
-            reportRequest.Metrics = "viewerPercentage";
-            reportRequest.Filters = String.Format("video=={0}", video.VideoId);
-            reportRequest.Dimensions = "gender,ageGroup";
-            reportRequest.Sort = "gender,ageGroup";
-            Thread.Sleep(2000);
+
+            var parameters = new Dictionary<string, string> {
+                { "StartDate", fromDate.ToString("yyyy-MM-dd") },
+                { "EndDate", toDate.ToString("yyyy-MM-dd") },
+                { "Ids", $"channel=={channelId}" },
+                { "Metrics", "viewerPercentage" },
+                { "Filters", String.Format("video=={0}", video.VideoId) },
+                { "Dimensions", "gender,ageGroup" },
+                { "Sort", "gender,ageGroup" }
+            };
+
+            reportRequest.StartDate = parameters["StartDate"];
+            reportRequest.EndDate = parameters["EndDate"];
+            reportRequest.Ids = parameters["Ids"];
+            reportRequest.Metrics = parameters["Metrics"];
+            reportRequest.Filters = parameters["Filters"];
+            reportRequest.Dimensions = parameters["Dimensions"];
+            reportRequest.Sort = parameters["Sort"];
+
+            StringBuilder sb = new StringBuilder("We will send this request:\n");
+            foreach (var item in parameters) {
+                sb.Append(String.Format("\t{0,15} : {1}\n", item.Key, item.Value));
+            }
+            logger.Debug(sb.ToString());
+
+            ViewerPercentageCallCount++;
+            Thread.Sleep(1000);
             try {
                 return reportRequest.ExecuteAsync().Result.Rows;
             }
             catch {
-                logger.Error($"Could not get Viewer Percentage Report for video {video.VideoId} from channel {channelId} from {startDate} to {endDate}.");
+                logger.Error($"Could not get Viewer Percentage Report for video "
+                             + $"{video.VideoId} from channel {channelId} from "
+                             + $"{parameters["StartDate"]} to {parameters["EndDate"]}.");
                 return (IList<IList<object>>)Enumerable.Empty<IList<object>>();
             }
         }
