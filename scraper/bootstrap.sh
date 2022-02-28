@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
 
-# Credits for this file go to https://medium.com/dot-debug/running-chrome-in-a-docker-container-a55e7f4da4a8
-# Based on: http://www.richud.com/wiki/Ubuntu_Fluxbox_GUI_with_x11vnc_and_Xvfb
-
-# This script should NOT be run as root, as it is not advisable to run Chrome
-# with root privileges.
-
+memory_stats_file='/sys/fs/cgroup/memory/memory.stat'
 starting_timestamp="$(date +%s)"
 
 python_watchdog() {
@@ -16,9 +11,7 @@ python_watchdog() {
 		while true; do
 			log_i "Killing old python processes (more than $max_age seconds)..."
 			ps -eo pid,etimes,cmd \
-     			| awk "\$2 > $max_age" \
-				| grep 'python'   \
-				| sed -r 's/^[^0-9]*([0-9]+).*$/\1/'   \
+     			| awk '$2 > '"$max_age"' && /python/ {print $1}' \
      			| xargs -I % kill -9 % 2> /dev/null
 			sleep "$watch_frequency"
 		done
@@ -35,13 +28,72 @@ system_snapshot() {
 			echo "--------------------$(date)--------------------" >> "$sys_snapshot_log_file"
 			ps -eo pid,cmd,times,rss,%cpu >> "$sys_snapshot_log_file"
 			# We can't use a utility like 'free' because that shows stats for host
-			awk '$1 == "rss" { mb = $2 / 1000 / 1000 ; print "Resident memory usage: " mb " MB" }' /sys/fs/cgroup/memory/memory.stat >> "$sys_snapshot_log_file"
+            awk_cmd='
+            $1 == "rss"
+            {
+                mb = $2 / 1024 / 1024 ;
+                print "Resident memory usage: " mb " MiB" ;
+            }
+            '
+			awk "$awk_cmd" "$memory_stats_file" >> "$sys_snapshot_log_file"
 			sleep $frequency
 		done
 	) &
 }
 
+start_memory_manager() {
+    (
+        if [ "$SCRAPER_ENV" == "DEVELOPMENT" ] ; then
+            max_mem_mb=1200
+        else
+            max_mem_mb=1800
+        fi
+
+        # Bash does not allow floating point math
+        hard_limit_mb=$(( max_mem_mb * 105 / 100 ))
+
+        log_i "This container's RAM usage is limited to $max_mem_mb MiB"
+        log_i "Hard limit is $hard_limit_mb MiB"
+        max_retry=5
+        retry_count=0
+
+        while true ; do
+            sleep 0.5
+            used_memory_mb=$( awk '$1 == "rss" { printf "%d", $2 / 1024 / 1024 }' $memory_stats_file )
+            echo "$used_memory_mb" >> "/var/log/scraper/memory_${starting_timestamp}.log"
+
+            if [ "$used_memory_mb" -gt "$hard_limit_mb" ] ; then
+                log_e "Hard limit for memory exceeded ($used_memory_mb MiB in use)"
+                break
+            elif [ "$used_memory_mb" -gt "$max_mem_mb" ] ; then
+                if [ "$retry_count" -ge "$max_retry" ] ; then
+                    log_e "Failed to reestablish normal memory levels ($used_memory_mb MiB in use)"
+                    break
+                else
+                    retry_count=$(( retry_count + 1 ))
+                    log_w "The container is exceeding memory limit usage"
+                    log_w "$used_memory_mb / $max_mem_mb MiB in use"
+                    log_w "Warning $retry_count out of $max_retry"
+                fi
+            else
+                if [ "$retry_count" -ne 0 ] ; then
+                    log_i "Acceptable levels of memory use reestablished"
+                fi
+                retry_count=0
+            fi
+        done
+
+        printf '%.0s*\n' {1..10}
+        log_e "Memory manager terminating container"
+        printf '%.0s*\n' {1..10}
+        kill_container
+    ) &
+}
+
 main() {
+    start_memory_manager
+    sleep 1
+
 	log_i "You are running this container as $(id)"
 	system_snapshot
     log_i "Starting xvfb virtual display..."
@@ -58,7 +110,7 @@ main() {
 	# Run our app
 	############################################################################
 	directory="/opt/scraper/"
-	
+
 	log_i "Sleeping for 10 seconds to allow Postgres to init"
 	sleep 10
 
@@ -82,6 +134,9 @@ main() {
 		sleep 10
 	done
 }
+
+# https://medium.com/dot-debug/running-chrome-in-a-docker-container-a55e7f4da4a8
+# http://www.richud.com/wiki/Ubuntu_Fluxbox_GUI_with_x11vnc_and_Xvfb
 
 launch_xvfb() {
     local xvfbLockFilePath="/tmp/.X1-lock"
@@ -169,16 +224,31 @@ log_e() {
 }
 
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [BOOTSTRAP] ${@}" 2>&1 | tee -a "/var/log/scraper/scraper_${starting_timestamp}.log"
+    echo -e "[$(date '+%Y-%m-%d %H:%M:%S')] [BOOTSTRAP] ${@}" 2>&1 \
+    | tee -a "/var/log/scraper/scraper_${starting_timestamp}.log"
+}
+
+kill_container() {
+    kill -15 -1 &
+    sleep 2
+    kill -9 -1
+    exit
 }
 
 control_c() {
     echo "Interrupt received... exiting... :("
-    exit
+    kill_container
 }
+
+# This script should NOT be run as root, as it is not advisable to run Chrome
+# with root privileges.
+
+if [ "$(id -u)" -eq 0 ] ; then
+    echo "Can't run as root, terminating..."
+    exit
+fi
 
 trap control_c SIGINT SIGTERM SIGHUP
 
-main
-
-exit
+main &
+wait
