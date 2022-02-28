@@ -94,7 +94,7 @@ class ConnStr:
 			destructured["database"] = destructured["uname"]
 		if destructured.get("port") is None:
 			destructured["port"] = 5432
-		
+
 		return ConnStr(**destructured)
 
 	@staticmethod
@@ -165,9 +165,10 @@ class ConnStr:
 		return f"{encoded.vendor}://{encoded.uname}:{encoded.passwd}@{encoded.host}:{encoded.port}/{encoded.database}"
 
 def parse_db_string() -> str:
-	jobs_dir = os.path.join(get_project_root_path(), "jobs")
+	root_dir = os.path.join(get_project_root_path())
+	log.debug(f"Reading file '{SETTINGS_FILE}' at '{root_dir}'")
 	try:
-		with UseDirectory(jobs_dir):
+		with UseDirectory(root_dir):
 			with open(SETTINGS_FILE, "r") as fp:
 				data = json.load(fp)
 
@@ -175,10 +176,7 @@ def parse_db_string() -> str:
 			if type(conn_strings) != dict or len(conn_strings) == 0:
 				raise KeyError
 
-			if len(conn_strings) > 1:
-				s = conn_strings[KEY_INSIDE_KEY]
-			else:
-				s = conn_strings[0]
+			s = conn_strings[KEY_INSIDE_KEY]
 			return ConnStr.from_unknown_string(s).to_python()
 
 	except (FileNotFoundError, KeyError, ValueError) as e:

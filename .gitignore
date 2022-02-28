@@ -412,6 +412,7 @@ src/WebApp/Properties/launchSettings.json
 
 # Ignoring credential files
 **/credentials
+!scraper/credentials
 **/App.config
 **/page_credentials.json
 **/adaccount_credentials.json
@@ -423,3 +424,4 @@ src/WebApp/Properties/launchSettings.json
 **/credentials/youtube
 **/credentials/instagram
 **/appsettings.json
+!scraper/appsettings.json

@@ -22,7 +22,7 @@ CHROMEDRIVER_OPTIONS = [
 
 	# For disabling cache
 	"--disk-cache-size=0",
-	
+
 	"--enable-javascript",
 ]
 

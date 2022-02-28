@@ -65,8 +65,8 @@ RUN apt-get remove -y \
 	&& apt-get autoremove -y \
 	&& apt-get clean \
 	&& rm -rf /var/lib/apt/lists/*
-	
-COPY --chown=app:app ["src/", "bootstrap.sh", "./"]
+
+COPY --chown=app:app ["src/", "bootstrap.sh", "appsettings.json", "./"]
 
 CMD [ "./bootstrap.sh" ]
 
