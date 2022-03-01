@@ -133,7 +133,7 @@ def show_statistics(jobs: List[Job]):
 
 	nav_names = [job.nav_name for job in jobs]
 	counter = {nav_name: nav_names.count(nav_name) for nav_name in set(nav_names)}
-	
+
 	buffer.append("Jobs are distributed as: ")
 	buffer.append("")
 	for nav_name, frequency in counter.items():
@@ -146,7 +146,7 @@ def show_statistics(jobs: List[Job]):
 
 def main():
 	options = parse()
-	
+
 	jobs = find_all_jobs()
 	if not jobs:
 		log.critical("No jobs were found.")
@@ -157,9 +157,9 @@ def main():
 		log.info("Shuffling jobs to a random order.")
 		random.shuffle(jobs)
 
-	with UseDirectory(get_jobs_path()):
+	with UseDirectory(get_project_root_path()):
 		log.info(f"We will write instructions to '{SCHEDULER_SHELL_SCRIPT}'")
-		
+
 		bash_prologue_sub = BASH_PROLOGUE.replace("<tee>", options.make_tee_string())
 		write(bash_prologue_sub)
 

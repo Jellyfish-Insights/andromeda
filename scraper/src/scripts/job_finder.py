@@ -25,11 +25,11 @@ class Job:
 def get_jobs_path(create: bool = False):
 	with PreserveDirectory():
 		go_to_project_root()
-		if not os.path.isdir("jobs"):
+		if not os.path.isdir("credentials"):
 			if not create:
-				raise ValueError("'jobs' directory does not exist!")
-			os.mkdir("jobs")
-		os.chdir("jobs")
+				raise ValueError("'credentials' directory does not exist!")
+			os.mkdir("credentials")
+		os.chdir("credentials")
 		return os.getcwd()
 
 def go_to_jobs(create: bool = False):
@@ -40,7 +40,7 @@ def create_example_jobs_directory():
 	min_number_of_jobs = 2
 	max_number_of_jobs = 6
 	social_media = ["adwords", "facebook", "instagram", "tiktok", "youtube"]
-	
+
 	with UseDirectory(get_jobs_path(create=True)):
 		for _ in range(number_of_users):
 			new_dir = f"user_{str(uuid4())}"
@@ -101,14 +101,10 @@ def find_all_jobs() -> List[Job]:
 		for dirname, dirs, files in os.walk('.'):
 			for file in files:
 				full_filename = os.path.join(dirname, file)
-				log.debug(f"Analysing file '{full_filename}'")
-				
-				if file == "appsettings.json":
-					log.debug("Skipping special file appsettings.json")
-					continue
+				log.info(f"Analysing file '{full_filename}'")
 
 				if not file.endswith(".json"):
-					log.debug(f"File '{full_filename}' does not have the .json extension, skipping")
+					log.info(f"File '{full_filename}' does not have the .json extension, skipping")
 					continue
 
 				job = get_options_and_nav_name_from_file(full_filename)
