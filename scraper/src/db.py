@@ -66,10 +66,11 @@ class ConnStr:
 		match_database = CS_CONN_STR_DATABASE_REGEX.search(s)
 		match_uname = CS_CONN_STR_UNAME_REGEX.search(s)
 		match_passwd = CS_CONN_STR_PASSWD_REGEX.search(s)
-		match_port = CS_CONN_STR_PORT_REGEX.search(s)
 
-		if not all([match_host, match_database, match_uname, match_passwd, match_port]):
+		if not all([match_host, match_database, match_uname, match_passwd]):
 			raise ValueError("This is not a C# connection string")
+
+		match_port = CS_CONN_STR_PORT_REGEX.search(s)
 
 		log.debug(f"C# string doesn't supply a SQL vendor, assuming '{DEFAULT_VENDOR}'")
 		vendor = DEFAULT_VENDOR
@@ -77,7 +78,7 @@ class ConnStr:
 		database = match_database[1]
 		uname = match_uname[1]
 		passwd = match_passwd[1]
-		port = int(match_port[1])
+		port = int(match_port[1]) if match_port else 5432
 		return ConnStr(vendor, host, database, uname, passwd, port)
 
 	@staticmethod
@@ -171,18 +172,26 @@ def parse_db_string() -> str:
 		with UseDirectory(root_dir):
 			with open(SETTINGS_FILE, "r") as fp:
 				data = json.load(fp)
+	except FileNotFoundError:
+		print("ERROR. File not found.")
+		raise
+	except json.decoder.JSONDecodeError:
+		print("ERROR. Bad syntax for JSON.")
+		raise
 
-			conn_strings = data[KEY_FOR_SETTINGS_FILE]
-			if type(conn_strings) != dict or len(conn_strings) == 0:
-				raise KeyError
+	conn_strings = data[KEY_FOR_SETTINGS_FILE]
+	if type(conn_strings) != dict or len(conn_strings) == 0:
+		print(f"JSON field '{KEY_FOR_SETTINGS_FILE}' could not be found")
+		raise KeyError
 
-			s = conn_strings[KEY_INSIDE_KEY]
-			return ConnStr.from_unknown_string(s).to_python()
-
-	except (FileNotFoundError, KeyError, ValueError) as e:
-		log.debug(f"Could not read {SETTINGS_FILE}, using default connection string.")
-		log.debug(f"Exception raised = {e}")
-		return ConnStr.default_conn_str().to_python()
+	try:
+		s = conn_strings[KEY_INSIDE_KEY]
+	except KeyError:
+		print(f"ERROR. Cannot access field '{KEY_FOR_SETTINGS_FILE} -> "
+			+ f"{KEY_INSIDE_KEY}' from JSON")
+		raise
+	print(f"Raw connection string is '{s}'")
+	return ConnStr.from_unknown_string(s).to_python()
 
 base = declarative_base()
 db_string = parse_db_string()
