@@ -46,8 +46,6 @@ UID is 1000).
 File `docker-compose.yml` accepts two paramenters:
 - **sleep_interval**: how long the program should sleep between two every
 run (an integer)
-- **random_order**: whether the jobs listed in `jobs` folder should be run in
-a random order (otherwise, they will run in alphabetical order)
 
 ### Running the scraper from a local machine (no Docker)
 
@@ -78,7 +76,7 @@ credentials, when applicable. However, if you wish, the settings can also be
 tweaked as desired.
 
 ### Success
-You will know you had success running the container/the scraper if you get a 
+You will know you had success running the container/the scraper if you get a
 message like this:
 
 ![](docs/img/success.jpeg)
@@ -92,7 +90,7 @@ symmetrically encrypted form.
 
 Beware that the key to decrypt your password will also be in a file inside the
 project and an attacker possessing both the key and the encrypted password will
-be able to retrieve your password. Do not share either of these or post them 
+be able to retrieve your password. Do not share either of these or post them
 online.
 
 For your convenience, there is a utility for encrypting and decrypting your
@@ -120,7 +118,7 @@ and 50 only critical messages.
 
 ### Debugging the GUI
 Sometimes the scraper might not work and you have no clue why. It is hard to tell,
-because we cannot see what is on the screen at Chrome. For this reason, the 
+because we cannot see what is on the screen at Chrome. For this reason, the
 development version has support for attaching a GUI client.
 
 The Docker command will open a container whose port 5900 is connected to port
@@ -159,7 +157,7 @@ If you are accessing a service that requires authentication, you won't want to
 use a random profile. This is already enabled by default, so you don't have to
 worry about it, unless you are using custom options.
 
-Still, if you are accessing your profile with a 100% fresh browser, with no 
+Still, if you are accessing your profile with a 100% fresh browser, with no
 cookies, no cache, no browser history, no extensions etc, it might cause suspicion.
 Even if this data cannot be always directly obtained, websites can use very
 sophisticated tricks to get a general idea of who you are (your fingerprint).

@@ -22,8 +22,8 @@ log() {{
 }}
 
 control_c() {{
-    log "Interrupt received... exiting... :("
-    exit
+	log "Interrupt received... exiting... :("
+	exit
 }}
 trap control_c SIGINT SIGTERM SIGHUP
 
@@ -35,7 +35,6 @@ DEBUG = False
 
 @dataclass
 class SchedulerOptions:
-	random_order: bool
 	sleep_interval: int
 	log_file: Optional[str]
 
@@ -64,13 +63,6 @@ def parse() -> SchedulerOptions:
 	parser = argparse.ArgumentParser(
 		description="Schedules jobs for scraping social media. Reads from .json "
 		'files placed in the "jobs" directory'
-	)
-	parser.add_argument(
-		'--random_order',
-		'-r',
-		action='store_true',
-		help="By default, jobs are run in alphabetical order. If this is set, "
-		"a random order is used instead."
 	)
 	parser.add_argument(
 		'--sleep_interval',
@@ -153,9 +145,8 @@ def main():
 		return
 	show_statistics(jobs)
 
-	if options.random_order:
-		log.info("Shuffling jobs to a random order.")
-		random.shuffle(jobs)
+	log.info("Shuffling jobs to a random order.")
+	random.shuffle(jobs)
 
 	with UseDirectory(get_project_root_path()):
 		log.info(f"We will write instructions to '{SCHEDULER_SHELL_SCRIPT}'")

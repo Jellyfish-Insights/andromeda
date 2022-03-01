@@ -33,22 +33,17 @@ docker build \
     --build-arg APP_UID=$(id -u) \
     --target "$target" .
 
-while true ; do
-    docker run --rm \
-        --mount type=bind,source="$(pwd)/extracted_data",target="/opt/scraper/extracted_data" \
-        --mount type=bind,source="$(pwd)/credentials",target="/opt/scraper/credentials" \
-        --mount type=bind,source="$(pwd)/logs",target="/opt/scraper/logs" \
-        -u app \
-        -e sleep_interval=600 \
-        -e random_order="" \
-        -e SCRAPER_ENV="$SCRAPER_ENV" \
-        --network host \
-        --privileged \
-        scraper
+docker run --rm \
+    --mount type=bind,source="$(pwd)/extracted_data",target="/opt/scraper/extracted_data" \
+    --mount type=bind,source="$(pwd)/credentials",target="/opt/scraper/credentials" \
+    --mount type=bind,source="$(pwd)/logs",target="/opt/scraper/logs" \
+    -u app \
+    -e sleep_interval=600 \
+    -e SCRAPER_ENV="$SCRAPER_ENV" \
+    --network host \
+    --privileged \
+    scraper
 
-    sleep_time=$(( 60 * 60 * 4 ))
-    echo "Now we will fall asleep for 4 hours"
-    sleep "$sleep_time"
-done
-
-# --network host \
+sleep_time=$(( 60 * 60 * 4 ))
+echo "Now we will fall asleep for 4 hours"
+sleep "$sleep_time"
