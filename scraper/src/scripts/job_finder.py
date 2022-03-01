@@ -86,7 +86,7 @@ def get_options_and_nav_name_from_file(filename: str) -> Optional[Job]:
 	full_options = job.make_full_options()
 	try:
 		_ = ScraperOptions(**full_options)
-	except ValueError as err:
+	except (TypeError, ValueError) as err:
 		log.debug(f"'{filename}' file does not contain plausible "
 			"options for available scrapers, skipping")
 		log.debug(err)
@@ -105,6 +105,10 @@ def find_all_jobs() -> List[Job]:
 
 				if not file.endswith(".json"):
 					log.info(f"File '{full_filename}' does not have the .json extension, skipping")
+					continue
+
+				if file == "client_secret.json":
+					log.info(f"We don't work with client_secret.json files!")
 					continue
 
 				job = get_options_and_nav_name_from_file(full_filename)

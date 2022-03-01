@@ -87,9 +87,6 @@ main() {
 	############################################################################
 	directory="/opt/scraper/"
 
-	log_i "Sleeping for 10 seconds to allow Postgres to init"
-	sleep 10
-
 	python_watchdog
 	cd "$directory"
 	find -maxdepth 1 -regex '.*chrome_profile.*' -type d -exec rm -rf {} +

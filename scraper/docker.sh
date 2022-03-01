@@ -11,6 +11,10 @@ set -ex
 
 cd "$(dirname "$0")"
 
+# Remove all containers & images (Fluxbox bug)
+docker container ls -aq | xargs -r docker rm -f
+docker images -aq | xargs -r docker rmi -f
+
 # Let's determine how much memory the host system has
 total_ram=$(awk '/MemTotal/{print $2}' '/proc/meminfo')
 echo "Total RAM available in the system: $total_ram KB"
@@ -34,7 +38,6 @@ while true ; do
         --mount type=bind,source="$(pwd)/extracted_data",target="/opt/scraper/extracted_data" \
         --mount type=bind,source="$(pwd)/credentials",target="/opt/scraper/credentials" \
         --mount type=bind,source="$(pwd)/logs",target="/opt/scraper/logs" \
-        -p 5900:5900 \
         -u app \
         -e sleep_interval=600 \
         -e random_order="" \
