@@ -105,13 +105,14 @@ namespace Jobs.Fetcher.Facebook {
             HttpResponseMessage response;
             try {
                 response = await client.GetAsync(url, HttpCompletionOption.ResponseContentRead);
-            } catch (Exception exc) {
-                Logger.Error(exc.ToString());
-                throw new FacebookApiException($"Error fetching Facebook url! ({url})");
+            } catch (Exception) {
+                throw new FacebookApiException($"Error fetching Facebook url!");
             }
             Logger.Verbose("Api returned");
             Logger.Verbose("Sleeping for {SLEEP_TIME}s", RequestDelay);
-            System.Threading.Thread.Sleep(RequestDelay * 1000);
+            //Setting up a random difference for each sleep for jobs not to run concurrently
+            var miliSecondsDelay = RequestDelay * ((new Random()).Next(0, 500) + 750);
+            System.Threading.Thread.Sleep(RequestDelay * miliSecondsDelay);
             var stream = await response.Content.ReadAsStreamAsync();
             var result = DecodeEndpoint(stream);
             // Store the time we fetched the file for reproducibility
