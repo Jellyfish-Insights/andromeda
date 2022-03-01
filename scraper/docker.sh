@@ -39,7 +39,6 @@ docker run --rm \
     --mount type=bind,source="$(pwd)/logs",target="/opt/scraper/logs" \
     -u app \
     -e sleep_interval=600 \
-    -e random_order="" \
     -e SCRAPER_ENV="$SCRAPER_ENV" \
     --network host \
     --privileged \
