@@ -40,7 +40,6 @@ def main():
 
 	error_code = 0
 	try:
-		log.info(f"Starting")
 		scraper.start()
 	except SystemExit as exit_code:
 		log.info(f"Exiting with code {exit_code}")
