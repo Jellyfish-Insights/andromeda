@@ -20,7 +20,7 @@ namespace Jobs.Fetcher.TikTok {
             string username,
             DateTime last_fetch,
             int lastOffset
-        ) {
+            ) {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
