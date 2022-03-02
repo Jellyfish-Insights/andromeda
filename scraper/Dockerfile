@@ -44,7 +44,7 @@ RUN echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' \
 	&& wget -O- https://dl.google.com/linux/linux_signing_key.pub 2> /dev/null \
 		| gpg --dearmor > /etc/apt/trusted.gpg.d/google.gpg \
 	&& apt-get update \
-	&& apt-get install -y google-chrome-stable
+	&& apt-get install -y google-chrome-beta
 # Install necessary Python libraries
 RUN python3 -m pip install --no-cache-dir -r ./python_requirements.txt \
 	&& rm ./python_requirements.txt
