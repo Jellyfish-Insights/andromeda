@@ -1,0 +1,11 @@
+{
+	"managed_account": "khaby00",
+	"account_name": "Teste_1_MCF",
+	"password_plain": "CgpKMy$*MX7j(A=",
+	"use_disposable_profile":  false,
+	"use_fake_user_agent":  false,
+	"use_random_window_size": false,
+	"use_random_locale": false,
+	"use_random_timezone": false,
+	"force_logout": false
+}

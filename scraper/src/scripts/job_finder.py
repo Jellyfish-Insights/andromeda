@@ -25,11 +25,11 @@ class Job:
 def get_jobs_path(create: bool = False):
 	with PreserveDirectory():
 		go_to_project_root()
-		if not os.path.isdir("credentials"):
+		if not os.path.isdir("jobs"):
 			if not create:
-				raise ValueError("'credentials' directory does not exist!")
-			os.mkdir("credentials")
-		os.chdir("credentials")
+				raise ValueError("'jobs' directory does not exist!")
+			os.mkdir("jobs")
+		os.chdir("jobs")
 		return os.getcwd()
 
 def go_to_jobs(create: bool = False):
@@ -40,7 +40,7 @@ def create_example_jobs_directory():
 	min_number_of_jobs = 2
 	max_number_of_jobs = 6
 	social_media = ["adwords", "facebook", "instagram", "tiktok", "youtube"]
-
+	
 	with UseDirectory(get_jobs_path(create=True)):
 		for _ in range(number_of_users):
 			new_dir = f"user_{str(uuid4())}"
@@ -63,7 +63,6 @@ def get_options_and_nav_name_from_file(filename: str) -> Optional[Job]:
 	nav_class: Optional[ScraperMiddleWare] = ScraperMiddleWare.match_navigator_name(dirname)
 	if nav_class is None:
 		return
-
 	with open(filename, "r") as fp:
 		options = json.load(fp)
 	if type(options) != dict:
@@ -86,7 +85,7 @@ def get_options_and_nav_name_from_file(filename: str) -> Optional[Job]:
 	full_options = job.make_full_options()
 	try:
 		_ = ScraperOptions(**full_options)
-	except (TypeError, ValueError) as err:
+	except ValueError as err:
 		log.debug(f"'{filename}' file does not contain plausible "
 			"options for available scrapers, skipping")
 		log.debug(err)
@@ -101,14 +100,14 @@ def find_all_jobs() -> List[Job]:
 		for dirname, dirs, files in os.walk('.'):
 			for file in files:
 				full_filename = os.path.join(dirname, file)
-				log.info(f"Analysing file '{full_filename}'")
-
-				if not file.endswith(".json"):
-					log.info(f"File '{full_filename}' does not have the .json extension, skipping")
+				log.debug(f"Analysing file '{full_filename}'")
+				
+				if file == "appsettings.json":
+					log.debug("Skipping special file appsettings.json")
 					continue
 
-				if file == "client_secret.json":
-					log.info(f"We don't work with client_secret.json files!")
+				if not file.endswith(".json"):
+					log.debug(f"File '{full_filename}' does not have the .json extension, skipping")
 					continue
 
 				job = get_options_and_nav_name_from_file(full_filename)
