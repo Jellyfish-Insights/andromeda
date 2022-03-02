@@ -16,12 +16,18 @@ namespace Jobs.Fetcher.TikTok.Helpers {
     public static class ApiDataFetcher {
         public static List<JObject> GetPosts(string username, DateTime lastFetch, Logger logger) {
             logger.Information(@"Fetching posts for '" + username + "' after '" + lastFetch + "'.");
-            var allPosts = new List<JObject>();
-            foreach (var payload in DatabaseManager.GetPayload(username, lastFetch)) {
-                allPosts.Add(JObject.Parse(payload));
+            int lastOffset = 0;
+            while (true) {
+                var somePosts = DatabaseManager.GetPayload(username, lastFetch, lastOffset);
+                logger.Information("Found " + somePosts.Count + " posts.");
+                if (somePosts.Count() == 0) {
+                    yield break;
+                }
+                foreach (var payload in somePosts) {
+                    yield return JObject.Parse(payload);
+                }
+                lastOffset += DatabaseManager._payloadBatchSize;
             }
-            logger.Information("Found " + allPosts.Count + " posts.");
-            return allPosts;
         }
 
         public static Video GetTikTokVideoFromJson(JToken videoJson, string postId) {

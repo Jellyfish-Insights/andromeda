@@ -14,8 +14,13 @@ namespace Jobs.Fetcher.TikTok {
     public class DatabaseManager : DataLakeModels.TikTokScraperDatabaseManager {
 
         private static HashSet<string> reserved = new HashSet<string> { "from" };
+        public const int _payloadBatchSize = 100;
 
-        public static List<string> GetPayload(string username, DateTime last_fetch) {
+        public static List<string> GetPayload(
+            string username,
+            DateTime last_fetch,
+            int lastOffset
+        ) {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -27,9 +32,16 @@ namespace Jobs.Fetcher.TikTok {
                         WHERE
                             saved_time > @last_fetch :: timestamp without time zone AND
                             account_name = @username
+                        ORDER BY
+                            saved_time
+                        LIMIT @batch_size
+                        OFFSET @last_offset
                         ;");
                     cmd.Parameters.AddWithValue("last_fetch", last_fetch.ToString("yyyy-MM-dd HH:mm:ss"));
                     cmd.Parameters.AddWithValue("username", username);
+                    cmd.Parameters.AddWithValue("batch_size", _payloadBatchSize);
+                    cmd.Parameters.AddWithValue("last_offset", lastOffset);
+
                     var payloadStrings = new List<string>();
                     using (var reader = cmd.ExecuteReader()) {
                         while (reader.Read()) {
@@ -102,7 +114,7 @@ namespace Jobs.Fetcher.TikTok {
                     connection.Open();
                     cmd.CommandText = String.Format(@"
                         SELECT EXISTS (
-                            SELECT FROM information_schema.tables 
+                            SELECT FROM information_schema.tables
                             WHERE table_name   = 'video_info'
                         );");
                     using (var reader = cmd.ExecuteReader()) {
