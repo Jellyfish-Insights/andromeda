@@ -104,31 +104,32 @@ namespace Jobs.Fetcher.Facebook {
             var before = this.GetUtcTime();
             Logger.Verbose("Fetching url in path {Path}: {Url}", path, url);
             HttpResponseMessage response;
-            Logger.Verbose("Api returned");
+
             //Setting up a random difference for each sleep for jobs not to run concurrently
-            var miliSecondsDelay = RequestDelay * ((new Random()).Next(0, 500) + 750);
-            Logger.Verbose("Sleeping for {SLEEP_TIME}ms", miliSecondsDelay);
+            var milliSecondsDelay = RequestDelay * ((new Random()).Next(0, 500) + 750);
+            Logger.Verbose("Sleeping for {SLEEP_TIME}ms", milliSecondsDelay);
             var fetch_retries = 0;
             response = null;
-            while(fetch_retries < 5){
-                System.Threading.Thread.Sleep(miliSecondsDelay);
+            while (fetch_retries < 5) {
+                System.Threading.Thread.Sleep(milliSecondsDelay);
                 try {
                     response = await client.GetAsync(url, HttpCompletionOption.ResponseContentRead);
+                    Logger.Verbose("Api returned");
                     break;
-                }catch (OperationCanceledException e){
+                }catch (OperationCanceledException e) {
                     fetch_retries++;
-                    if(fetch_retries < 5){
+                    if (fetch_retries < 5) {
                         Logger.Information($"Facebook URL fetch was cancelled. Retrying after sleep.");
                         continue;
-                    }else{
+                    } else {
                         Logger.Error($"Failed getting url: ({url}).");
-                        throw e;    
+                        throw e;
                     }
                 }catch (Exception e) {
                     throw new FacebookApiException($"Error fetching Facebook url ({url})!");
                 }
             }
-            
+
             var stream = await response.Content.ReadAsStreamAsync();
             var result = DecodeEndpoint(stream);
             // Store the time we fetched the file for reproducibility
