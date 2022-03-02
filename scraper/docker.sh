@@ -7,7 +7,7 @@
 
 # And use these same settings in the "appsettings.json" file
 
-set -ex
+set -x
 
 cd "$(dirname "$0")"
 
@@ -29,6 +29,7 @@ else
 fi
 
 docker build \
+	--no-cache \
     -t scraper \
     --build-arg APP_UID=$(id -u) \
     --target "$target" .
