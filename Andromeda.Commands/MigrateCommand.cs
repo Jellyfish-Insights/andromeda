@@ -37,6 +37,9 @@ namespace Andromeda.Commands {
                 case Databases.LakeTikTok:
                     DatabaseOperations.Migrate<DataLakeTikTokContext>();
                     break;
+                case Databases.LakeReels:
+                    DatabaseOperations.Migrate<DataLakeReelsContext>();
+                    break;
                 default:
                     throw new Exception("Invalid database");
             }
@@ -51,6 +54,7 @@ namespace Andromeda.Commands {
             DatabaseOperations.Migrate<DataLakeTwitterAdsContext>();
             DatabaseOperations.Migrate<DataLakeLoggingContext>();
             DatabaseOperations.Migrate<DataLakeTikTokContext>();
+            DatabaseOperations.Migrate<DataLakeReelsContext>();
             Console.WriteLine("Successfully migrated data-lake.");
         }
 

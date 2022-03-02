@@ -9,6 +9,7 @@ using Jobs.Fetcher.YouTubeStudio;
 using Jobs.Fetcher.Facebook;
 using Jobs.Fetcher.Twitter;
 using Jobs.Fetcher.TikTok;
+using Jobs.Fetcher.Reels;
 
 namespace Andromeda.Commands {
 
@@ -21,17 +22,13 @@ namespace Andromeda.Commands {
             new TwitterFetchers(),
             new YouTubeFetchers(),
             new YouTubeStudioFetchers(),
+            new ReelsFetchers()
         };
 
         public static Dictionary<string, AbstractJob> BuildJobsDict(IEnumerable<AbstractJob> jobList) {
             var jobDict = new Dictionary<string, AbstractJob>();
             foreach (var job in jobList) {
-                try {
-                    jobDict.Add(job.Id(), job);
-                }
-                catch (ArgumentException) {
-                    Console.WriteLine($"Job {job.Id()} already added.");
-                }
+                jobDict.Add(job.Id(), job);
             }
             return jobDict;
         }
