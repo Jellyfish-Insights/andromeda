@@ -79,7 +79,6 @@ class ScraperMiddleWare(ScraperCore):
 		self.action = action_chains.ActionChains(self.driver)
 		self.reset_har()
 		try:
-			log.info(f"Will go to main")
 			self.main()
 		except NoSuchWindowException as err:
 			log.critical("Chrome window was closed from an outside agent!")
