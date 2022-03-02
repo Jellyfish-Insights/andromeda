@@ -1,12 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
+        <PackageReference Include="Google.Apis" Version="1.55.0" />
+        <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.55.0.1869" />
+        <PackageReference Include="Google.Apis.YouTube.v3" Version="1.55.0.2449" />
+        <PackageReference Include="Google.Apis.YouTubeAnalytics.v2" Version="1.55.0.2321" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <ProjectReference Include="..\DataLakeModels\DataLakeModels.csproj" />
+        <ProjectReference Include="..\Jobs.Fetcher.YouTube\Jobs.Fetcher.YouTube.csproj" />
     </ItemGroup>
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 

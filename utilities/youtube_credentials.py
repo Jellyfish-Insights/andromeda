@@ -1,11 +1,17 @@
 #!env python3
-from utilities.facebook_credentials import CREDENTIAL_DEFAULT
 from google_auth_oauthlib.flow import InstalledAppFlow
 from datetime import datetime
 from shutil import copyfile
 import json, os
 
 CREDENTIAL_DEFAULT = './credentials/user_folder'
+SCOPES = [
+	'https://www.googleapis.com/auth/youtube.readonly',
+	'https://www.googleapis.com/auth/yt-analytics-monetary.readonly',
+	'https://www.googleapis.com/auth/yt-analytics.readonly',
+	'https://www.googleapis.com/auth/youtube',
+	'https://www.googleapis.com/auth/youtubepartner'
+]
 
 def create_credential_folders():
     try:
@@ -24,10 +30,7 @@ def create_credential_folders():
 def get_credentials():
     flow = InstalledAppFlow.from_client_secrets_file(
         'client_secret.json',
-        scopes = ['https://www.googleapis.com/auth/youtube.readonly',
-                'https://www.googleapis.com/auth/yt-analytics-monetary.readonly',
-                'https://www.googleapis.com/auth/yt-analytics.readonly'
-        ]
+        scopes = SCOPES
     )
 
     credentials = flow.run_local_server(
@@ -46,7 +49,7 @@ def save_credential(credential, path):
         "token_type": "Bearer",
         "expires_in": 3600,
         "refresh_token": f'{credential.refresh_token}',
-        "scope": "https://www.googleapis.com/auth/yt-analytics-monetary.readonly https://www.googleapis.com/auth/youtube.readonly",
+        "scope": " ".join(SCOPES),
         "Issued": f'{datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")}',
         "IssuedUtc": f'{datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")}'
     }

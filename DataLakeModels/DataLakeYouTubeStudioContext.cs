@@ -20,8 +20,21 @@ namespace DataLakeModels {
                 table.Metric,
                 table.EventDate
             });
+
+            modelBuilder.Entity<Group>()
+                .HasKey(table => new { table.GroupId });
+
+            modelBuilder.Entity<Item>()
+                .HasOne(table => table.Group)
+                .WithMany(group => group.Items)
+                .HasForeignKey(table => table.GroupId);
+
+            modelBuilder.Entity<Item>()
+                .HasKey(table => new { table.ItemId });
         }
 
         public virtual DbSet<Video> Videos { get; set; }
+        public virtual DbSet<Group> Groups { get; set; }
+        public virtual DbSet<Item> Items { get; set; }
     }
 }

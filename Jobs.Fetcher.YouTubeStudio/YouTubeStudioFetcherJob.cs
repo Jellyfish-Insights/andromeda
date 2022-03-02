@@ -10,8 +10,6 @@ using Jobs.Fetcher.YouTubeStudio.Helpers;
 
 namespace Jobs.Fetcher.YouTubeStudio {
     public class YouTubeStudioFetcherJob : AbstractJob {
-
-        public bool RunningAsStandAlone { get; set; } = false;
         public YouTubeStudioFetcherJob() {}
 
         public override List<string> Dependencies() {
@@ -23,12 +21,7 @@ namespace Jobs.Fetcher.YouTubeStudio {
         }
 
         public override void Run() {
-            string pathToData;
-            if (RunningAsStandAlone) {
-                pathToData = @"../../../Data/";
-            } else {
-                pathToData = @"../../Data/";
-            }
+            string pathToData = @"../../Data/";
 
             Logger.Information($"Reading files from {pathToData}");
 
