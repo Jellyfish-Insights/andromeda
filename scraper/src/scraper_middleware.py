@@ -111,7 +111,7 @@ class ScraperMiddleWare(ScraperCore):
 	@staticmethod
 	def get_available_navigators() -> Dict[str, Type]:
 		import navigators.tiktok, navigators.youtube, navigators.test_navigator, \
-			navigators.profile_faker
+			navigators.profile_faker, navigators.reels
 		return {x.__name__: x for x in ScraperMiddleWare.__subclasses__()}
 
 	@staticmethod
@@ -183,8 +183,10 @@ class ScraperMiddleWare(ScraperCore):
 
 	def was_end_of_page_reached(self):
 		page_height = self.get_page_height()
+		scroll = self.run(f""" return window.scrollY """)
+		scroll_height = self.run(f""" return document.body.scrollHeight || document.body.offsetHeight """)
 		js_code = f"""
-			return (({page_height} + window.scrollY) >= document.body.offsetHeight);
+			return (({page_height} + window.scrollY) >= {scroll_height});
 		"""
 		return self.run(js_code)
 

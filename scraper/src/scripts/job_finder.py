@@ -63,7 +63,6 @@ def get_options_and_nav_name_from_file(filename: str) -> Optional[Job]:
 	nav_class: Optional[ScraperMiddleWare] = ScraperMiddleWare.match_navigator_name(dirname)
 	if nav_class is None:
 		return
-
 	with open(filename, "r") as fp:
 		options = json.load(fp)
 	if type(options) != dict:
