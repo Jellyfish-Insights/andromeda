@@ -251,7 +251,7 @@ namespace Jobs.Fetcher.Reels.Helpers {
                        OriginalHeight = reelJson["original_height"].ToObject<long>(),
                        ClientCacheKey = reelJson["client_cache_key"].ToString(),
                        DeviceTimestamp = reelJson["device_timestamp"].ToObject<long>(),
-                       CreateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc).AddMilliseconds(reelJson["device_timestamp"].ToObject<long>()/1000),
+                       CreateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc).AddMilliseconds(reelJson["device_timestamp"].ToObject<long>() / 1000),
                        IsUnifiedVideo = reelJson["is_unified_video"].ToObject<bool>(),
                        //Preview Comments
                        CaptionIsEdited = reelJson["caption_is_edited"].ToObject<bool>(),
@@ -277,6 +277,7 @@ namespace Jobs.Fetcher.Reels.Helpers {
                        IsVisualReplyCommenterNoticeEnabled = reelJson["is_visual_reply_commenter_notice_enabled"].ToObject<bool>()
             };
         }
+
         public static ReelStats GetReelsStatsFromJson(JToken reelJson, string userId) {
             return new ReelStats() {
                        ReelId = reelJson["id"].ToString(),
@@ -287,7 +288,7 @@ namespace Jobs.Fetcher.Reels.Helpers {
                        CommentCount = reelJson["comment_count"].ToObject<long>(),
                        EventDate = DateTime.Today,
                        ValidityStart = DateTime.UtcNow,
-                       ValidityEnd = DateTime.MaxValue,                       
+                       ValidityEnd = DateTime.MaxValue,
             };
         }
 
