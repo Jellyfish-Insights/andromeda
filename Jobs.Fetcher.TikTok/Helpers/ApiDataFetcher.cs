@@ -14,7 +14,7 @@ using Andromeda.Common.Extensions;
 namespace Jobs.Fetcher.TikTok.Helpers {
 
     public static class ApiDataFetcher {
-        public static List<JObject> GetPosts(string username, DateTime lastFetch, Logger logger) {
+        public static IEnumerable<JObject> GetPosts(string username, DateTime lastFetch, Logger logger) {
             logger.Information(@"Fetching posts for '" + username + "' after '" + lastFetch + "'.");
             int lastOffset = 0;
             while (true) {
