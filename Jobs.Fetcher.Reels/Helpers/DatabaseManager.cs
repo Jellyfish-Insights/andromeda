@@ -9,7 +9,7 @@ using Npgsql;
 
 using Microsoft.EntityFrameworkCore;
 
-namespace Jobs.Fetcher.TikTok {
+namespace Jobs.Fetcher.Reels {
 
     public class DatabaseManager : DataLakeModels.GeneralScraperDatabaseManager {
 
@@ -40,63 +40,15 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
-        public static TikTokUsers GetTikTokUser(string account_name, NpgsqlConnection connection) {
-            using (var cmd = connection.CreateCommand()) {
-                connection.Open();
-                cmd.CommandText = String.Format(@"
-                    SELECT
-                        id,
-                        account_name
-                    FROM
-                        account_name
-                    WHERE
-                        account_name > @account_name
-                ");
-                cmd.Parameters.AddWithValue("account_name", account_name);
-                TikTokUsers tiktokUser = null;
-                using (var reader = cmd.ExecuteReader()) {
-                    if (reader.Read()) {
-                        tiktokUser = new TikTokUsers(){
-                            //UserId = reader.GetString(0),
-                            Name = reader.GetString(1)
-                        };
-                    }
-                }
-                return tiktokUser;
-            }
-        }
-
-        public static string GetTikTokId(string username, DataLakeTikTokContext dbContext) {
+        public static string GetReelsId(string username, DataLakeReelsContext dbContext) {
             var now = DateTime.UtcNow;
-            var valuetobereturned = dbContext.Authors.Where(m => m.UniqueId == username)
-                                        .Select(m => m.Id)
+            var valueToBeReturned = dbContext.Users.Where(m => m.Username == username)
+                                        .Select(m => m.Pk)
                                         .FirstOrDefault();
-            return valuetobereturned;
+            return valueToBeReturned;
         }
 
-        public static bool TikTokUserExists(string username) {
-            using (var connection = new NpgsqlConnection(ConnectionString()))
-                using (var cmd = connection.CreateCommand()) {
-                    connection.Open();
-                    cmd.CommandText = String.Format(@"
-                        SELECT
-                            COUNT(*)
-                        FROM
-                            account_name
-                        WHERE
-                            account_name = @username
-                        ");
-                    cmd.Parameters.AddWithValue("username", username);
-                    using (var reader = cmd.ExecuteReader()) {
-                        if (reader.Read()) {
-                            return reader.GetDecimal(0) > 0;
-                        }
-                    }
-                    return false;
-                }
-        }
-
-        public static bool TikTokScraperTablesExist() {
+        public static bool GeneralScraperTablesExist() {
             using (var connection = new NpgsqlConnection(ConnectionString()))
                 using (var cmd = connection.CreateCommand()) {
                     connection.Open();
@@ -115,9 +67,9 @@ namespace Jobs.Fetcher.TikTok {
                 }
         }
 
-        public static DateTime GetLastFetch(string authorId, DataLakeTikTokContext dbContext) {
+        public static DateTime GetLastFetch(string userId, DataLakeReelsContext dbContext) {
             var now = DateTime.UtcNow;
-            return dbContext.AuthorStats.Where(m => m.AuthorId == authorId && m.ValidityStart <= now && m.ValidityEnd > now)
+            return dbContext.ReelStats.Where(m => m.UserId == userId && m.ValidityStart <= now && m.ValidityEnd > now)
                        .OrderByDescending(m => m.ValidityStart)
                        .Select(m => m.ValidityStart)
                        .FirstOrDefault();
