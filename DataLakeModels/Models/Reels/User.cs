@@ -17,7 +17,7 @@ namespace DataLakeModels.Models.Reels {
         public bool HasHighlightReels { get; set; }
         public string FollowFrictionType { get; set; }
         public bool HasAnonymousProfilePicture  { get; set; }
-        
+
         public ICollection<Reel> Reels { get; set; }
         public ICollection<OriginalSound> Sounds { get; set; }
 

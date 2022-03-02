@@ -39,7 +39,7 @@ namespace DataLakeModels {
 
             modelBuilder.Entity<ImageVersion>()
                 .HasKey(table => new { table.Id });
-            
+
             modelBuilder.Entity<Image>()
                 .HasKey(table => new { table.Id });
 
@@ -82,20 +82,17 @@ namespace DataLakeModels {
                 .HasForeignKey(table => table.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-
             modelBuilder.Entity<Reel>()
                 .HasOne(table => table.Caption)
                 .WithOne(caption => caption.Reel)
                 .HasForeignKey<Caption>(table => table.ReelId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            
             modelBuilder.Entity<Reel>()
                 .HasOne(table => table.ClipsMetaData)
                 .WithOne(clipsMeta => clipsMeta.Reel)
                 .HasForeignKey<ClipsMeta>(table => table.ReelId)
                 .OnDelete(DeleteBehavior.Cascade);
-
 
             modelBuilder.Entity<Reel>()
                 .HasOne(table => table.ImageVersions)
@@ -103,13 +100,11 @@ namespace DataLakeModels {
                 .HasForeignKey<ImageVersion>(table => table.ReelId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-
             modelBuilder.Entity<Reel>()
                 .HasOne(table => table.MediaCroppingInfo)
                 .WithOne(squareCrop => squareCrop.Reel)
                 .HasForeignKey<SquareCrop>(table => table.ReelId)
                 .OnDelete(DeleteBehavior.Cascade);
-
 
             modelBuilder.Entity<Reel>()
                 .HasOne(table => table.SharingFrictionInfo)
@@ -117,7 +112,6 @@ namespace DataLakeModels {
                 .HasForeignKey<Friction>(table => table.ReelId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            
             modelBuilder.Entity<ReelStats>()
                 .HasKey(table => new { table.ReelId, table.ValidityStart });
 
@@ -141,8 +135,6 @@ namespace DataLakeModels {
                 .WithMany(reel => reel.VideoVersions)
                 .HasForeignKey(table => table.ReelId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-
         }
 
         public virtual DbSet<User> Users { get; set; }

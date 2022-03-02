@@ -26,21 +26,21 @@ namespace DataLakeModels.Models.Reels {
 
         bool IEquatable<CommentInfo>.Equals(CommentInfo other) {
             return Pk == other.Pk &&
-                    ReelId == other.ReelId &&
-                    Text == other.Text &&
-                    Type == other.Type &&
-                    Status == other.Status &&
-                    UserId == other.UserId &&
-                    Username == other.Username &&
-                    MediaId == other.MediaId &&
-                    BitFlags == other.BitFlags &&
-                    CreatedAt == other.CreatedAt &&
-                    IsCovered == other.IsCovered &&
-                    ContentType == other.ContentType &&
-                    ShareEnabled == other.ShareEnabled &&
-                    CreatedAtUTC == other.CreatedAtUTC &&
-                    DidReportAsSpam == other.DidReportAsSpam &&
-                    PrivateReplyStatus == other.PrivateReplyStatus;
+                   ReelId == other.ReelId &&
+                   Text == other.Text &&
+                   Type == other.Type &&
+                   Status == other.Status &&
+                   UserId == other.UserId &&
+                   Username == other.Username &&
+                   MediaId == other.MediaId &&
+                   BitFlags == other.BitFlags &&
+                   CreatedAt == other.CreatedAt &&
+                   IsCovered == other.IsCovered &&
+                   ContentType == other.ContentType &&
+                   ShareEnabled == other.ShareEnabled &&
+                   CreatedAtUTC == other.CreatedAtUTC &&
+                   DidReportAsSpam == other.DidReportAsSpam &&
+                   PrivateReplyStatus == other.PrivateReplyStatus;
         }
     }
 }
