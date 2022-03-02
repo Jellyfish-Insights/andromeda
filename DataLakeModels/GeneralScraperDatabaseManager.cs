@@ -5,7 +5,7 @@ using Serilog;
 
 namespace DataLakeModels {
 
-    public class TikTokScraperDatabaseManager {
+    public class GeneralScraperDatabaseManager {
 
         public const string ApiVersion = "1";
 
@@ -17,6 +17,6 @@ namespace DataLakeModels {
             return String.Format("{0};SearchPath={1};", ConnectionStringHelper.GetConnStr("DataLakeDatabase"), SchemaName());
         }
 
-        protected static ILogger Logger { get => Log.ForContext<TikTokScraperDatabaseManager>(); }
+        protected static ILogger Logger { get => Log.ForContext<GeneralScraperDatabaseManager>(); }
     }
 }
