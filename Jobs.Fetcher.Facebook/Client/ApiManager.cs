@@ -23,6 +23,7 @@ namespace Jobs.Fetcher.Facebook {
         const int ACCOUNT_LEVEL_THROTTLING = 17;
         const int ACCOUNT_QUOTE_WINDOW = 24 * 60 * 60; // seconds
         const int WAIT_AFTER_USER_LIMIT_REACHED = 410; // seconds
+        const int MAX_RETRIES = 5;
         public DateTime? DefaultNowDate { get; set; }
         public bool IgnoreAPI { get; set; }
         public bool IgnoreCache { get; set; }
@@ -103,16 +104,31 @@ namespace Jobs.Fetcher.Facebook {
             var before = this.GetUtcTime();
             Logger.Verbose("Fetching url in path {Path}: {Url}", path, url);
             HttpResponseMessage response;
-            try {
-                response = await client.GetAsync(url, HttpCompletionOption.ResponseContentRead);
-            } catch (Exception) {
-                throw new FacebookApiException($"Error fetching Facebook url!");
-            }
             Logger.Verbose("Api returned");
-            Logger.Verbose("Sleeping for {SLEEP_TIME}s", RequestDelay);
             //Setting up a random difference for each sleep for jobs not to run concurrently
             var miliSecondsDelay = RequestDelay * ((new Random()).Next(0, 500) + 750);
-            System.Threading.Thread.Sleep(RequestDelay * miliSecondsDelay);
+            Logger.Verbose("Sleeping for {SLEEP_TIME}ms", miliSecondsDelay);
+            var fetch_retries = 0;
+            response = null;
+            while(fetch_retries < 5){
+                System.Threading.Thread.Sleep(miliSecondsDelay);
+                try {
+                    response = await client.GetAsync(url, HttpCompletionOption.ResponseContentRead);
+                    break;
+                }catch (OperationCanceledException e){
+                    fetch_retries++;
+                    if(fetch_retries < 5){
+                        Logger.Information($"Facebook URL fetch was cancelled. Retrying after sleep.");
+                        continue;
+                    }else{
+                        Logger.Error($"Failed getting url: ({url}).");
+                        throw e;    
+                    }
+                }catch (Exception e) {
+                    throw new FacebookApiException($"Error fetching Facebook url ({url})!");
+                }
+            }
+            
             var stream = await response.Content.ReadAsStreamAsync();
             var result = DecodeEndpoint(stream);
             // Store the time we fetched the file for reproducibility
