@@ -40,7 +40,7 @@ namespace Jobs.Fetcher.TikTok {
                         }
                         DbWriter.WriteAuthor(newAuthor, dbContext, logger);
                     }catch (NullReferenceException) {
-                        Logger.Error("Could not get author data. Skiping this post.");
+                        Logger.Error("Could not get author data. Skipping this post.");
                         continue;
                     }catch (Exception e) {
                         Logger.Error("Could not get author data.");
