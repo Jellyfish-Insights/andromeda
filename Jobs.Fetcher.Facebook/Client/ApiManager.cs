@@ -125,7 +125,7 @@ namespace Jobs.Fetcher.Facebook {
                         Logger.Error($"Failed getting url: ({url}).");
                         throw e;
                     }
-                }catch (Exception e) {
+                }catch (Exception) {
                     throw new FacebookApiException($"Error fetching Facebook url ({url})!");
                 }
             }
