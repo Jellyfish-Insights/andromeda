@@ -42,9 +42,9 @@ namespace Jobs.Fetcher.TikTok {
                     }catch (NullReferenceException) {
                         Logger.Error("Could not get author data. Skipping this post.");
                         continue;
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get author data.");
-                        throw e;
+                        throw;
                     }
 
                     Music newMusic = null;
@@ -53,9 +53,9 @@ namespace Jobs.Fetcher.TikTok {
                         DbWriter.WriteMusic(newMusic, dbContext, logger);
                     }catch (NullReferenceException) {
                         Logger.Error("Could not get music data. Continuing.");
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get music data.");
-                        throw e;
+                        throw;
                     }
 
                     var newChallenges = new List<Challenge>();
@@ -64,9 +64,9 @@ namespace Jobs.Fetcher.TikTok {
                         DbWriter.WriteChallenges(newChallenges, dbContext, logger);
                     }catch (NullReferenceException) {
                         Logger.Error("Could not get challenges data. Continuing.");
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get challenges data.");
-                        throw e;
+                        throw;
                     }
 
                     var newTags = new List<Tag>();
@@ -75,9 +75,9 @@ namespace Jobs.Fetcher.TikTok {
                         DbWriter.WriteTags(newTags, dbContext, logger);
                     }catch (NullReferenceException) {
                         Logger.Error("Could not get tags data. Continuing.");
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get tags data.");
-                        throw e;
+                        throw;
                     }
 
                     var newEffectStickers = new List<EffectSticker>();
@@ -86,9 +86,9 @@ namespace Jobs.Fetcher.TikTok {
                         DbWriter.WriteEffectStickers(newEffectStickers, dbContext, logger);
                     }catch (NullReferenceException) {
                         Logger.Error("Could not get effect stickers data. Continuing.");
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get effect stickers data.");
-                        throw e;
+                        throw;
                     }
 
                     Video newVideo = null;
@@ -98,9 +98,9 @@ namespace Jobs.Fetcher.TikTok {
                     }catch (NullReferenceException) {
                         Logger.Error("Could not get video data. Skipping this post.");
                         continue;
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get video data.");
-                        throw e;
+                        throw;
                     }
 
                     var challengeIds = new List<string>();
@@ -123,9 +123,9 @@ namespace Jobs.Fetcher.TikTok {
                     }catch (NullReferenceException) {
                         Logger.Error("Could not get post data. Skipping this post.");
                         continue;
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get post data.");
-                        throw e;
+                        throw;
                     }
 
                     try {
@@ -133,9 +133,9 @@ namespace Jobs.Fetcher.TikTok {
                         DbWriter.WriteAuthorStats(newAuthorStats, dbContext, logger);
                     }catch (NullReferenceException) {
                         Logger.Error("Could not get author stats data. Continuing.");
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get author stats data.");
-                        throw e;
+                        throw;
                     }
 
                     try {
@@ -143,9 +143,9 @@ namespace Jobs.Fetcher.TikTok {
                         DbWriter.WritePostStats(newPostStats, dbContext, logger);
                     }catch (NullReferenceException) {
                         Logger.Error("Could not get post stats data. Continuing.");
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get post stats data.");
-                        throw e;
+                        throw;
                     }
                 }
             }
