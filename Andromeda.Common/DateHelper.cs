@@ -17,20 +17,30 @@ namespace Andromeda.Common {
         /**
             Creates a list of dates from "from" until "to", inclusive on both ends, using a single day as step.
          */
-        public static IEnumerable<DateTime> DaysInRange(DateTime from, DateTime to, bool reverse = false) {
-            if (from > to) {
+        public static IEnumerable<DateTime> DaysInRange(
+                                            DateTime from,
+                                            DateTime to,
+                                            bool reverse = false,
+                                            int step = 1
+                                            ) {
+            if (from == null || to == null) {
+                throw new ArgumentNullException("Neither 'from' nor 'to' can be null!");
+            }
+
+            if (from.Date > to.Date) {
                 yield break;
             }
-            var current = reverse ? to : from;
-            var end = reverse ? from : to;
-            int step = reverse ? -1 : 1;
+            var current = reverse ? to.Date : from.Date;
+            var end = reverse ? from.Date : to.Date;
+            int _step = reverse ? -step : step;
 
-            while (current != end) {
+            while (current < end) {
+                // Console.WriteLine($"current {current} end {end} step {_step}");
                 yield return current;
-                current = current.AddDays(step);
+                current = current.AddDays(_step);
             }
 
-            yield return current;
+            yield return end;
         }
 
         public static IEnumerable<(DateTime, DateTime)> GetSemestersRange(DateTime startDate, DateTime endDate) {
