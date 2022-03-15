@@ -195,7 +195,9 @@ namespace Jobs.Fetcher.Facebook {
                     if (result["error"] == null) {
                         return result;
                     } else {
-                        if (!((JObject) result["error"]).TryGetValue("code", out var errorCode) || !((JObject) result["error"]).TryGetValue("message", out var errorMessage)) {
+                        if (!((JObject) result["error"]).TryGetValue("code", out var errorCode) ||
+                            !((JObject) result["error"]).TryGetValue("message", out var errorMessage)) {
+
                             LoggerFactory.GetFacebookLogger().Error("Unknown error found while getting cache or request. Couldn't get error code or message.");
                         } else {
                             LoggerFactory.GetFacebookLogger().Error($"Cached Request error({errorCode.ToString()}): ({errorMessage.ToString()}).");
