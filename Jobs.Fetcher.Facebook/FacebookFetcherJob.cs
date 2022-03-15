@@ -92,8 +92,6 @@ namespace Jobs.Fetcher.Facebook {
                     tableRows.ForAll(row => FetchDetailsOfRow(table, row));
                 } catch (Exception) {
                     Logger.Error($"Couldn't fetch entities from {Schema.Name}");
-                        
-
                 }
             }
         }

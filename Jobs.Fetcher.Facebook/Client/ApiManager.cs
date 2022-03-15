@@ -90,12 +90,12 @@ namespace Jobs.Fetcher.Facebook {
         }
 
         private static void EncodeEndpoint(Stream stream, JObject result) {
-                using (var file = new StreamWriter(stream)) {
-                    using (var writer = new JsonTextWriter(file)) {
-                        var serializer = new JsonSerializer();
-                        serializer.Serialize(writer, result);
-                    }
+            using (var file = new StreamWriter(stream)) {
+                using (var writer = new JsonTextWriter(file)) {
+                    var serializer = new JsonSerializer();
+                    serializer.Serialize(writer, result);
                 }
+            }
         }
 
         private async Task<JObject> RequestUrl(HttpClient client, int retries, String path, String url) {
@@ -107,7 +107,7 @@ namespace Jobs.Fetcher.Facebook {
             HttpResponseMessage response;
 
             //Setting up a random difference for each sleep for jobs not to run concurrently
-            var milliSecondsDelay = RequestDelay * ((new Random()).Next(0, 500) + 750)/1000;
+            var milliSecondsDelay = RequestDelay * ((new Random()).Next(0, 500) + 750) / 1000;
             Logger.Debug("Sleeping for {SLEEP_TIME}ms", milliSecondsDelay);
             var fetch_retries = 0;
             response = null;
@@ -178,7 +178,7 @@ namespace Jobs.Fetcher.Facebook {
             JObject result = await RequestOrCache(client, 0, prefix, url, IgnoreCache);
             var retries = (int) (result["retries"] ?? 0);
             if (!result.TryGetValue("fetch_time", out var fetch_time)) {
-                if (result["error"] == null){
+                if (result["error"] == null) {
                     result["error"]["code"] = INVALID_FETCH_TIME;
                     result["error"]["code"] = "Not able to get fetch_time of Request or Cache.";
                 }
@@ -195,14 +195,13 @@ namespace Jobs.Fetcher.Facebook {
                     if (result["error"] == null) {
                         return result;
                     } else {
-                        if(!((JObject)result["error"]).TryGetValue("code", out var errorCode) || !((JObject)result["error"]).TryGetValue("message", out var errorMessage)){
+                        if (!((JObject) result["error"]).TryGetValue("code", out var errorCode) || !((JObject) result["error"]).TryGetValue("message", out var errorMessage)) {
                             LoggerFactory.GetFacebookLogger().Error("Unknown error found while getting cache or request. Couldn't get error code or message.");
-
-                        }else{
+                        } else {
                             LoggerFactory.GetFacebookLogger().Error($"Cached Request error({errorCode.ToString()}): ({errorMessage.ToString()}).");
                         }
                         var elapsed = this.GetUtcTime().Subtract(result["fetch_time"].ToObject<DateTime>()).TotalSeconds;
-                        if ((int)errorCode == ACCOUNT_LEVEL_THROTTLING) {
+                        if ((int) errorCode == ACCOUNT_LEVEL_THROTTLING) {
                             var remaining = Math.Max(WAIT_AFTER_USER_LIMIT_REACHED - Convert.ToInt32(elapsed), 0);
                             LoggerFactory.GetFacebookLogger().Warning("Rate limit reached. Retrying ({Retries} - {Remaining})", retries, remaining);
                             if (elapsed < WAIT_AFTER_USER_LIMIT_REACHED) {
@@ -213,7 +212,7 @@ namespace Jobs.Fetcher.Facebook {
                             if (result["error"] == null) {
                                 return result;
                             }
-                        } else if ((int)errorCode == APPLICATION_LEVEL_THROTTLING) {
+                        } else if ((int) errorCode == APPLICATION_LEVEL_THROTTLING) {
                             var waitTime = APPLICATION_QUOTA_WINDOW / 2;
                             var remaining = Math.Max(waitTime - Convert.ToInt32(elapsed), 0);
                             LoggerFactory.GetFacebookLogger().Warning("Rate limit reached. Retrying ({Retries} - {Remaining})", retries, remaining);
@@ -226,7 +225,7 @@ namespace Jobs.Fetcher.Facebook {
                                 return result;
                             }
                         } else {
-                            if ((int)errorCode == INVALID_PARAMETER) {
+                            if ((int) errorCode == INVALID_PARAMETER) {
                                 LoggerFactory.GetFacebookLogger().Warning("Invalid Parameter was send. Retrying once.");
                             }
                             if (retries == 0) {

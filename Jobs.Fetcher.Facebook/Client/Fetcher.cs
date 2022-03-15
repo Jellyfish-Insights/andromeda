@@ -207,7 +207,6 @@ namespace Jobs.Fetcher.Facebook {
                 yield return id;
                 entitiesFetched++;
             }
-
         }
 
         private JObject FetchDataById(String id, Table table, Logger jobLogger) {
@@ -455,9 +454,9 @@ namespace Jobs.Fetcher.Facebook {
                 var mediaTypeOfRow = row["media_type"].ToString().ToLower();
                 var mediaSchema = table.InstagramInsights.GetValueOrDefault(mediaTypeOfRow, null);
                 if (mediaSchema != null) {
-                    try{
+                    try {
                         ListLifetimeInsights(mediaSchema, row);
-                    }catch(Exception){
+                    }catch (Exception) {
                         Logger.Warning("Unable to catch Instagram Lifetime Insights");
                         throw;
                     }
@@ -468,19 +467,18 @@ namespace Jobs.Fetcher.Facebook {
 
             if (lifetime != null) {
                 var caught_lifetime = false;
-                try{
+                try {
                     var lrow = ListLifetimeInsights(lifetime, row);
                     caught_lifetime = true;
                     if (lrow.HasValue && daily != null) {
                         ListDailyInsights(lifetime, daily, row);
                     }
-                }catch(Exception){
-                    if(!caught_lifetime)
+                }catch (Exception) {
+                    if (!caught_lifetime)
                         Logger.Warning("Unable to catch Daily Insights");
                     else
                         Logger.Warning("Unable to catch Lifetime Insights");
                 }
-                
             }
             Logger.Information($"Finished to fetch table {table.TableName}");
         }
