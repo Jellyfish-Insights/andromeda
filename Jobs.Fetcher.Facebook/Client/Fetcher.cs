@@ -129,7 +129,7 @@ namespace Jobs.Fetcher.Facebook {
                 stringTask.Wait();
                 return stringTask.Result;
             }catch (Exception e) {
-                Logger.Error($"Failed to catch insigths for {edge.Name}");
+                Logger.Error($"Failed to catch insights for {edge.Name}");
                 if (e.Message == "One or more errors occurred. (Invalid Parameter)") {
                     Logger.Warning($"Instagram post from before the account was for business.");
                     return new JObject();
@@ -186,7 +186,7 @@ namespace Jobs.Fetcher.Facebook {
                 Logger.Debug($"Couldn't fetch {table.Name} Ids");
                 yield break;
             } catch (Exception) {
-                Logger.Error($"Couldn't fetch {table.Name} Ids");
+                Logger.Error($"Unknown error! Couldn't fetch {table.Name} Ids");
                 throw;
             }
 
@@ -292,7 +292,7 @@ namespace Jobs.Fetcher.Facebook {
                Fetch children on the `edge` api api path of the social media artifact `node`.
              */
             if (!node.TryGetValue("id", out var id)) {
-                Logger.Warning($"Could get ID from node of {edge.Name}");
+                Logger.Warning($"Could not get ID from node of {edge.Name}");
                 return;
             }
             JObject tip;
