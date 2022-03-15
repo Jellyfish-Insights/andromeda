@@ -74,14 +74,27 @@ namespace Jobs.Fetcher.Facebook {
         public override void Run() {
             if (EdgeKey == null) {
                 // the root level of a schema is fetched from credential files
-                var staticRow = SchemaLoader.ParseCredentials<JObject>(Schema.Name);
+                var staticRow = new JObject();
+                try {
+                    staticRow = SchemaLoader.ParseCredentials<JObject>(Schema.Name);
+                } catch (Exception e) {
+                    Logger.Error(e, $"Couldn't parse schema {Schema.Name}");
+                    throw;
+                }
+
                 FetchDetailsOfRow(Schema, staticRow);
             } else {
                 // non root level are fetched from the API
                 var table = Schema.Edges[EdgeKey];
+                try {
+                    var tableRows = Fetcher.FetchAllEntitiesOnTable(table, Logger, Configuration.MaxEntities).AsParallel().WithDegreeOfParallelism(Schema.Threads);
 
-                var tableRows = Fetcher.FetchAllEntitiesOnTable(table, Logger, Configuration.MaxEntities).AsParallel().WithDegreeOfParallelism(Schema.Threads);
-                tableRows.ForAll(row => FetchDetailsOfRow(table, row));
+                    tableRows.ForAll(row => FetchDetailsOfRow(table, row));
+                } catch (Exception) {
+                    Logger.Error($"Couldn't fetch entities from {Schema.Name}");
+                        
+
+                }
             }
         }
 
@@ -93,10 +106,11 @@ namespace Jobs.Fetcher.Facebook {
                 return;
             }
 
-            GetLogger().Information($"Fetching details of ({table.Name},{row ? ["id"]})");
+            Logger.Information($"Fetching details of ({table.Name},{row ? ["id"]})");
             try {
                 if (EdgeKey != null) {
                     foreach (var subEdge in table.Edges) {
+                        Logger.Debug($"Fetching subEdge {subEdge.Value.Name}");
                         Fetcher.FetchChildrenOnEdge(subEdge.Value, row);
                     }
                 }
