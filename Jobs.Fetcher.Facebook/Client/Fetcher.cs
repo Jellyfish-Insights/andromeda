@@ -129,7 +129,7 @@ namespace Jobs.Fetcher.Facebook {
                 stringTask.Wait();
                 return stringTask.Result;
             }catch (Exception e) {
-                Logger.Warning($"Failed to catch insigths for {edge.Name}");
+                Logger.Error($"Failed to catch insigths for {edge.Name}");
                 if (e.Message == "One or more errors occurred. (Invalid Parameter)") {
                     Logger.Warning($"Instagram post from before the account was for business.");
                     return new JObject();
@@ -186,7 +186,7 @@ namespace Jobs.Fetcher.Facebook {
                 Logger.Debug($"Couldn't fetch {table.Name} Ids");
                 yield break;
             } catch (Exception) {
-                Logger.Warning($"Couldn't fetch {table.Name} Ids");
+                Logger.Error($"Couldn't fetch {table.Name} Ids");
                 throw;
             }
 
@@ -246,7 +246,7 @@ namespace Jobs.Fetcher.Facebook {
                 try {
                     entities = FetchDataById(id, table, jobLogger);
                 } catch (Exception e) {
-                    Logger.Warning($"Fetching {table.Name} {id} failed.");
+                    Logger.Error($"Fetching {table.Name} {id} failed.");
                     Logger.Debug($"Error: {e}");
                     continue;
                 }
@@ -299,11 +299,11 @@ namespace Jobs.Fetcher.Facebook {
             try {
                 tip = FetchEndpoint(edge, id.ToString(), edge.Name, edge.Columns.Select(x => x.Value).ToList(), edge.Ordering).Result;
             } catch (FacebookApiException e) {
-                Logger.Warning($"Couldn't fetch data from edge {edge.Name} due to API exception.");
+                Logger.Error($"Couldn't fetch data from edge {edge.Name} due to API exception.");
                 Logger.Debug($"Error: ({e}).");
                 return;
             } catch (Exception e) {
-                Logger.Warning($"Couldn't fetch data from edge {edge.Name}.");
+                Logger.Error($"Couldn't fetch data from edge {edge.Name}.");
                 Logger.Debug($"Error: ({e}).");
                 return;
             }
@@ -312,12 +312,13 @@ namespace Jobs.Fetcher.Facebook {
 
             var transaction_batch = new List<JObject>();
             var remaining = result.Count();
+            var total_batches = Math.Ceiling((double) (remaining / BATCH_SIZE));
             Logger.Debug($"Adding {remaining} rows to Database.");
-            var batch_number = 0;
+            var batch_number = 1;
             foreach (JObject batch_obj in result) {
                 transaction_batch.Add(batch_obj);
                 if (transaction_batch.Count >= BATCH_SIZE || transaction_batch.Count >= remaining) {
-                    Logger.Debug($"Adding batch {batch_number} to Database.");
+                    Logger.Debug($"Adding batch {batch_number} of {total_batches} to Database.");
                     try {
                         DatabaseManager.Transactional(connection => {
                             foreach (JObject obj in transaction_batch) {
@@ -340,7 +341,7 @@ namespace Jobs.Fetcher.Facebook {
                             }
                         });
                     }catch (Exception e) {
-                        Logger.Warning($"Failed to insert batch {batch_number} into Database.");
+                        Logger.Error($"Failed to insert batch {batch_number} into Database.");
                         Logger.Debug($"Error: {e}.");
                     }
                     remaining -= transaction_batch.Count;
@@ -476,9 +477,9 @@ namespace Jobs.Fetcher.Facebook {
                     }
                 }catch (Exception) {
                     if (!caught_lifetime)
-                        Logger.Warning("Unable to catch Daily Insights");
+                        Logger.Error("Unable to catch Daily Insights");
                     else
-                        Logger.Warning("Unable to catch Lifetime Insights");
+                        Logger.Error("Unable to catch Lifetime Insights");
                 }
             }
             Logger.Information($"Finished to fetch table {table.TableName}");

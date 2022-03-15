@@ -87,7 +87,9 @@ namespace Jobs.Fetcher.Facebook {
                 // non root level are fetched from the API
                 var table = Schema.Edges[EdgeKey];
                 try {
-                    var tableRows = Fetcher.FetchAllEntitiesOnTable(table, Logger, Configuration.MaxEntities).AsParallel().WithDegreeOfParallelism(Schema.Threads);
+                    var tableRows = Fetcher.FetchAllEntitiesOnTable(table, Logger, Configuration.MaxEntities)
+                                        .AsParallel()
+                                        .WithDegreeOfParallelism(Schema.Threads);
 
                     tableRows.ForAll(row => FetchDetailsOfRow(table, row));
                 } catch (Exception) {
@@ -119,9 +121,9 @@ namespace Jobs.Fetcher.Facebook {
                         throw ie;
                     }
                 }
-                Logger.Warning(e, $"Failure while fetching details of ({table.TableName}, {row.ToString()}");
+                Logger.Error(e, $"Failure while fetching details of ({table.TableName}, {row.ToString()}");
             } catch (Exception e) {
-                Logger.Warning(e, $"Failure while fetching details of ({table.TableName}, {row.ToString()}");
+                Logger.Error(e, $"Failure while fetching details of ({table.TableName}, {row.ToString()}");
             }
         }
     }
