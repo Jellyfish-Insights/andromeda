@@ -312,6 +312,7 @@ namespace Jobs.Fetcher.Facebook {
 
             var transaction_batch = new List<JObject>();
             var remaining = result.Count();
+            Logger.Debug($"Adding {remaining} rows to Database.");
             var batch_number = 0;
             foreach (JObject batch_obj in result) {
                 transaction_batch.Add(batch_obj);

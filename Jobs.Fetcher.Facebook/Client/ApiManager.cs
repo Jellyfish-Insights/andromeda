@@ -108,7 +108,7 @@ namespace Jobs.Fetcher.Facebook {
 
             //Setting up a random difference for each sleep for jobs not to run concurrently
             var milliSecondsDelay = RequestDelay * ((new Random()).Next(0, 500) + 750) / 1000;
-            Logger.Debug("Sleeping for {SLEEP_TIME}ms", milliSecondsDelay);
+            Logger.Verbose("Sleeping for {SLEEP_TIME}ms", milliSecondsDelay);
             var fetch_retries = 0;
             response = null;
             while (fetch_retries < 5) {
@@ -180,7 +180,7 @@ namespace Jobs.Fetcher.Facebook {
             if (!result.TryGetValue("fetch_time", out var fetch_time)) {
                 if (result["error"] == null) {
                     result["error"]["code"] = INVALID_FETCH_TIME;
-                    result["error"]["code"] = "Not able to get fetch_time of Request or Cache.";
+                    result["error"]["message"] = "Not able to get fetch_time of Request or Cache.";
                 }
             }
             while (retries < MAX_RETRIES) {
