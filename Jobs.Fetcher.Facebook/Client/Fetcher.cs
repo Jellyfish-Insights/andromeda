@@ -312,7 +312,7 @@ namespace Jobs.Fetcher.Facebook {
 
             var transaction_batch = new List<JObject>();
             var remaining = result.Count();
-            var total_batches = Math.Ceiling((double) (remaining / BATCH_SIZE));
+            var total_batches = (long) Math.Ceiling(((double) remaining / (double) BATCH_SIZE));
             Logger.Debug($"Adding {remaining} rows to Database.");
             var batch_number = 1;
             foreach (JObject batch_obj in result) {
@@ -473,7 +473,11 @@ namespace Jobs.Fetcher.Facebook {
                     var lrow = ListLifetimeInsights(lifetime, row);
                     caught_lifetime = true;
                     if (lrow.HasValue && daily != null) {
-                        ListDailyInsights(lifetime, daily, row);
+                        if (daily.Summary) {
+                            SummaryDailyInsights(daily, row);
+                        } else {
+                            ListDailyInsights(lifetime, daily, row);
+                        }
                     }
                 }catch (Exception) {
                     if (!caught_lifetime)
@@ -538,28 +542,31 @@ namespace Jobs.Fetcher.Facebook {
             while (
                 (!hasRow || i < ITER_LIMIT || !ApiMan.ShouldPaginate)
                 && range.Minimum < upperLimit
-                && (!DatabaseManager.DailyInsightsAreComplete(lifetime, edge, node) || edge.Summary)
+                && (!DatabaseManager.DailyInsightsAreComplete(lifetime, edge, node))
                 ) {
                 Logger.Debug("Fetching date range {From} {To}", range.Minimum.Date, range.Maximum.Date);
                 i++;
                 var row = FetchInsights(node["id"].ToString(), edge, range);
 
                 var result = new List<JObject>();
+                result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
 
-                if (edge.Summary) {
-                    result.Add((JObject) row.SelectToken("summary"));
-                } else {
-                    result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
-                }
-
-                if (edge.Transposed && !edge.Summary) {
+                if (edge.Transposed) {
                     var names = result.Select(x => x["name"]).Where(y => y != null);
+                    //Result is a list of all the values fetched as a JSON with its value, start and end of the fetch
                     result = result.Select(x =>
-                                           x["values"].ToObject<List<JObject>>().Select(o => new JObject(){ { (string) x["name"], o["value"] }, { "date_start", o["end_time"] }, { "date_stop", o["end_time"] } }))
-                                 .Where(x => x.Count() > 0).DefaultIfEmpty(new List<JObject>()).Aggregate((x, y) => x.Zip(y, (a, b) => {
+                                           x["values"].ToObject<List<JObject>>()
+                                               .Select(o => new JObject(){
+                        { (string) x["name"], o["value"] },
+                        { "date_start", o["end_time"] },
+                        { "date_stop", o["end_time"] } })
+                                           )
+                                 .Where(x => x.Count() > 0).DefaultIfEmpty(new List<JObject>()).Aggregate((x, y) =>
+                                                                                                          x.Zip(y, (a, b) => {
                         a.Merge(b);
                         return a;
                     })).ToList();
+                    //Removes metrics with 0 as value
                     result = result.Where(x => names.Any(n => (int) x[(string) n] != 0)).ToList();
                 }
 
@@ -568,10 +575,6 @@ namespace Jobs.Fetcher.Facebook {
                     nobj.Add("systime", "[" + row["fetch_time"].ToObject<DateTime>().ToString("yyyy-MM-dd HH:mm:ss") + ",)");
                     if (!edge.Source.IsRoot) {
                         nobj.Add(edge.Source.Name + "_id", node["id"]);
-                    }
-                    if (edge.Summary) {
-                        nobj.Add("date_start", row["fetch_time"].ToObject<DateTime>().ToString("yyyy-MM-dd 12:00:00"));
-                        nobj.Add("date_stop", row["fetch_time"].ToObject<DateTime>().AddDays(1.0).ToString("yyyy-MM-dd 12:00:00"));
                     }
 
                     string[] pk;
@@ -603,6 +606,51 @@ namespace Jobs.Fetcher.Facebook {
                     return;
                 range.Minimum = range.Maximum;
                 range.Maximum = range.Minimum.Add(maxTimespan);
+            }
+        }
+
+        public void SummaryDailyInsights(Insights edge, JObject node) {
+            //Summary Daily Insights are metrics that cannot be fetched for past days, summaries are fetched daily
+            // and the differences are used for daily increases.
+            var now = this.ApiMan.GetUtcTime().Date;
+            Logger.Debug($"Fetching summary insights for ({node["id"]}, {edge.Name}) at {now}");
+
+            var row = FetchInsights(node["id"].ToString(), edge);
+
+            var result = new List<JObject>();
+
+            result.Add((JObject) row.SelectToken("summary"));
+
+            foreach (var nobj in result) {
+                nobj.Add("fetch_time", row["fetch_time"]);
+                nobj.Add("systime", "[" + row["fetch_time"].ToObject<DateTime>().ToString("yyyy-MM-dd HH:mm:ss") + ",)");
+                if (!edge.Source.IsRoot) {
+                    nobj.Add(edge.Source.Name + "_id", node["id"]);
+                }
+                if (edge.Summary) {
+                    nobj.Add("date_start", now.ToString("yyyy-MM-dd 12:00:00"));
+                    nobj.Add("date_stop", now.AddDays(1.0).ToString("yyyy-MM-dd 12:00:00"));
+                }
+
+                string[] pk;
+                if (edge.Source.IsRoot) {
+                    pk = new string[] { "date_start", "date_end" };
+                } else {
+                    pk = new string[] { $"{edge.Source.Name}_id", "date_start", "date_end" };
+                }
+                var modified = DatabaseManager.CheckInsightDailyMatch(edge, nobj);
+                switch (modified) {
+                    case Modified.New:
+                        DatabaseManager.InsertInsights(edge, nobj);
+                        break;
+                    case Modified.Equal:
+                        DatabaseManager.UpdateLastFetch(edge, nobj, pk, "systime", "fetch_time");
+                        break;
+                    case Modified.Updated:
+                        DatabaseManager.VersionEntityModified(edge, nobj, pk, "systime");
+                        DatabaseManager.InsertInsights(edge, nobj);
+                        break;
+                }
             }
         }
     }
