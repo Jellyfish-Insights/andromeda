@@ -14,18 +14,23 @@ SCOPES = [
 ]
 
 def create_credential_folders():
-    try:
-        os.mkdir('./credentials/')
-        os.mkdir(f'{CREDENTIAL_DEFAULT}')
-        os.mkdir(f'{CREDENTIAL_DEFAULT}/adwords')
-        os.mkdir(f'{CREDENTIAL_DEFAULT}/facebook')
-        os.mkdir(f'{CREDENTIAL_DEFAULT}/facebook/adaccount')
-        os.mkdir(f'{CREDENTIAL_DEFAULT}/facebook/page')
-        os.mkdir(f'{CREDENTIAL_DEFAULT}/instagram')
-        os.mkdir(f'{CREDENTIAL_DEFAULT}/youtube')
-    except:
-        pass
-    print('Created credential structure.')
+    # Go to the root of the project
+    os.chdir(os.path.realpath(os.path.dirname(os.path.dirname(__file__))))
+    print(os.getcwd())
+    directories = [
+        "./credentials",
+        "./credentials/user_folder",
+        "./credentials/user_folder/adwords",
+        "./credentials/user_folder/facebook",
+        "./credentials/user_folder/facebook/adaccount",
+        "./credentials/user_folder/facebook/page",
+        "./credentials/user_folder/instagram",
+        "./credentials/user_folder/youtube",
+    ]
+    for d in directories:
+        if not os.path.isdir(d):
+            print(f"Creating directory '{d}'")
+            os.mkdir(d)
 
 def get_credentials():
     flow = InstalledAppFlow.from_client_secrets_file(
