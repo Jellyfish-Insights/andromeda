@@ -31,10 +31,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         private HashSet<string> _rejected = new HashSet<string>();
 
         public ApiDataFetcher(
-                    Logger logger,
-                    YouTubeService dataService,
-                    YouTubeAnalyticsService analyticsService
-                             ) {
+            Logger logger,
+            YouTubeService dataService,
+            YouTubeAnalyticsService analyticsService
+            ) {
             _now = DateTime.UtcNow;
 
             _logger = logger;
@@ -55,14 +55,13 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         // Types are in the namespace Google.Apis.Request, common to YouTube Data
         // and YouTube Analytics
         private T GetResponse<T>(ClientServiceRequest<T> r) where T : IDirectResponseSchema {
-            if ( r.GetType().BaseType.GetGenericTypeDefinition().IsAssignableFrom(typeof(YouTubeBaseServiceRequest<>)) ) {
+            if (r.GetType().BaseType.GetGenericTypeDefinition().IsAssignableFrom(typeof(YouTubeBaseServiceRequest<>))) {
                 lock (YTDLock) {
                     YTDRequests++;
                     if (YTDRequests % 100 == 0)
                         _logger.Debug($"\n*** QUOTA ***\n{YTDRequests++} requests sent to YouTube Data\n");
                 }
-            }
-            else if ( r.GetType().BaseType.GetGenericTypeDefinition().IsAssignableFrom(typeof(YouTubeAnalyticsBaseServiceRequest<>)) ) {
+            } else if (r.GetType().BaseType.GetGenericTypeDefinition().IsAssignableFrom(typeof(YouTubeAnalyticsBaseServiceRequest<>))) {
                 lock (YTALock) {
                     YTARequests++;
                     if (YTARequests % 100 == 0)
@@ -82,8 +81,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     _logger.Error($"An unknown exception was raised!\n{exc.ToString()}");
                 }
                 return default(T); // in effect, returns null
-            }
-            finally {
+            } finally {
                 var finishTime = DateTime.UtcNow;
                 RespectQuota(startTime, finishTime);
             }
@@ -93,8 +91,8 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             lock (YTDLock) {
                 lock (YTALock) {
                     _logger.Information($"\n\nApplication (not job!) statistics:\n\n"
-                    + $"{YTDRequests} requests sent to YT Data, "
-                    + $"{YTARequests} requests sent to YT Analytics.\n\n");
+                                        + $"{YTDRequests} requests sent to YT Data, "
+                                        + $"{YTARequests} requests sent to YT Analytics.\n\n");
                 }
             }
         }
@@ -187,19 +185,19 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         }
 
         public void RejectedAdd(string videoId) {
-            lock(_rejected) _rejected.Add(videoId);
+            lock (_rejected) _rejected.Add(videoId);
         }
 
         public void RejectedUnionWith(List<string> videoIdList) {
-            lock(_rejected) _rejected.UnionWith(videoIdList);
+            lock (_rejected) _rejected.UnionWith(videoIdList);
         }
 
         public HashSet<string> RejectedGet() {
-            lock(_rejected) return _rejected;
+            lock (_rejected) return _rejected;
         }
 
         public void ResetRejected() {
-            lock(_rejected) _rejected.Clear();
+            lock (_rejected) _rejected.Clear();
         }
 
         private readonly object dbLastDateLock = new object();
@@ -360,11 +358,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 startDate = _mostRecentFetch ?? _dateOrigin;
                 if ((_now - startDate).Days > 365) {
                     _logger.Warning("You haven't fetched your data in a while. This run "
-                        + "will be limited to the first year since your last fetch. "
-                        + "Please run again later.");
+                                    + "will be limited to the first year since your last fetch. "
+                                    + "Please run again later.");
                     endDate = startDate + new TimeSpan(365, 0, 0);
-                }
-                else {
+                } else {
                     endDate = _now;
                 }
             }
@@ -380,10 +377,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         }
 
         private IEnumerable<IList<object>> FetchVideoDailyMetrics(
-                                            string channelId,
-                                            YTD.Video video,
-                                            bool reprocess
-                                            ) {
+            string channelId,
+            YTD.Video video,
+            bool reprocess
+            ) {
 
             DateTime startDate, endDate;
             (startDate, endDate) = GetStartDateEndDate(reprocess);
@@ -411,10 +408,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         }
 
         public List<(DateTime date, long subscriberViews)> FetchSubscriberViews(
-                                                string channelId,
-                                                YTD.Video video,
-                                                bool reprocess
-                                                ) {
+            string channelId,
+            YTD.Video video,
+            bool reprocess
+            ) {
 
             DateTime startDate, endDate;
             (startDate, endDate) = GetStartDateEndDate(reprocess);
@@ -439,35 +436,32 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             if (report.Rows == null) {
                 _logger.Warning("Got empty response!");
                 RejectedAdd(video.VideoId);
-            }
-            else if (report.Rows.Count() == 0) {
+            } else if (report.Rows.Count() == 0) {
                 _logger.Verbose($"Response exists but zero rows, video = {video.VideoId}");
-            }
-            else {
+            } else {
                 _logger.Verbose($"Obtained {report.Rows.Count()} rows");
-                returnRows.AddRange( report.Rows.Select(
-                    row => {
-                        var date = Convert.ToDateTime(row[1]).Date;
-                        var subscriberViews = (long) row[2];
-                        return (date, subscriberViews);
-                    }
-                ));
+                returnRows.AddRange(report.Rows.Select(
+                                        row => {
+                    var date = Convert.ToDateTime(row[1]).Date;
+                    var subscriberViews = (long) row[2];
+                    return (date, subscriberViews);
+                }));
             }
 
             return returnRows;
         }
 
         public IEnumerable<YTA.VideoDailyMetric> FetchDailyMetrics(
-                                                string channelId,
-                                                YTD.Video video,
-                                                bool reprocess = false
-                                                ) {
+            string channelId,
+            YTD.Video video,
+            bool reprocess = false
+            ) {
             _logger.Debug($"Processing channel {channelId} , video {video.VideoId}");
             var dailyMetrics = FetchVideoDailyMetrics(channelId, video, reprocess);
             var subscriberViews = FetchSubscriberViews(channelId, video, reprocess);
 
             return dailyMetrics.Select(x =>
-                Api2DbObjectConverter.ConvertDailyMetricRow(video.VideoId, x, subscriberViews));
+                                       Api2DbObjectConverter.ConvertDailyMetricRow(video.VideoId, x, subscriberViews));
         }
 
         private IList<IList<object>> RunViewerPercentageReport(ViewerPercentagesTask task) {
@@ -524,9 +518,9 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             YTA.ViewerPercentageLastDate VPLD;
             using (var dbContext = new DataLakeYouTubeAnalyticsContext()) {
                 VPLD = dbContext.ViewerPercentageLastDates
-                                    .SingleOrDefault(x => x.VideoId == videoId);
+                           .SingleOrDefault(x => x.VideoId == videoId);
             }
-            return VPLD == null ? null : (Nullable<DateTime>) VPLD.Date;
+            return VPLD == null ? null : (Nullable<DateTime>)VPLD.Date;
         }
 
         private void UpsertViewerPercentagesLastDate(string videoId, DateTime newDate) {
@@ -536,14 +530,13 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     if (lastDate == null) {
                         /* insert */
                         var newVPLD = new YTA.ViewerPercentageLastDate()
-                                    { VideoId = videoId, Date = newDate };
+                        { VideoId = videoId, Date = newDate };
                         dbContext.Add(newVPLD);
-                    }
-                    else {
+                    } else {
                         /* update */
                         var existingVPLD = dbContext.ViewerPercentageLastDates
-                                            .Where(x => x.VideoId == videoId)
-                                            .Single();
+                                               .Where(x => x.VideoId == videoId)
+                                               .Single();
                         existingVPLD.Date = newDate;
                     }
                     dbContext.SaveChanges();
@@ -552,10 +545,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         }
 
         public List<ViewerPercentagesTask> GetViewerPercentagesTasks(
-                                                        string channelId,
-                                                        YTD.Video video,
-                                                        bool fetchAll
-                                                        ) {
+            string channelId,
+            YTD.Video video,
+            bool fetchAll
+            ) {
             var tasks = new List<ViewerPercentagesTask>();
             var videoId = video.VideoId;
             var publishedAt = video.PublishedAt;
@@ -589,7 +582,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             // limit fetch range to one year
             if (!fetchAll && (rangeEndDate - rangeInitialDate).Days > 365) {
                 _logger.Warning($"Video {videoId}: the range is too long! "
-                    + "Limiting task to first year of unfetched data.");
+                                + "Limiting task to first year of unfetched data.");
                 rangeEndDate = rangeInitialDate + new TimeSpan(365, 0, 0, 0);
             }
 
@@ -597,8 +590,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                                                      rangeEndDate,
                                                      false,
                                                      1)
-                                            .ToList();
-
+                                  .ToList();
 
             foreach (var d in daysInRange) {
                 var newTask = new ViewerPercentagesTask() {
@@ -622,7 +614,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     task.VideoId,
                     task.EndDate,
                     viewerPercentages.Select(x =>
-                        Api2DbObjectConverter.ConvertViewerPercentageRow(x)),
+                                             Api2DbObjectConverter.ConvertViewerPercentageRow(x)),
                     _now
                     );
             }
@@ -632,15 +624,15 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         }
     }
 
-    public class APIStressFetcher: ApiDataFetcher {
+    public class APIStressFetcher : ApiDataFetcher {
         public APIStressFetcher(
-                    Logger logger,
-                    YouTubeService dataService,
-                    YouTubeAnalyticsService analyticsService
-                    ): base(logger, dataService, analyticsService) {}
+            Logger logger,
+            YouTubeService dataService,
+            YouTubeAnalyticsService analyticsService
+            ): base(logger, dataService, analyticsService) {}
 
-        public DateTime testStartTime {get; set;}
-        public DateTime testEndTime {get; set;}
+        public DateTime testStartTime { get; set; }
+        public DateTime testEndTime { get; set; }
 
         public int GetYTARequests() {
             lock (YTALock) return YTARequests;
@@ -682,8 +674,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     if (exc.InnerException is Google.GoogleApiException) {
                         _logger.Information($"YTA - Thread {tid} received GoogleApiException! Breaking!");
                         break;
-                    }
-                    else {
+                    } else {
                         _logger.Error("Unknown error happened. Continuing!");
                     }
                 }
@@ -709,8 +700,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     if (exc.InnerException is Google.GoogleApiException) {
                         _logger.Information($"YTD - Thread {tid} received GoogleApiException! Breaking!");
                         break;
-                    }
-                    else {
+                    } else {
                         _logger.Error("Unknown error happened. Continuing!");
                     }
                 }

@@ -170,9 +170,9 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 try {
                     storedObjs = dlContext.ViewerPercentageMetric
                                      .Where(x =>
-                                        x.VideoId == videoId
-                                        && x.StartDate <= date
-                                        && now < x.ValidityEnd)
+                                            x.VideoId == videoId
+                                            && x.StartDate <= date
+                                            && now < x.ValidityEnd)
                                      .GroupBy(x => x.StartDate)
                                      .OrderByDescending(x => x.Key)
                                      .FirstOrDefault()
@@ -193,9 +193,9 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 if (modified == Modified.New || modified == Modified.Updated) {
                     dlContext.ViewerPercentageMetric
                         .Where(x =>
-                            x.VideoId == videoId
-                            && x.StartDate >= date
-                            && now < x.ValidityEnd)
+                               x.VideoId == videoId
+                               && x.StartDate >= date
+                               && now < x.ValidityEnd)
                         .ToList()
                         .ForEach(x => { x.ValidityEnd = now; });
                 }

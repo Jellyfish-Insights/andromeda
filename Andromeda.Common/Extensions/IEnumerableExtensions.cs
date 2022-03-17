@@ -32,11 +32,12 @@ namespace Andromeda.Common.Extensions {
             yield return currentBatch;
         }
     }
+
     public static class ListExtensions {
         public static List<List<T>> DivideIntoBatches<T>(
-                                        List<T> source,
-                                        int nBatches
-                                        ) {
+            List<T> source,
+            int nBatches
+            ) {
             if (nBatches == 0) {
                 throw new InvalidOperationException("Cannot divide into zero batches!");
             }
@@ -69,7 +70,7 @@ namespace Andromeda.Common.Extensions {
             return listOfBatches;
         }
 
-        public static string DebugBatches<T>(List<List<T>> batches){
+        public static string DebugBatches<T>(List<List<T>> batches) {
             var sb = new StringBuilder($"We have {batches.Count()} batches\n");
             for (int i = 0; i < batches.Count(); i++) {
                 var batch = batches[i];

@@ -5,10 +5,8 @@ using System.IO;
 using System.Threading;
 using Microsoft.Extensions.Configuration;
 
-
 using Google.Apis.YouTube.v3;
 using Google.Apis.YouTubeAnalytics.v2;
-
 
 using Jobs.Fetcher.YouTube.Helpers;
 using Andromeda.Common.Extensions;
@@ -32,8 +30,8 @@ namespace Jobs.Fetcher.YouTube {
             var(channelId, uploadsListId) = fetcher.FetchChannelInfo();
 
             var videoIds = fetcher.FetchVideoIds(uploadsListId)
-                                         .ToHashSet()
-                                         .ToList();
+                               .ToHashSet()
+                               .ToList();
 
             for (int i = 0; i < _retry; i++) {
                 var batches = ListExtensions.DivideIntoBatches(videoIds, DegreeOfParallelism);
@@ -44,7 +42,7 @@ namespace Jobs.Fetcher.YouTube {
                 foreach (var batch in batches) {
                     var t = new Thread(() => {
                         var convertedVideos = fetcher.FetchVideoProperties(batch)
-                                .Select(x => Api2DbObjectConverter.ConvertVideo(x));
+                                                  .Select(x => Api2DbObjectConverter.ConvertVideo(x));
                         DbWriter.Write(convertedVideos, channelId, Logger);
                         rejected.AddRange(fetcher.RejectedGet());
                     });
@@ -101,11 +99,11 @@ namespace Jobs.Fetcher.YouTube {
                     var videoIds = batch.Select(x => fetcher.GetVideoIdsInPlaylist(x.Id));
 
                     var playlistsWithVideos = batch.Zip(
-                                                videoIds,
-                                                (playlist, ids) => new { playlist, ids });
+                        videoIds,
+                        (playlist, ids) => new { playlist, ids });
 
                     var convertedPlaylists = playlistsWithVideos.Select(x =>
-                                Api2DbObjectConverter.ConvertPlaylist(x.playlist, x.ids));
+                                                                        Api2DbObjectConverter.ConvertPlaylist(x.playlist, x.ids));
 
                     DbWriter.Write(convertedPlaylists, Logger);
                 });
@@ -151,8 +149,8 @@ namespace Jobs.Fetcher.YouTube {
 
                 videos = DbReader.GetVideos()
                              .Where(v =>
-                                        v.ChannelId == channelId
-                                        && videoIds.Contains(v.VideoId)
+                                    v.ChannelId == channelId
+                                    && videoIds.Contains(v.VideoId)
                                     );
 
                 fetcher.Diagnostics();
@@ -177,13 +175,12 @@ namespace Jobs.Fetcher.YouTube {
         public ReprocessDailyVideoMetricsQuery(
             List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos,
             bool forceFetch): base(accountInfos, false) {
-                this.forceFetch = forceFetch;
+            this.forceFetch = forceFetch;
         }
 
         public override List<string> Dependencies() {
             return new List<string>() { IdOf<DailyVideoMetricsQuery>(), IdOf<StatisticsQuery>() };
         }
-
 
         override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
             var fetcher = new ApiDataFetcher(Logger, DataService, AnalyticsService);
@@ -215,16 +212,16 @@ namespace Jobs.Fetcher.YouTube {
     public class ViewerPercentageQuery : YoutubeFetcher {
         public ViewerPercentageQuery(
             List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos):
-        base(accountInfos, false) {}
+            base(accountInfos, false) {}
 
         public override List<string> Dependencies() {
             return new List<string>(){
-                IdOf<VideosQuery>(),
-                IdOf<DailyVideoMetricsQuery>(),
-                // in logical terms, this job doesn't depend on ReprocessDailyVideoMetrics,
-                // but, as both require a very large amount of requests, it is a good
-                // idea not to run them in parallel
-                IdOf<ReprocessDailyVideoMetricsQuery>()
+                       IdOf<VideosQuery>(),
+                       IdOf<DailyVideoMetricsQuery>(),
+                       // in logical terms, this job doesn't depend on ReprocessDailyVideoMetrics,
+                       // but, as both require a very large amount of requests, it is a good
+                       // idea not to run them in parallel
+                       IdOf<ReprocessDailyVideoMetricsQuery>()
             };
         }
 
@@ -271,7 +268,7 @@ namespace Jobs.Fetcher.YouTube {
             fetcher.Diagnostics();
             fetcher.ResetRejected();
             Logger.Information($"We have {tasks.Count()} tasks to do. Estimated time "
-                + $"{fetcher.EstimateCompletionTime(tasks.Count())}");
+                               + $"{fetcher.EstimateCompletionTime(tasks.Count())}");
 
             threads.Clear();
             var batchedTasks = ListExtensions.DivideIntoBatches(tasks, DegreeOfParallelism);
@@ -297,7 +294,7 @@ namespace Jobs.Fetcher.YouTube {
     public class ReprocessViewerPercentageQuery : YoutubeFetcher {
         public ReprocessViewerPercentageQuery(
             List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos
-        ): base(accountInfos, false) {}
+            ): base(accountInfos, false) {}
 
         public override List<string> Dependencies() {
             return new List<string>(){ IdOf<ViewerPercentageQuery>() };
@@ -314,19 +311,18 @@ namespace Jobs.Fetcher.YouTube {
             int percentage = (int) (probabilityOfRunning * 100);
 
             Logger.Information($"This job will only be run {percentage}% of the times "
-                + "it is called. The goal is to assure there are absolutely no holes for "
-                + "our Viewer Percentages, by force refetching them all.");
+                               + "it is called. The goal is to assure there are absolutely no holes for "
+                               + "our Viewer Percentages, by force refetching them all.");
 
             var r = (new Random()).Next(0, 100);
 
             if (r < percentage) {
                 Logger.Information("This is your lucky day! We are refetching all "
-                    + "Viewer Percentage data.");
+                                   + "Viewer Percentage data.");
                 var VPQ = new ViewerPercentageQuery(AccountInfos);
                 VPQ.UseLogger(Logger);
                 VPQ.RunBodyWrap(DataService, AnalyticsService, true);
-            }
-            else {
+            } else {
                 Logger.Information("We are skipping this job this time.");
             }
         }
@@ -335,7 +331,7 @@ namespace Jobs.Fetcher.YouTube {
     public class StatisticsQuery : YoutubeFetcher {
         public StatisticsQuery(
             List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos
-        ): base(accountInfos, true) {}
+            ): base(accountInfos, true) {}
 
         public override List<string> Dependencies() {
             return new List<string>() { IdOf<VideosQuery>() };
@@ -347,9 +343,9 @@ namespace Jobs.Fetcher.YouTube {
 
             var(channelId, uploadsListId) = fetcher.FetchChannelInfo();
             var videoIds = DbReader.GetVideos()
-                                    .Where(v => v.ChannelId == channelId)
-                                    .Select(v => v.VideoId)
-                                    .ToList();
+                               .Where(v => v.ChannelId == channelId)
+                               .Select(v => v.VideoId)
+                               .ToList();
 
             var batches = ListExtensions.DivideIntoBatches(videoIds, DegreeOfParallelism);
             Logger.Information(ListExtensions.DebugBatches(batches));
@@ -358,8 +354,8 @@ namespace Jobs.Fetcher.YouTube {
             foreach (var batch in batches) {
                 var t = new Thread(() => {
                     var statistics = fetcher.FetchVideoStatistics(batch)
-                                            .Where(x => x.Statistics != null)
-                                            .Select(x => Api2DbObjectConverter.ConvertStatistics(x));
+                                         .Where(x => x.Statistics != null)
+                                         .Select(x => Api2DbObjectConverter.ConvertStatistics(x));
                     DbWriter.Write(statistics, Logger);
                 });
                 threads.Add(t);
@@ -384,16 +380,16 @@ namespace Jobs.Fetcher.YouTube {
         }
 
         string Disclaimer = "\nYouTube is not clear if their quota is defined on a per minute "
-            + "basis or on a per day basis, or even both. Please compare the information "
-            + "above to what you will find in the API documentation to achieve a coherent "
-            + "interpretation.\n";
+                            + "basis or on a per day basis, or even both. Please compare the information "
+                            + "above to what you will find in the API documentation to achieve a coherent "
+                            + "interpretation.\n";
 
         override public void RunBody(YouTubeService DataService, YouTubeAnalyticsService AnalyticsService) {
 
             Logger.Warning("\n\nThis job will test what the real quota for YouTube Data "
-                + "and YouTube Analytics is. This means it will exhaust your quota for "
-                + "that day. Only do this with a mock account / project.\n\n"
-                + "We will start the test in 30 seconds, press Ctrl+C to abort.\n\n");
+                           + "and YouTube Analytics is. This means it will exhaust your quota for "
+                           + "that day. Only do this with a mock account / project.\n\n"
+                           + "We will start the test in 30 seconds, press Ctrl+C to abort.\n\n");
             Thread.Sleep(30 * 1000);
 
             var fetcher = new APIStressFetcher(Logger, DataService, AnalyticsService);

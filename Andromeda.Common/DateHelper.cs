@@ -18,11 +18,11 @@ namespace Andromeda.Common {
             Creates a list of dates from "from" until "to", inclusive on both ends, using a single day as step.
          */
         public static IEnumerable<DateTime> DaysInRange(
-                                            DateTime from,
-                                            DateTime to,
-                                            bool reverse = false,
-                                            int step = 1
-                                            ) {
+            DateTime from,
+            DateTime to,
+            bool reverse = false,
+            int step = 1
+            ) {
             if (from == null || to == null) {
                 throw new ArgumentNullException("Neither 'from' nor 'to' can be null!");
             }

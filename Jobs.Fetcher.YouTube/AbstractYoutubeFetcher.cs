@@ -23,16 +23,16 @@ namespace Jobs.Fetcher.YouTube {
         protected int DegreeOfParallelism = 1;
 
         public YoutubeFetcher(
-                List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos,
-                bool runParallel
-                ) {
+            List<(YouTubeService dataService, YouTubeAnalyticsService analyticsService)> accountInfos,
+            bool runParallel
+            ) {
             AccountInfos = accountInfos;
             _runParallel = runParallel;
 
             IConfiguration configuration = new ConfigurationBuilder()
-                                            .SetBasePath(Directory.GetCurrentDirectory())
-                                            .AddJsonFile("appsettings.json")
-                                            .Build();
+                                               .SetBasePath(Directory.GetCurrentDirectory())
+                                               .AddJsonFile("appsettings.json")
+                                               .Build();
             DegreeOfParallelism = int.Parse(configuration["DegreeOfParallelism"]);
         }
 
@@ -51,7 +51,7 @@ namespace Jobs.Fetcher.YouTube {
             if (_runParallel) {
                 var threads = new List<Thread>();
                 for (int i = 0; i < nAccounts; i++) {
-                    var (DataService, AnalyticsService) = AccountInfos[i];
+                    var(DataService, AnalyticsService) = AccountInfos[i];
                     Logger.Verbose($"Starting thread # {i + 1}");
                     var t = new Thread(() => {
                         try {
@@ -59,27 +59,27 @@ namespace Jobs.Fetcher.YouTube {
                         }
                         catch (Exception e) {
                             Logger.Error($"Oopsie... Thread # {i + 1} threw an error:\n"
-                                + e.ToString());
+                                         + e.ToString());
                         }
                     });
                     threads.Add(t);
                     t.Start();
                 }
 
-                foreach(var t in threads) {
+                foreach (var t in threads) {
                     t.Join();
                 }
             } else {
                 Logger.Information("This job will NOT run in parallel");
                 for (int i = 0; i < nAccounts; i++) {
-                    var (DataService, AnalyticsService) = AccountInfos[i];
+                    var(DataService, AnalyticsService) = AccountInfos[i];
                     Logger.Verbose($"Processing account # {i + 1}");
                     try {
                         RunBody(DataService, AnalyticsService);
                     }
                     catch (Exception e) {
                         Logger.Error($"Oopsie... Error processing account # {i + 1}:\n"
-                        + e.ToString());
+                                     + e.ToString());
                     }
                 }
             }

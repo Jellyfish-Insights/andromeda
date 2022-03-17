@@ -116,7 +116,7 @@ namespace Jobs.Fetcher.YouTube {
                        new StatisticsQuery(youtubeServices),
                        new VideosQuery(youtubeServices),
                        new ViewerPercentageQuery(youtubeServices),
-                    //    new APIStressTest(youtubeServices),
+                       //    new APIStressTest(youtubeServices),
             };
         }
     }

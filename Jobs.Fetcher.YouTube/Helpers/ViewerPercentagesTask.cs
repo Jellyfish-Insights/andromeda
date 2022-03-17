@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-
 namespace Jobs.Fetcher.YouTube.Helpers {
 /* This data structure will help to parallelize requests */
     public class ViewerPercentagesTask {
