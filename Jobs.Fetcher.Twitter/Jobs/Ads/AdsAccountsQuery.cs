@@ -44,11 +44,11 @@ namespace Jobs.Fetcher.Twitter {
                 while (!iterator.Completed) {
                     try {
                         page_count++;
-                        Logger.Error($"Fetching Twitter Ads Video Libraries for {username}, page {page_count}");
+                        Logger.Error($"Fetching Twitter Ads Accounts for {username}, page {page_count}");
                         var adsAccountPage = iterator.NextPageAsync().GetAwaiter().GetResult();
                         DbWriter.WriteAdsAccounts(user.Id, username, adsAccountPage.Content, adsContext, Logger);
                     }catch (Exception e) {
-                        Logger.Error($"Could not fetch Twitter Ads Video Libraries for {username}, page {page_count}");
+                        Logger.Error($"Could not fetch Twitter Ads Accounts for {username}, page {page_count}");
                         Logger.Verbose($"Error: {e}");
                     }
                 }

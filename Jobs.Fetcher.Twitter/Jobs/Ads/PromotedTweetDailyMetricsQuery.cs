@@ -73,13 +73,17 @@ namespace Jobs.Fetcher.Twitter {
             var startDate = DbReader.GetPromotedTweetDailyMetricsStartingDate(user.Id, dataDbContext, adsDbContext, GetLogger());
 
             foreach (var adsAccount in DbReader.GetAdsAccounts(username, adsDbContext, GetLogger())) {
-
-                await ApiDataFetcher.GetPromotedTweetDailyMetricsReport(
-                    adsAccount,
-                    startDate,
-                    promotedTweetIds,
-                    client as TwitterAdsClient,
-                    ProccessPromotedTweetDailyMetricsResult);
+                try {
+                    await ApiDataFetcher.GetPromotedTweetDailyMetricsReport(
+                        adsAccount,
+                        startDate,
+                        promotedTweetIds,
+                        client as TwitterAdsClient,
+                        ProccessPromotedTweetDailyMetricsResult);
+                }catch (Exception e) {
+                    Logger.Error($"Could not get Promoted Daily Metrics from {adsAccount}");
+                    Logger.Verbose($"Error: {e}");
+                }
             }
         }
     }
