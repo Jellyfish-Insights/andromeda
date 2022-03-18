@@ -75,15 +75,21 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             }
             catch (Exception exc) {
                 if (exc.InnerException is Google.GoogleApiException) {
-                    _logger.Error($"Google API raised an error!\n{exc.ToString()}");
-                    SlowDown();
+                    if (exc.Message.Contains("quota", StringComparison.OrdinalIgnoreCase)) {
+                            _logger.Error($"Ran out of quota!\n{exc.ToString()}");
+                            SlowDown();
+                    } else {
+                        _logger.Error("Google API raised an error (it's not quota):\n"
+                            + exc.ToString());
+                        return default(T);
+                    }
                 } else {
                     _logger.Error($"An unknown exception was raised!\n{exc.ToString()}");
                 }
                 return default(T); // in effect, returns null
             } finally {
                 var finishTime = DateTime.UtcNow;
-                RespectQuota(startTime, finishTime);
+                RespectQuota(startTime, finishTime, r.GetType().ToString());
             }
         }
 
@@ -642,7 +648,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             lock (YTDLock) return YTDRequests;
         }
 
-        public void StressTestYTA(string channelId, string videoId, int tid) {
+        public void StressTestYTA(string channelId,
+                                  string videoId,
+                                  int tid,
+                                  bool limitPerDay = false) {
             _logger.Information($"YTA - Starting thread {tid}");
             // we want the request to succeed while returning the smallest possible
             // number of rows (even zero)
@@ -672,13 +681,22 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 }
                 catch (Exception exc) {
                     if (exc.InnerException is Google.GoogleApiException) {
-                        _logger.Information($"YTA - Thread {tid} received GoogleApiException! Breaking!");
-                        break;
+                        if (exc.Message.Contains("quota", StringComparison.OrdinalIgnoreCase)) {
+                            _logger.Information($"YTA - Thread {tid} received GoogleApiException! Breaking!");
+                            break;
+                        } else {
+                            _logger.Error("Google API raised an error (it's not quota):\n"
+                                + exc.ToString());
+                            _logger.Information("Continuing");
+                        }
                     } else {
-                        _logger.Error("Unknown error happened. Continuing!");
-                    }
+                            _logger.Error("Unknown error happened. Continuing!");
+                        }
                 }
-                Thread.Sleep(5000);
+                // turn this on to test the daily limit instead of the per-minute
+                if (limitPerDay) {
+                    Thread.Sleep(5000);
+                }
             }
         }
 
@@ -698,10 +716,16 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 }
                 catch (Exception exc) {
                     if (exc.InnerException is Google.GoogleApiException) {
-                        _logger.Information($"YTD - Thread {tid} received GoogleApiException! Breaking!");
-                        break;
+                        if (exc.Message.Contains("quota", StringComparison.OrdinalIgnoreCase)) {
+                            _logger.Information($"YTD - Thread {tid} received GoogleApiException! Breaking!");
+                            break;
+                        } else {
+                            _logger.Error("Google API raised an error (it's not quota):\n"
+                                + exc.ToString());
+                            _logger.Information("Continuing");
+                        }
                     } else {
-                        _logger.Error("Unknown error happened. Continuing!");
+                            _logger.Error("Unknown error happened. Continuing!");
                     }
                 }
             }

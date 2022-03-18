@@ -110,13 +110,15 @@ namespace Jobs.Fetcher.YouTube {
 
             return new List<AbstractJob>() {
                        new DailyVideoMetricsQuery(youtubeServices),
-                       new PlaylistsQuery(youtubeServices),
+                    //    new PlaylistsQuery(youtubeServices),
                        new ReprocessDailyVideoMetricsQuery(youtubeServices, forceFetch),
-                       new ReprocessViewerPercentageQuery(youtubeServices),
-                       new StatisticsQuery(youtubeServices),
-                       new VideosQuery(youtubeServices),
-                       new ViewerPercentageQuery(youtubeServices),
-                       //    new APIStressTest(youtubeServices),
+                    //    new ReprocessViewerPercentageQuery(youtubeServices),
+                    //    new StatisticsQuery(youtubeServices),
+                    //    new VideosQuery(youtubeServices),
+                    //    new ViewerPercentageQuery(youtubeServices),
+
+                       // don't turn the following job on unless you know what you're doing
+                        //   new APIStressTest(youtubeServices),
             };
         }
     }

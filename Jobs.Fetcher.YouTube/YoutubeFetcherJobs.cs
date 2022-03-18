@@ -188,10 +188,21 @@ namespace Jobs.Fetcher.YouTube {
 
             var(channelId, uploadsListId) = fetcher.FetchChannelInfo();
             var comparison = DbReader.CompareVideoLifetimeDailyTotal();
+
+            var videosFromChannel = DbReader.GetVideos()
+                                    .Where(v => v.ChannelId == channelId)
+                                    .Select(v => v.VideoId)
+                                    .ToList();
+
+            var comparisonFiltered = comparison
+                                    .Where(x => videosFromChannel.Contains(x.Id.VideoId));
+
             long comparisonMinLimit = 500;
             double comparisonThreshold = 0.05;
 
             Logger.Information($"We are comparing {comparison.Count()} items");
+            Logger.Information($"After filtering: {comparisonFiltered.Count()} items");
+
             Logger.Information($"forceFetch is {forceFetch}");
 
             foreach (var item in comparison) {
