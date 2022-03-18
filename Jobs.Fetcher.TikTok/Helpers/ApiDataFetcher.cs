@@ -30,31 +30,58 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             }
         }
 
-        public static Video GetTikTokVideoFromJson(JToken videoJson, string postId) {
+        public static Video GetTikTokVideoFromJson(JObject videoJson, string postId) {
             var shareCovers = new List<string>();
-            foreach (var shareCover in videoJson["shareCover"]) {
+
+            bool nullId = !videoJson.TryGetValue("id", out var id);
+            bool nullDuration = !videoJson.TryGetValue("duration", out var duration);
+            bool nullCover = !videoJson.TryGetValue("cover", out var cover);
+            bool nullPlayAddr = !videoJson.TryGetValue("playAddr", out var playAddr);
+
+            videoJson.TryGetValue("height", out var height);
+            videoJson.TryGetValue("width", out var width);
+            videoJson.TryGetValue("ratio", out var ratio);
+            videoJson.TryGetValue("originCover", out var originCover);
+            videoJson.TryGetValue("dynamicCover", out var dynamicCover);
+            videoJson.TryGetValue("downloadAddr", out var downloadAddr);
+            videoJson.TryGetValue("reflowCover", out var reflowCover);
+            videoJson.TryGetValue("bitrate", out var bitrate);
+            videoJson.TryGetValue("encodedType", out var encodedType);
+            videoJson.TryGetValue("format", out var format);
+            videoJson.TryGetValue("videoQuality", out var videoQuality);
+            videoJson.TryGetValue("encodeUserTag", out var encodeUserTag);
+            videoJson.TryGetValue("codecType", out var codecType);
+            videoJson.TryGetValue("definition", out var definition);
+            videoJson.TryGetValue("shareCover", out var shareCoverJson);
+
+            if (nullId || nullDuration || nullCover || nullPlayAddr) {
+                throw new NullReferenceException();
+            }
+
+            foreach (var shareCover in shareCoverJson) {
                 shareCovers.Add(shareCover.ToString());
             }
+
             var newVideo = new Video() {
-                Id = videoJson["id"].ToString(),
-                Height = videoJson["height"].ToObject<int>(),
-                Width = videoJson["width"].ToObject<int>(),
-                Duration = videoJson["duration"].ToObject<int>(),
-                Ratio = videoJson["ratio"].ToString(),
-                Cover = videoJson["cover"].ToString(),
-                OriginCover = videoJson["originCover"].ToString(),
-                DynamicCover = videoJson["dynamicCover"].ToString(),
-                PlayAddress = videoJson["playAddr"].ToString(),
-                DownloadAddress = videoJson["downloadAddr"].ToString(),
+                Id = id.ToString(),
+                Height = height.ToObject<int>(),
+                Width = width.ToObject<int>(),
+                Duration = duration.ToObject<int>(),
+                Ratio = ratio.ToString(),
+                Cover = cover.ToString(),
+                OriginCover = originCover.ToString(),
+                DynamicCover = dynamicCover.ToString(),
+                PlayAddress = playAddr.ToString(),
+                DownloadAddress = downloadAddr.ToString(),
                 ShareCover = shareCovers,
-                ReflowCover = videoJson["reflowCover"].ToString(),
-                BitRate = videoJson["bitrate"].ToObject<int>(),
-                EncodedType = videoJson["encodedType"].ToString(),
-                Format = videoJson["format"].ToString(),
-                VideoQuality = videoJson["videoQuality"].ToString(),
-                EncodedUserTag = videoJson["encodeUserTag"].ToString(),
-                CodecType = videoJson["codecType"].ToString(),
-                Definition = videoJson["definition"].ToString()
+                ReflowCover = reflowCover.ToString(),
+                BitRate = bitrate.ToObject<int>(),
+                EncodedType = encodedType.ToString(),
+                Format = format.ToString(),
+                VideoQuality = videoQuality.ToString(),
+                EncodedUserTag = encodeUserTag.ToString(),
+                CodecType = codecType.ToString(),
+                Definition = definition.ToString()
             };
 
             return newVideo;

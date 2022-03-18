@@ -6,6 +6,7 @@ using Serilog.Core;
 using DataLakeModels;
 using Jobs.Fetcher.TikTok.Helpers;
 using DataLakeModels.Models.TikTok;
+using Newtonsoft.Json.Linq;
 
 namespace Jobs.Fetcher.TikTok {
 
@@ -28,65 +29,93 @@ namespace Jobs.Fetcher.TikTok {
                 var authorId = DatabaseManager.GetTikTokId(username.Substring(1), dbContext);
                 var lastFetch = authorId != null? DatabaseManager.GetLastFetch(authorId, dbContext) : DateTime.MinValue;
                 foreach (var post in ApiDataFetcher.GetPosts(username, lastFetch, Logger)) {
-                    Logger.Information("Found TikTok Post for '" + username + "' of ID '" + post["id"] + "'.");
+                    if (!post.TryGetValue("id", out var id)) {
+                        Logger.Error("Could not get post ID from JSON. Skipping this post.");
+                        continue;
+                    }
+                    Logger.Information("Found TikTok Post for '" + username + "' of ID '" + id.ToString() + "'.");
 
                     Author newAuthor = null;
                     try {
-                        if (post["author"].ToString() == username.Substring(1)) {
+                        if (post.TryGetValue("author", out var authorName) && authorName.ToString() == username.Substring(1)) {
                             Logger.Warning($"Author data is incomplete");
                             newAuthor = ApiDataFetcher.GetTikTokAuthorFromPostJson(post);
+                        } else if (post.TryGetValue("author", out var authorJson)) {
+                            newAuthor = ApiDataFetcher.GetTikTokAuthorFromAuthorJson(authorJson);
                         } else {
-                            newAuthor = ApiDataFetcher.GetTikTokAuthorFromAuthorJson(post["author"]);
+                            Logger.Error("Could not get author data from JSON. Skipping this post.");
+                            continue;
                         }
                         DbWriter.WriteAuthor(newAuthor, dbContext, logger);
-                    }catch (Exception e) {
+                    }catch (Exception) {
                         Logger.Error("Could not get author data.");
-                        throw e;
+                        throw;
                     }
 
                     Music newMusic = null;
                     try {
-                        newMusic = ApiDataFetcher.GetTikTokMusicFromJson(post["music"]);
-                        DbWriter.WriteMusic(newMusic, dbContext, logger);
-                    }catch (Exception e) {
+                        if (post.TryGetValue("music", out var musicJson)) {
+                            newMusic = ApiDataFetcher.GetTikTokMusicFromJson(musicJson);
+                            DbWriter.WriteMusic(newMusic, dbContext, logger);
+                        } else {
+                            Logger.Warning("Could not get music data from JSON. Continuing.");
+                        }
+                    }catch (Exception) {
                         Logger.Error("Could not get music data.");
-                        throw e;
+                        throw;
                     }
 
                     var newChallenges = new List<Challenge>();
                     try {
-                        newChallenges = ApiDataFetcher.GetTikTokChallengesFromJson(post["challenges"]);
-                        DbWriter.WriteChallenges(newChallenges, dbContext, logger);
-                    }catch (Exception e) {
+                        if (post.TryGetValue("challenges", out var challengesJson)) {
+                            newChallenges = ApiDataFetcher.GetTikTokChallengesFromJson(challengesJson);
+                            DbWriter.WriteChallenges(newChallenges, dbContext, logger);
+                        } else {
+                            Logger.Warning("Could not get challenges data from JSON. Continuing.");
+                        }
+                    }catch (Exception) {
                         Logger.Error("Could not get challenges data.");
-                        throw e;
+                        throw;
                     }
 
                     var newTags = new List<Tag>();
                     try {
-                        newTags = ApiDataFetcher.GetTikTokTagsFromJson(post["textExtra"]);
-                        DbWriter.WriteTags(newTags, dbContext, logger);
-                    }catch (Exception e) {
+                        if (post.TryGetValue("textExtra", out var tagsJson)) {
+                            newTags = ApiDataFetcher.GetTikTokTagsFromJson(tagsJson);
+                            DbWriter.WriteTags(newTags, dbContext, logger);
+                        } else {
+                            Logger.Warning("Could not get tags data from JSON. Continuing.");
+                        }
+                    }catch (Exception) {
                         Logger.Error("Could not get tags data.");
-                        throw e;
+                        throw;
                     }
 
                     var newEffectStickers = new List<EffectSticker>();
                     try {
-                        newEffectStickers = ApiDataFetcher.GetTikTokEffectStickersFromJson(post["effectStickers"]);
-                        DbWriter.WriteEffectStickers(newEffectStickers, dbContext, logger);
-                    }catch (Exception e) {
-                        Logger.Error("Could not get Effect Stickers data.");
-                        throw e;
+                        if (post.TryGetValue("effectStickers", out var stickersJson)) {
+                            newEffectStickers = ApiDataFetcher.GetTikTokEffectStickersFromJson(stickersJson);
+                            DbWriter.WriteEffectStickers(newEffectStickers, dbContext, logger);
+                        } else {
+                            Logger.Warning("Could not get effect stickers data from JSON. Continuing.");
+                        }
+                    }catch (Exception) {
+                        Logger.Error("Could not get effect stickers data.");
+                        throw;
                     }
 
                     Video newVideo = null;
                     try {
-                        newVideo = ApiDataFetcher.GetTikTokVideoFromJson(post["video"], post["id"].ToString());
-                        DbWriter.WriteVideo(newVideo, dbContext, logger);
-                    }catch (Exception e) {
+                        if (post.TryGetValue("video", out var videoJson)) {
+                            newVideo = ApiDataFetcher.GetTikTokVideoFromJson((JObject) videoJson, id.ToString());
+                            DbWriter.WriteVideo(newVideo, dbContext, logger);
+                        } else {
+                            Logger.Error("Could not get video data from JSON. Skipping this post.");
+                            continue;
+                        }
+                    }catch (Exception) {
                         Logger.Error("Could not get video data.");
-                        throw e;
+                        throw;
                     }
 
                     var challengeIds = new List<string>();
@@ -106,25 +135,36 @@ namespace Jobs.Fetcher.TikTok {
                     try {
                         newPost = ApiDataFetcher.GetTikTokPostFromJson(post, newAuthor, newVideo, newMusic, challengeIds, tagIds, effectStickerIds);
                         DbWriter.WritePost(newPost, dbContext, logger);
-                    }catch (Exception e) {
+                    }catch (NullReferenceException) {
+                        Logger.Error("Could not get post data from JSON. Skipping this post.");
+                        continue;
+                    }catch (Exception) {
                         Logger.Error("Could not get post data.");
-                        throw e;
+                        throw;
                     }
 
                     try {
-                        var newAuthorStats = ApiDataFetcher.GetTikTokAuthorStatsFromJson(post["authorStats"], newAuthor, newPost.CreateTime);
-                        DbWriter.WriteAuthorStats(newAuthorStats, dbContext, logger);
-                    }catch (Exception e) {
+                        if (post.TryGetValue("authorStats", out var authorStatsJson)) {
+                            var newAuthorStats = ApiDataFetcher.GetTikTokAuthorStatsFromJson(authorStatsJson, newAuthor, newPost.CreateTime);
+                            DbWriter.WriteAuthorStats(newAuthorStats, dbContext, logger);
+                        } else {
+                            Logger.Warning("Could not get author stats data from JSON. Continuing.");
+                        }
+                    }catch (Exception) {
                         Logger.Error("Could not get author stats data.");
-                        throw e;
+                        throw;
                     }
 
                     try {
-                        var newPostStats = ApiDataFetcher.GetTikTokPostStatsJson(post["stats"], newPost, newPost.CreateTime);
-                        DbWriter.WritePostStats(newPostStats, dbContext, logger);
-                    }catch (Exception e) {
+                        if (post.TryGetValue("stats", out var statsJson)) {
+                            var newPostStats = ApiDataFetcher.GetTikTokPostStatsJson(statsJson, newPost, newPost.CreateTime);
+                            DbWriter.WritePostStats(newPostStats, dbContext, logger);
+                        } else {
+                            Logger.Warning("Could not get post stats data from JSON. Continuing.");
+                        }
+                    }catch (Exception) {
                         Logger.Error("Could not get post stats data.");
-                        throw e;
+                        throw;
                     }
                 }
             }
