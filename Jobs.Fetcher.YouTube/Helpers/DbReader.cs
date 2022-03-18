@@ -44,12 +44,12 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                             .Where(x => x.ValidityEnd >= now)
                         on s.VideoId equals v.VideoId
                         select new MetricDelta<Video, long>(){
-                            Id = v,
-                            Lifetime = s.ViewCount,
-                            Total = dt.Views,
-                            DailyStart = dt.StartDate,
-                            DailyEnd = dt.EndDate,
-                            LifetimeDate = s.CaptureDate
+                        Id = v,
+                        Lifetime = s.ViewCount,
+                        Total = dt.Views,
+                        DailyStart = dt.StartDate,
+                        DailyEnd = dt.EndDate,
+                        LifetimeDate = s.CaptureDate
                     };
                     return stats.ToList();
                 }

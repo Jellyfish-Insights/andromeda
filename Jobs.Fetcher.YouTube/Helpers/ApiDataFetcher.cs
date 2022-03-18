@@ -76,11 +76,11 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             catch (Exception exc) {
                 if (exc.InnerException is Google.GoogleApiException) {
                     if (exc.Message.Contains("quota", StringComparison.OrdinalIgnoreCase)) {
-                            _logger.Error($"Ran out of quota!\n{exc.ToString()}");
-                            SlowDown();
+                        _logger.Error($"Ran out of quota!\n{exc.ToString()}");
+                        SlowDown();
                     } else {
                         _logger.Error("Google API raised an error (it's not quota):\n"
-                            + exc.ToString());
+                                      + exc.ToString());
                         return default(T);
                     }
                 } else {
@@ -686,12 +686,12 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                             break;
                         } else {
                             _logger.Error("Google API raised an error (it's not quota):\n"
-                                + exc.ToString());
+                                          + exc.ToString());
                             _logger.Information("Continuing");
                         }
                     } else {
-                            _logger.Error("Unknown error happened. Continuing!");
-                        }
+                        _logger.Error("Unknown error happened. Continuing!");
+                    }
                 }
                 // turn this on to test the daily limit instead of the per-minute
                 if (limitPerDay) {
@@ -721,11 +721,11 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                             break;
                         } else {
                             _logger.Error("Google API raised an error (it's not quota):\n"
-                                + exc.ToString());
+                                          + exc.ToString());
                             _logger.Information("Continuing");
                         }
                     } else {
-                            _logger.Error("Unknown error happened. Continuing!");
+                        _logger.Error("Unknown error happened. Continuing!");
                     }
                 }
             }
