@@ -128,14 +128,14 @@ namespace Jobs.Fetcher.Facebook {
                 stringTask = ApiMan.CachedRequest(edge.TableName, url);
                 stringTask.Wait();
                 return stringTask.Result;
-            }catch (Exception e) {
-                Logger.Error($"Failed to catch insights for {edge.Name}");
-                if (e.Message == "One or more errors occurred. (Invalid Parameter)") {
-                    Logger.Warning($"Instagram post from before the account was for business.");
-                    return new JObject();
-                } else {
-                    throw e;
+            }catch (AggregateException e) {
+                foreach (var ie in e.InnerExceptions) {
+                    if (!(ie is FacebookApiException)) {
+                        Logger.Error($"Failed to catch insights for {edge.Name}. Unknown exception");
+                        throw;
+                    }
                 }
+                return new JObject();
             }
         }
 
@@ -154,12 +154,10 @@ namespace Jobs.Fetcher.Facebook {
                     JObject page;
                     try {
                         page = ApiMan.CachedRequest(table.TableName, next.ToString()).Result;
-                    } catch (FacebookApiException) {
-                        yield break;
                     } catch (AggregateException e) {
                         foreach (var ie in e.InnerExceptions) {
                             if (!(ie is FacebookApiException)) {
-                                throw e;
+                                throw;
                             }
                         }
                         yield break;
@@ -182,12 +180,15 @@ namespace Jobs.Fetcher.Facebook {
              */JObject first_page;
             try {
                 first_page = FetchVideoId(table, ApiMan.Secret.Id, table.Name).Result;
-            } catch (FacebookApiException) {
+            } catch (AggregateException e) {
+                foreach (var ie in e.InnerExceptions) {
+                    if (!(ie is FacebookApiException)) {
+                        Logger.Error($"Unknown error! Couldn't fetch {table.Name} Ids");
+                        throw;
+                    }
+                }
                 Logger.Debug($"Couldn't fetch {table.Name} Ids");
                 yield break;
-            } catch (Exception) {
-                Logger.Error($"Unknown error! Couldn't fetch {table.Name} Ids");
-                throw;
             }
 
             var entitiesIdList = new List<string>();
@@ -298,16 +299,25 @@ namespace Jobs.Fetcher.Facebook {
             JObject tip;
             try {
                 tip = FetchEndpoint(edge, id.ToString(), edge.Name, edge.Columns.Select(x => x.Value).ToList(), edge.Ordering).Result;
-            } catch (FacebookApiException e) {
-                Logger.Error($"Couldn't fetch data from edge {edge.Name} due to API exception.");
-                Logger.Debug($"Error: ({e}).");
-                return;
-            } catch (Exception e) {
-                Logger.Error($"Couldn't fetch data from edge {edge.Name}.");
-                Logger.Debug($"Error: ({e}).");
+            }catch (AggregateException e) {
+                foreach (var ie in e.InnerExceptions) {
+                    Logger.Error($"Couldn't fetch data from edge {edge.Name}.");
+                    if (!(ie is FacebookApiException)) {
+                        Logger.Debug($"Error: ({ie}).");
+                    }
+                }
                 return;
             }
-            var result = PaginateEndpoint(edge, tip, max_iters);
+
+            var result = new List<JObject>();
+            try {
+                result = PaginateEndpoint(edge, tip, max_iters).ToList();
+            }catch (Exception e) {
+                Logger.Error($"Couldn't paginate data from edge {edge.Name}.");
+                Logger.Debug($"Error: ({e}).");
+                throw;
+            }
+
             var result2 = new List<JObject>();
 
             var transaction_batch = new List<JObject>();

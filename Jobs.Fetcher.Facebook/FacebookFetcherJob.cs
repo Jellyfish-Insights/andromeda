@@ -114,6 +114,7 @@ namespace Jobs.Fetcher.Facebook {
                         Fetcher.FetchChildrenOnEdge(subEdge.Value, row);
                     }
                 }
+                Logger.Debug($"Fetching insights");
                 Fetcher.FetchInsights(table, row);
             } catch (AggregateException e) {
                 foreach (var ie in e.InnerExceptions) {
