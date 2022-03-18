@@ -20,6 +20,7 @@ using FlycatcherAds.Client;
 namespace Jobs.Fetcher.Twitter {
 
     public class AdsAccountsQuery : AbstractTwitterFetcher {
+        const int ERROR_LIMIT = 5;
 
         public AdsAccountsQuery(Dictionary<string, ITwitterClient> clients): base(clients) {}
 
@@ -33,21 +34,30 @@ namespace Jobs.Fetcher.Twitter {
             DataLakeTwitterAdsContext adsContext,
             DataLakeTwitterDataContext dataContext) {
 
-            var user = DbReader.GetUserByUsername(username, dataContext);
+            var user = DbReader.GetUserByUsername(username, dataContext, Logger);
+
             if (user == null) {
-                Logger.Error($"User {username} not found in database");
+                Logger.Warning($"User {username} not found in database");
                 return;
             }
 
             void ProccessAdsAccountResult(ITwitterRequestIterator<AdsAccountsResponse, string> iterator) {
-                try {
-                    while (!iterator.Completed) {
+                var error_count = 0;
+                while (!iterator.Completed) {
+                    try {
                         var adsAccountPage = iterator.NextPageAsync().GetAwaiter().GetResult();
                         DbWriter.WriteAdsAccounts(user.Id, username, adsAccountPage.Content, adsContext, Logger);
+                    }catch (Exception e) {
+                        Logger.Error($"Could not fetch Twitter Video Libraries for {username}");
+                        Logger.Verbose($"Error: {e}");
+                        if(error_count < ERROR_LIMIT && !iterator.Completed){
+                            Logger.Warning($"Continuing fetching");
+                            continue;
+                        }else{
+                            Logger.Warning($"Stopping {Id()}.");
+                            throw;
+                        }
                     }
-                }catch (Exception e) {
-                    Logger.Error($"Could not fetch Twitter Video Libraries for {username}");
-                    throw e;
                 }
             }
 

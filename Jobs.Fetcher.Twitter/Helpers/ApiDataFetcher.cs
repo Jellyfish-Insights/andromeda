@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Serilog.Core;
 using Tweetinvi;
 using Tweetinvi.Core.Iterators;
 using Tweetinvi.Iterators;
@@ -137,7 +138,7 @@ namespace Jobs.Fetcher.Twitter.Helpers {
 
                 Callback(GetUserTweetsTimelineIterator(GetTimeLineParametersWithPublicMetrics(userId, start, end), client));
 
-                Callback(GetUserTweetsTimelineIterator(GetTimelineParametersWithNonPublicMetrics(userId, start, end), client));
+                Callback(GetUserTweetsTimelineIterator(GetTimelineParametersWithNonPublicMetrics(userId, start, end), client));        
 
                 Callback(GetUserTweetsTimelineIterator(GetTimelineParametersWithAllMetrics(userId, start, end), client));
             }

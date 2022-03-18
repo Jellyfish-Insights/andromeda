@@ -8,6 +8,9 @@ using Andromeda.Common.Jobs;
 using Tweetinvi.Models;
 using System.Collections.Generic;
 
+using DataLakeModels;
+using Andromeda.Common.Logging;
+
 using FlycatcherAds;
 using FlycatcherData;
 
@@ -18,6 +21,8 @@ namespace Jobs.Fetcher.Twitter {
         public override JobScope Scope { get; } = JobScope.Twitter;
         private string SecretsFile = "twitter_credentials.json";
 
+        private Logger Logger;
+
         public override IEnumerable<AbstractJob> GetJobs(
             JobType type,
             JobScope scope,
@@ -27,6 +32,8 @@ namespace Jobs.Fetcher.Twitter {
             if (CheckTypeAndScope(type, scope) || !CheckNameIsScope(names)) {
                 return NoJobs;
             }
+
+            Logger = LoggerFactory.GetLogger<DataLakeLoggingContext>("TwitterFetcher");
 
             Dictionary<string, TwitterCredentials> credentials = GetTwitterCredentials();
 
@@ -78,26 +85,37 @@ namespace Jobs.Fetcher.Twitter {
                 return Credentials;
             } catch (Exception e) {
 
-                // TODO log the error
-                System.Console.WriteLine(e.ToString());
+                Logger.Warning($"Unable to fetch Twitter credentials");
+                Logger.Verbose($"Error: {e}");
                 return new Dictionary<string, TwitterCredentials>();
             }
         }
 
         private Dictionary<string, ITwitterClient> BuildTwitterAdsClients(
             Dictionary<string, TwitterCredentials> credentials) {
-
-            return credentials.ToDictionary(
-                kvp => kvp.Key, kvp => new TwitterAdsClient(new ReadOnlyTwitterCredentials(kvp.Value as IReadOnlyTwitterCredentials)) as ITwitterClient
-                );
+            try {
+                return credentials.ToDictionary(
+                    kvp => kvp.Key, kvp => new TwitterAdsClient(new ReadOnlyTwitterCredentials(kvp.Value as IReadOnlyTwitterCredentials)) as ITwitterClient
+                    );
+            }catch (Exception e) {
+                Logger.Warning($"Unable to fetch Twitter Ads credentials");
+                Logger.Verbose($"Error: {e}");
+                return new Dictionary<string, ITwitterClient>();
+            }
         }
 
         private Dictionary<string, ITwitterClient> BuildTwitterDataClients(
             Dictionary<string, TwitterCredentials> credentials) {
 
-            return credentials.ToDictionary(
-                kvp => kvp.Key, kvp => new TwitterDataClient(new ReadOnlyTwitterCredentials(kvp.Value as IReadOnlyTwitterCredentials)) as ITwitterClient
-                );
+            try {
+                return credentials.ToDictionary(
+                    kvp => kvp.Key, kvp => new TwitterDataClient(new ReadOnlyTwitterCredentials(kvp.Value as IReadOnlyTwitterCredentials)) as ITwitterClient
+                    );
+            }catch (Exception e) {
+                Logger.Warning($"Unable to fetch Twitter Data credentials");
+                Logger.Verbose($"Error: {e}");
+                return new Dictionary<string, ITwitterClient>();
+            }
         }
     }
 }

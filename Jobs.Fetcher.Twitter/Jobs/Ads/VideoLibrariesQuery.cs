@@ -34,7 +34,7 @@ namespace Jobs.Fetcher.Twitter {
         }
 
         private void RunBody(string username, ITwitterClient client, DataLakeTwitterAdsContext dbContext) {
-            var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext);
+            var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext, GetLogger());
 
             void ProccessVideoLibraryResult(ITwitterRequestIterator<MediaLibraryResponse, string> iterator) {
                 try {

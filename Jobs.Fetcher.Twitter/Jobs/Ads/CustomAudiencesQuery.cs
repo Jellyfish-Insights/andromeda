@@ -40,12 +40,13 @@ namespace Jobs.Fetcher.Twitter {
                         DbWriter.WriteCustomAudiences(customAudiencesPage.Content, adsDbContext, GetLogger());
                     }
                 }catch (Exception e) {
-                    GetLogger().Error($"Could not fetch Twitter Video Libraries for {username}");
-                    throw e;
+                    GetLogger().Error($"Could not fetch or write Twitter Video Libraries for {username}");
+                    GetLogger().Verbose($"Error: {e}");
+                    throw;
                 }
             }
 
-            foreach (var adsAccountId in DbReader.GetAdsAccountIds(username, adsDbContext)) {
+            foreach (var adsAccountId in DbReader.GetAdsAccountIds(username, adsDbContext, GetLogger())) {
                 ApiDataFetcher.GetCustomAudiences(adsAccountId, client as TwitterAdsClient, ProccessCustomAudiencesResult);
             }
         }

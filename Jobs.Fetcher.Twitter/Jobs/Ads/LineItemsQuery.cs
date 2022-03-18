@@ -32,7 +32,7 @@ namespace Jobs.Fetcher.Twitter {
         }
 
         private void RunBody(string username, ITwitterClient client, DataLakeTwitterAdsContext dbContext) {
-            var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext);
+            var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext, GetLogger());
 
             void ProccessLineItemResult(string adsAccountId, ITwitterRequestIterator<LineItemsResponse, string> iterator) {
                 try {
@@ -41,8 +41,9 @@ namespace Jobs.Fetcher.Twitter {
                         DbWriter.WriteLineItems(adsAccountId, lineItemsPage.Content, dbContext, GetLogger());
                     }
                 }catch (Exception e) {
-                    GetLogger().Error($"Could not fetch Twitter Line Items for {username}");
-                    throw e;
+                    GetLogger().Error($"Could not fetch or write Twitter Line Items for {username}");
+                    GetLogger().Verbose($"Error: {e}");
+                    throw;
                 }
             }
 

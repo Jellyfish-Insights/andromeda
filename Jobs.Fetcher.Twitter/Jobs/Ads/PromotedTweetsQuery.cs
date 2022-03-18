@@ -32,7 +32,7 @@ namespace Jobs.Fetcher.Twitter {
         }
 
         private void RunBody(string username, ITwitterClient client, DataLakeTwitterAdsContext dbContext) {
-            var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext);
+            var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext, GetLogger());
 
             void ProccessPromotedTweetResult(string adsAccountId, ITwitterRequestIterator<PromotedTweetsResponse, string> iterator) {
                 try {
