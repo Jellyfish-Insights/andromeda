@@ -59,13 +59,13 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 lock (YTDLock) {
                     YTDRequests++;
                     if (YTDRequests % 100 == 0)
-                        _logger.Debug($"\n*** QUOTA ***\n{YTDRequests++} requests sent to YouTube Data\n");
+                        _logger.Debug($"\n*** QUOTA ***\n{YTDRequests} requests sent to YouTube Data\n");
                 }
             } else if (r.GetType().BaseType.GetGenericTypeDefinition().IsAssignableFrom(typeof(YouTubeAnalyticsBaseServiceRequest<>))) {
                 lock (YTALock) {
                     YTARequests++;
                     if (YTARequests % 100 == 0)
-                        _logger.Debug($"\n*** QUOTA ***\n{YTARequests++} requests sent to YouTube Analytics\n");
+                        _logger.Debug($"\n*** QUOTA ***\n{YTARequests} requests sent to YouTube Analytics\n");
                 }
             }
             var startTime = DateTime.UtcNow;
@@ -75,15 +75,21 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             }
             catch (Exception exc) {
                 if (exc.InnerException is Google.GoogleApiException) {
-                    _logger.Error($"Google API raised an error!\n{exc.ToString()}");
-                    SlowDown();
+                    if (exc.Message.Contains("quota", StringComparison.OrdinalIgnoreCase)) {
+                        _logger.Error($"Ran out of quota!\n{exc.ToString()}");
+                        SlowDown();
+                    } else {
+                        _logger.Error("Google API raised an error (it's not quota):\n"
+                                      + exc.ToString());
+                        return default(T);
+                    }
                 } else {
                     _logger.Error($"An unknown exception was raised!\n{exc.ToString()}");
                 }
                 return default(T); // in effect, returns null
             } finally {
                 var finishTime = DateTime.UtcNow;
-                RespectQuota(startTime, finishTime);
+                RespectQuota(startTime, finishTime, r.GetType().ToString());
             }
         }
 
@@ -112,7 +118,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         const double _maxRequestsMinute = 720.0;
         const double _maxRequestsMinuteSafe = _maxRequestsMinute * 0.80;
         const double _maxRequestsSecond = _maxRequestsMinuteSafe / 60.0;
-        private double _minMillisecondsPerRequest = 1.0 / _maxRequestsSecond * 1000.0 * 1;
+        private double _minMillisecondsPerRequest = 1.0 / _maxRequestsSecond * 1000.0;
 
         private double slowDownFactor = 1.0;
         private Nullable<DateTime> lastSlowDown = null;
@@ -456,7 +462,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             YTD.Video video,
             bool reprocess = false
             ) {
-            _logger.Debug($"Processing channel {channelId} , video {video.VideoId}");
+            _logger.Verbose($"Processing channel {channelId} , video {video.VideoId}");
             var dailyMetrics = FetchVideoDailyMetrics(channelId, video, reprocess);
             var subscriberViews = FetchSubscriberViews(channelId, video, reprocess);
 
@@ -642,7 +648,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             lock (YTDLock) return YTDRequests;
         }
 
-        public void StressTestYTA(string channelId, string videoId, int tid) {
+        public void StressTestYTA(string channelId,
+                                  string videoId,
+                                  int tid,
+                                  bool limitPerDay = false) {
             _logger.Information($"YTA - Starting thread {tid}");
             // we want the request to succeed while returning the smallest possible
             // number of rows (even zero)
@@ -667,18 +676,27 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     lock (YTALock) {
                         YTARequests++;
                         if (YTARequests % 1000 == 0)
-                            _logger.Information($"{YTARequests++} requests sent to YouTube Analytics");
+                            _logger.Information($"{YTARequests} requests sent to YouTube Analytics");
                     }
                 }
                 catch (Exception exc) {
                     if (exc.InnerException is Google.GoogleApiException) {
-                        _logger.Information($"YTA - Thread {tid} received GoogleApiException! Breaking!");
-                        break;
+                        if (exc.Message.Contains("quota", StringComparison.OrdinalIgnoreCase)) {
+                            _logger.Information($"YTA - Thread {tid} received GoogleApiException! Breaking!");
+                            break;
+                        } else {
+                            _logger.Error("Google API raised an error (it's not quota):\n"
+                                          + exc.ToString());
+                            _logger.Information("Continuing");
+                        }
                     } else {
                         _logger.Error("Unknown error happened. Continuing!");
                     }
                 }
-                Thread.Sleep(5000);
+                // turn this on to test the daily limit instead of the per-minute
+                if (limitPerDay) {
+                    Thread.Sleep(5000);
+                }
             }
         }
 
@@ -693,13 +711,19 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     lock (YTDLock) {
                         YTDRequests++;
                         if (YTDRequests % 1000 == 0)
-                            _logger.Information($"{YTDRequests++} requests sent to YouTube Data");
+                            _logger.Information($"{YTDRequests} requests sent to YouTube Data");
                     }
                 }
                 catch (Exception exc) {
                     if (exc.InnerException is Google.GoogleApiException) {
-                        _logger.Information($"YTD - Thread {tid} received GoogleApiException! Breaking!");
-                        break;
+                        if (exc.Message.Contains("quota", StringComparison.OrdinalIgnoreCase)) {
+                            _logger.Information($"YTD - Thread {tid} received GoogleApiException! Breaking!");
+                            break;
+                        } else {
+                            _logger.Error("Google API raised an error (it's not quota):\n"
+                                          + exc.ToString());
+                            _logger.Information("Continuing");
+                        }
                     } else {
                         _logger.Error("Unknown error happened. Continuing!");
                     }

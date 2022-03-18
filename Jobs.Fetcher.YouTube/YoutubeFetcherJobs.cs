@@ -188,16 +188,27 @@ namespace Jobs.Fetcher.YouTube {
 
             var(channelId, uploadsListId) = fetcher.FetchChannelInfo();
             var comparison = DbReader.CompareVideoLifetimeDailyTotal();
+
+            var videosFromChannel = DbReader.GetVideos()
+                                        .Where(v => v.ChannelId == channelId)
+                                        .Select(v => v.VideoId)
+                                        .ToList();
+
+            var comparisonFiltered = comparison
+                                         .Where(x => videosFromChannel.Contains(x.Id.VideoId));
+
             long comparisonMinLimit = 500;
             double comparisonThreshold = 0.05;
 
-            Logger.Information($"We are comparing {comparison.Count()} items");
-            Logger.Information($"forceFetch is {forceFetch}");
+            Logger.Information($"We are comparing (after filtering): {comparisonFiltered.Count()} items");
 
-            foreach (var item in comparison) {
+            Logger.Information($"forceFetch is {forceFetch}");
+            Logger.Information($"Videos with 'ratio' > {comparisonThreshold} will be reprocessed");
+
+            foreach (var item in comparisonFiltered) {
                 if (item.Lifetime > 0 && item.Lifetime > comparisonMinLimit) {
                     var ratio = Math.Abs((double) item.Lifetime - item.Total) / ((double) item.Lifetime);
-                    Logger.Information("Ratio is " + string.Format("{0:0.000}", ratio));
+                    Logger.Debug("Ratio is " + string.Format("{0:0.000}", ratio));
                     if (forceFetch || ratio > comparisonThreshold) {
                         Logger.Information($"Reprocessing video {item.Id.VideoId}");
                         DbWriter.Write(fetcher.FetchDailyMetrics(channelId, item.Id, true), Logger);

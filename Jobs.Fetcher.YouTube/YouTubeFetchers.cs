@@ -116,7 +116,9 @@ namespace Jobs.Fetcher.YouTube {
                        new StatisticsQuery(youtubeServices),
                        new VideosQuery(youtubeServices),
                        new ViewerPercentageQuery(youtubeServices),
-                       //    new APIStressTest(youtubeServices),
+
+                       // don't turn the following job on unless you know what you're doing
+                       //   new APIStressTest(youtubeServices),
             };
         }
     }
