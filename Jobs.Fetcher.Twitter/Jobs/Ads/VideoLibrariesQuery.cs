@@ -37,14 +37,17 @@ namespace Jobs.Fetcher.Twitter {
             var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext, GetLogger());
 
             void ProccessVideoLibraryResult(ITwitterRequestIterator<MediaLibraryResponse, string> iterator) {
-                try {
-                    while (!iterator.Completed) {
+                var page_count = 0;
+                while (!iterator.Completed) {
+                    try {
+                        page_count++;
+                        GetLogger().Information($"Fetching Twitter Ads Video Libraries for {username}, page {page_count}");
                         var mediaLibraryPage = iterator.NextPageAsync().GetAwaiter().GetResult();
                         DbWriter.WriteVideoLibraries(username, mediaLibraryPage.Content, dbContext, GetLogger());
+                    }catch (Exception e) {
+                        GetLogger().Error($"Could not fetch Twitter Ads Video Libraries for {username}, page {page_count}");
+                        GetLogger().Verbose($"Error: {e}");
                     }
-                }catch (Exception e) {
-                    GetLogger().Error($"Could not fetch Twitter Video Libraries for {username}");
-                    throw e;
                 }
             }
 

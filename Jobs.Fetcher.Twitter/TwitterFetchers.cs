@@ -58,17 +58,15 @@ namespace Jobs.Fetcher.Twitter {
 
             var Credentials = new Dictionary<string, TwitterCredentials>();
 
-            try {
-
-                foreach (var usrDir in Directory.GetDirectories("./credentials")) {
-
+            foreach (var usrDir in Directory.GetDirectories("./credentials")) {
+                try {
                     foreach (var channel in Directory.GetDirectories($"{usrDir}/twitter")) {
 
                         var CredentialsFilePath = $"{channel}/{SecretsFile}";
 
                         if (!File.Exists(CredentialsFilePath)) {
-                            Console.WriteLine($"Missing or invalid Twitter credentials!");
-                            Console.WriteLine($"Couldn't find any credential on folder '{usrDir}/twitter'");
+                            Logger.Information($"Missing or invalid Twitter credentials!");
+                            Logger.Information($"Couldn't find any credential on folder '{usrDir}/twitter'");
                             continue;
                         }
 
@@ -77,18 +75,19 @@ namespace Jobs.Fetcher.Twitter {
                         var credential = JsonConvert.DeserializeObject<TwitterCredentials>(text);
 
                         if (credential.IsValid()) {
+                            Logger.Information($"Found credentials for {credential.Username}");
                             Credentials.Add(credential.Username, credential);
                         }
                     }
+                } catch (Exception e) {
+
+                    Logger.Warning($"Unable to fetch Twitter credentials for {usrDir}");
+                    Logger.Verbose($"Error: {e}");
+                    return new Dictionary<string, TwitterCredentials>();
                 }
-
-                return Credentials;
-            } catch (Exception e) {
-
-                Logger.Warning($"Unable to fetch Twitter credentials");
-                Logger.Verbose($"Error: {e}");
-                return new Dictionary<string, TwitterCredentials>();
             }
+
+            return Credentials;
         }
 
         private Dictionary<string, ITwitterClient> BuildTwitterAdsClients(

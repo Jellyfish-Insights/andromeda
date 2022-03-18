@@ -20,8 +20,6 @@ using FlycatcherAds.Client;
 namespace Jobs.Fetcher.Twitter {
 
     public class AdsAccountsQuery : AbstractTwitterFetcher {
-        const int ERROR_LIMIT = 5;
-
         public AdsAccountsQuery(Dictionary<string, ITwitterClient> clients): base(clients) {}
 
         public override List<string> Dependencies() {
@@ -42,21 +40,16 @@ namespace Jobs.Fetcher.Twitter {
             }
 
             void ProccessAdsAccountResult(ITwitterRequestIterator<AdsAccountsResponse, string> iterator) {
-                var error_count = 0;
+                var page_count = 0;
                 while (!iterator.Completed) {
                     try {
+                        page_count++;
+                        Logger.Error($"Fetching Twitter Ads Video Libraries for {username}, page {page_count}");
                         var adsAccountPage = iterator.NextPageAsync().GetAwaiter().GetResult();
                         DbWriter.WriteAdsAccounts(user.Id, username, adsAccountPage.Content, adsContext, Logger);
                     }catch (Exception e) {
-                        Logger.Error($"Could not fetch Twitter Video Libraries for {username}");
+                        Logger.Error($"Could not fetch Twitter Ads Video Libraries for {username}, page {page_count}");
                         Logger.Verbose($"Error: {e}");
-                        if(error_count < ERROR_LIMIT && !iterator.Completed){
-                            Logger.Warning($"Continuing fetching");
-                            continue;
-                        }else{
-                            Logger.Warning($"Stopping {Id()}.");
-                            throw;
-                        }
                     }
                 }
             }

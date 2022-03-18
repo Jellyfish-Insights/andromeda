@@ -72,18 +72,17 @@ namespace Jobs.Fetcher.Twitter {
                     GetLogger());
             }
 
-            
             IEnumerable<string> tweetIds;
 
             try {
                 tweetIds = DbReader.GetTweetIdsFromUser(user.Id, dataDbContext, GetLogger());
             }catch (Exception e) {
-                Logger.Error($"User {username} has no tweets");
+                Logger.Error($"User {username} has no Ads tweets");
                 Logger.Verbose($"Error: {e}");
                 return;
             }
             if (!tweetIds.Any()) {
-                GetLogger().Error($"User {username} has no tweets");
+                GetLogger().Error($"User {username} has no Ads tweets");
                 return;
             }
 

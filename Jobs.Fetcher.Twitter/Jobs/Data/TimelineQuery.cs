@@ -36,10 +36,17 @@ namespace Jobs.Fetcher.Twitter {
             }
 
             void ProccessTimeLineResult(ITwitterRequestIterator<TimelinesV2Response, string> iterator) {
-
+                var page_count = 0;
                 while (!iterator.Completed) {
-                    var timelinePage = iterator.NextPageAsync().GetAwaiter().GetResult();
-                    DbWriter.WriteTimeline(timelinePage.Content, dbContext, GetLogger());
+                    try {
+                        page_count++;
+                        GetLogger().Information($"Fetching Twitter Video Libraries for {username}, page {page_count}");
+                        var timelinePage = iterator.NextPageAsync().GetAwaiter().GetResult();
+                        DbWriter.WriteTimeline(timelinePage.Content, dbContext, GetLogger());
+                    }catch (Exception e) {
+                        GetLogger().Error($"Could not fetch Twitter Video Libraries for {username}, page {page_count}");
+                        GetLogger().Verbose($"Error: {e}");
+                    }
                 }
             }
 

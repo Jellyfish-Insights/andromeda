@@ -66,7 +66,7 @@ namespace Jobs.Fetcher.Twitter {
             var promotedTweetIds = DbReader.GetPromotedTweetIdsFromUser(user.Id, dataDbContext, adsDbContext, GetLogger());
 
             if (!promotedTweetIds.Any()) {
-                GetLogger().Error($"User {username} has no promoted tweets");
+                GetLogger().Error($"User {username} has no Ads promoted tweets");
                 return;
             }
 
