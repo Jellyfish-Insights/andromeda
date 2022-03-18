@@ -37,6 +37,8 @@ namespace Jobs.Fetcher.YouTubeStudio {
         protected YouTubeAnalyticsService YTA;
         protected string ChannelId;
         protected string UploadsListId;
+
+        protected ApiDataFetcher _fetcher;
         public YTSGroupsAbstractJob(
             List<(YouTubeService, YouTubeAnalyticsService)> services
             ) {
@@ -53,7 +55,8 @@ namespace Jobs.Fetcher.YouTubeStudio {
             for (int i = 0; i < YTDList.Count(); i++) {
                 YTD = YTDList[i];
                 YTA = YTAList[i];
-                (ChannelId, UploadsListId) = ApiDataFetcher.FetchChannelInfo(YTD);
+                _fetcher = new ApiDataFetcher(Logger, YTD, YTA);
+                (ChannelId, UploadsListId) = _fetcher.FetchChannelInfo();
                 Logger.Information($"This job is now concerned with channel {ChannelId}");
                 RunBody();
             }
@@ -127,7 +130,7 @@ namespace Jobs.Fetcher.YouTubeStudio {
 
         protected HashSet<string> GetAllVideoIdsFromAPI() {
             var videoIdsAPI = new HashSet<string>(
-                ApiDataFetcher.FetchVideoIds(YTD, UploadsListId));
+                _fetcher.FetchVideoIds(UploadsListId));
             Thread.Sleep(TimeToSleepMs);
             return videoIdsAPI;
         }
