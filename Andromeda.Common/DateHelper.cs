@@ -35,7 +35,6 @@ namespace Andromeda.Common {
             int _step = reverse ? -step : step;
 
             while (current < end) {
-                // Console.WriteLine($"current {current} end {end} step {_step}");
                 yield return current;
                 current = current.AddDays(_step);
             }

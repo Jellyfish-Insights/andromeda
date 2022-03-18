@@ -112,7 +112,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         const double _maxRequestsMinute = 720.0;
         const double _maxRequestsMinuteSafe = _maxRequestsMinute * 0.80;
         const double _maxRequestsSecond = _maxRequestsMinuteSafe / 60.0;
-        private double _minMillisecondsPerRequest = 1.0 / _maxRequestsSecond * 1000.0 * 1;
+        private double _minMillisecondsPerRequest = 1.0 / _maxRequestsSecond * 1000.0;
 
         private double slowDownFactor = 1.0;
         private Nullable<DateTime> lastSlowDown = null;
