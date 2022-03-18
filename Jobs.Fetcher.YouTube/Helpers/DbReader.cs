@@ -19,13 +19,30 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             var now = DateTime.UtcNow;
             using (var analytics = new DataLakeYouTubeAnalyticsContext())
                 using (var db = new DataLakeYouTubeDataContext()) {
+
                     var dayTotal =
-                        analytics.VideoDailyMetrics.Where(x => x.ValidityStart <= now && now < x.ValidityEnd)
-                            .GroupBy(x => x.VideoId, y => y, (k, v) => new { VideoId = k, Views = v.Sum(y => y.Views), StartDate = v.Min(y => y.Date), EndDate = v.Max(y => y.Date) }).ToList();
+                        analytics.VideoDailyMetrics
+                            .Where(x => x.ValidityStart <= now && now < x.ValidityEnd)
+                            .GroupBy(
+                            x => x.VideoId,
+                            y => y,
+                            (k, v) => new {
+                        VideoId = k, Views = v.Sum(y => y.Views),
+                        StartDate = v.Min(y => y.Date),
+                        EndDate = v.Max(y => y.Date)
+                    })
+                            .ToList();
+
                     var stats =
-                        from s in db.Statistics.Where(x => x.CaptureDate == now.Date && x.ValidityStart <= now && now < x.ValidityEnd)
-                        join dt in  dayTotal on s.VideoId equals dt.VideoId
-                        join v in db.Videos.Where(x => x.ValidityStart <= now && now < x.ValidityEnd) on s.VideoId equals v.VideoId
+                        from s in db.Statistics
+                        where
+                        s.CaptureDate == now.Date
+                        && now < s.ValidityEnd
+                        join dt in dayTotal
+                        on s.VideoId equals dt.VideoId
+                        join v in db.Videos
+                            .Where(x => x.ValidityEnd >= now)
+                        on s.VideoId equals v.VideoId
                         select new MetricDelta<Video, long>(){
                         Id = v,
                         Lifetime = s.ViewCount,
@@ -36,6 +53,17 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     };
                     return stats.ToList();
                 }
+        }
+
+        public static Nullable<DateTime> FindMostRecentRecord() {
+            using (var dbContext = new DataLakeYouTubeAnalyticsContext()) {
+                var mostRecentRecord = dbContext.VideoDailyMetrics
+                                           .OrderByDescending(x => x.Date)
+                                           .FirstOrDefault();
+                return mostRecentRecord != null ?
+                       (Nullable<DateTime>)mostRecentRecord.Date :
+                       null;
+            }
         }
     }
 

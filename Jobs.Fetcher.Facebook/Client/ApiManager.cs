@@ -18,6 +18,7 @@ namespace Jobs.Fetcher.Facebook {
         const string BASE_URL = "graph.facebook.com";
         // values taken from: https://developers.facebook.com/docs/graph-api/using-graph-api/error-handling/
         const int INVALID_PARAMETER = 100;
+        const int INVALID_FETCH_TIME = 101;
         const int APPLICATION_LEVEL_THROTTLING = 4;
         const int APPLICATION_QUOTA_WINDOW = 60 * 60; // seconds
         const int ACCOUNT_LEVEL_THROTTLING = 17;
@@ -106,7 +107,7 @@ namespace Jobs.Fetcher.Facebook {
             HttpResponseMessage response;
 
             //Setting up a random difference for each sleep for jobs not to run concurrently
-            var milliSecondsDelay = RequestDelay * ((new Random()).Next(0, 500) + 750);
+            var milliSecondsDelay = RequestDelay * ((new Random()).Next(0, 500) + 750) / 1000;
             Logger.Verbose("Sleeping for {SLEEP_TIME}ms", milliSecondsDelay);
             var fetch_retries = 0;
             response = null;
@@ -122,10 +123,11 @@ namespace Jobs.Fetcher.Facebook {
                         Logger.Information($"Facebook URL fetch was cancelled. Retrying after sleep.");
                         continue;
                     } else {
-                        Logger.Error($"Failed getting url: ({url}).");
+                        Logger.Error($"Facebook URL fetch was cancelled. Giving up fetching from: ({url}).");
                         throw e;
                     }
-                }catch (Exception) {
+                }catch (Exception e) {
+                    Logger.Verbose($"Exception caught: {e}");
                     throw new FacebookApiException($"Error fetching Facebook url ({url})!");
                 }
             }
@@ -175,8 +177,14 @@ namespace Jobs.Fetcher.Facebook {
         public async Task<JObject> CachedRequest(string prefix, string url) {
             JObject result = await RequestOrCache(client, 0, prefix, url, IgnoreCache);
             var retries = (int) (result["retries"] ?? 0);
-            while (retries < 5) {
-                var ttl = this.GetUtcTime().Subtract(result["fetch_time"].ToObject<DateTime>()).TotalHours;
+            if (!result.TryGetValue("fetch_time", out var fetch_time)) {
+                if (result["error"] == null) {
+                    result["error"]["code"] = INVALID_FETCH_TIME;
+                    result["error"]["message"] = "Not able to get fetch_time of Request or Cache.";
+                }
+            }
+            while (retries < MAX_RETRIES) {
+                var ttl = this.GetUtcTime().Subtract(fetch_time.ToObject<DateTime>()).TotalHours;
                 if (ttl > CacheTTL && !IgnoreTTL && result["error"] == null) {
                     // Ovewrite if the cache is too old;
                     result = await RequestOrCache(client, retries, prefix, url, true);
@@ -187,13 +195,15 @@ namespace Jobs.Fetcher.Facebook {
                     if (result["error"] == null) {
                         return result;
                     } else {
-                        var errorCode = (int) result["error"]["code"];
-                        var errorMessage = (string) result["error"]["message"];
-                        if (errorMessage != null && errorCode != INVALID_PARAMETER) {
-                            LoggerFactory.GetFacebookLogger().Error(errorMessage);
+                        if (!((JObject) result["error"]).TryGetValue("code", out var errorCode) ||
+                            !((JObject) result["error"]).TryGetValue("message", out var errorMessage)) {
+
+                            LoggerFactory.GetFacebookLogger().Error("Unknown error found while getting cache or request. Couldn't get error code or message.");
+                        } else {
+                            LoggerFactory.GetFacebookLogger().Error($"Cached Request error({errorCode.ToString()}): ({errorMessage.ToString()}).");
                         }
                         var elapsed = this.GetUtcTime().Subtract(result["fetch_time"].ToObject<DateTime>()).TotalSeconds;
-                        if (errorCode == ACCOUNT_LEVEL_THROTTLING) {
+                        if ((int) errorCode == ACCOUNT_LEVEL_THROTTLING) {
                             var remaining = Math.Max(WAIT_AFTER_USER_LIMIT_REACHED - Convert.ToInt32(elapsed), 0);
                             LoggerFactory.GetFacebookLogger().Warning("Rate limit reached. Retrying ({Retries} - {Remaining})", retries, remaining);
                             if (elapsed < WAIT_AFTER_USER_LIMIT_REACHED) {
@@ -204,7 +214,7 @@ namespace Jobs.Fetcher.Facebook {
                             if (result["error"] == null) {
                                 return result;
                             }
-                        } else if (errorCode == APPLICATION_LEVEL_THROTTLING) {
+                        } else if ((int) errorCode == APPLICATION_LEVEL_THROTTLING) {
                             var waitTime = APPLICATION_QUOTA_WINDOW / 2;
                             var remaining = Math.Max(waitTime - Convert.ToInt32(elapsed), 0);
                             LoggerFactory.GetFacebookLogger().Warning("Rate limit reached. Retrying ({Retries} - {Remaining})", retries, remaining);
@@ -216,9 +226,10 @@ namespace Jobs.Fetcher.Facebook {
                             if (result["error"] == null) {
                                 return result;
                             }
-                        } else if (errorCode == INVALID_PARAMETER) {
-                            throw new Exception("Invalid Parameter");
                         } else {
+                            if ((int) errorCode == INVALID_PARAMETER) {
+                                LoggerFactory.GetFacebookLogger().Warning("Invalid Parameter was send. Retrying once.");
+                            }
                             if (retries == 0) {
                                 result = await RequestOrCache(client, retries + 1, prefix, url, true);
                             }

@@ -441,7 +441,7 @@ namespace Jobs.Fetcher.Facebook {
                     .Where(dailyMetric => lifetime.MetricColumns.Any(lifetimeMetric => lifetimeMetric.Name == dailyMetric.Name));
 
             foreach (var metric in integerMetrics) {
-                bool threeshold;
+                bool threshold;
                 using (var connection = new NpgsqlConnection(ConnectionString()))
                     using (var cmd = connection.CreateCommand()) {
                         connection.Open();
@@ -477,9 +477,9 @@ namespace Jobs.Fetcher.Facebook {
                                                         hid
                                                         );
                         AddParameter(cmd, id, row);
-                        threeshold = (bool) cmd.ExecuteScalar();
+                        threshold = (bool) cmd.ExecuteScalar();
                     }
-                if (!threeshold)
+                if (!threshold)
                     return false;
             }
             // If no metric was checked, we cannot assert the completness of daily insights

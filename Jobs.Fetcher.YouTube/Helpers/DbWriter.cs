@@ -169,12 +169,17 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 List<ViewerPercentage> storedObjs = null;
                 try {
                     storedObjs = dlContext.ViewerPercentageMetric
-                                     .Where(x => x.VideoId == videoId && x.StartDate <= date && x.ValidityStart <= now && now < x.ValidityEnd)
+                                     .Where(x =>
+                                            x.VideoId == videoId
+                                            && x.StartDate <= date
+                                            && now < x.ValidityEnd)
                                      .GroupBy(x => x.StartDate)
                                      .OrderByDescending(x => x.Key)
-                                     .FirstOrDefault().ToList();
+                                     .FirstOrDefault()
+                                     .ToList();
                 } catch (NullReferenceException) {
                     // This just means that there are no objects in the database yet.
+                    Console.WriteLine("NullReferenceException ignored.");
                 }
 
                 var modified = compareOldAndNew(storedObjs, viewerPercentages);
@@ -187,7 +192,10 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 // Invalidate all entries for 'future' dates
                 if (modified == Modified.New || modified == Modified.Updated) {
                     dlContext.ViewerPercentageMetric
-                        .Where(x => x.VideoId == videoId && x.StartDate >= date && x.ValidityStart <= now && now < x.ValidityEnd)
+                        .Where(x =>
+                               x.VideoId == videoId
+                               && x.StartDate >= date
+                               && now < x.ValidityEnd)
                         .ToList()
                         .ForEach(x => { x.ValidityEnd = now; });
                 }

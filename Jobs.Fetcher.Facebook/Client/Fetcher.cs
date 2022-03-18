@@ -14,6 +14,7 @@ namespace Jobs.Fetcher.Facebook {
 
         ApiManager ApiMan;
 
+        const int BATCH_SIZE = 10;
         int PageSize;
 
         private ILogger Logger { get => Log.ForContext<Fetcher>(); }
@@ -128,9 +129,9 @@ namespace Jobs.Fetcher.Facebook {
                 stringTask.Wait();
                 return stringTask.Result;
             }catch (Exception e) {
-                Logger.Information($"Caught exception ({e.Message})");
+                Logger.Error($"Failed to catch insights for {edge.Name}");
                 if (e.Message == "One or more errors occurred. (Invalid Parameter)") {
-                    Logger.Information($"Instagram post from before the account was for business.");
+                    Logger.Warning($"Instagram post from before the account was for business.");
                     return new JObject();
                 } else {
                     throw e;
@@ -182,13 +183,24 @@ namespace Jobs.Fetcher.Facebook {
             try {
                 first_page = FetchVideoId(table, ApiMan.Secret.Id, table.Name).Result;
             } catch (FacebookApiException) {
+                Logger.Debug($"Couldn't fetch {table.Name} Ids");
                 yield break;
+            } catch (Exception) {
+                Logger.Error($"Unknown error! Couldn't fetch {table.Name} Ids");
+                throw;
             }
 
-            var entitiesId = PaginateEndpoint(table, first_page, max_iters).Select(x => x["id"].ToString());
+            var entitiesIdList = new List<string>();
+            try {
+                var entitiesId = PaginateEndpoint(table, first_page, max_iters).Select(x => x["id"].ToString());
+                entitiesIdList = entitiesId.ToList();
+            } catch (Exception) {
+                Logger.Warning($"Couldn't paginate {table.Name} Ids");
+                throw;
+            }
 
             int entitiesFetched = 0;
-            foreach (var id in entitiesId) {
+            foreach (var id in entitiesIdList) {
                 if (maxEntities > 0 && maxEntities <= entitiesFetched) {
                     yield break;
                 }
@@ -233,8 +245,9 @@ namespace Jobs.Fetcher.Facebook {
                 }
                 try {
                     entities = FetchDataById(id, table, jobLogger);
-                } catch (Exception) {
-                    Logger.Warning($"Fetching {table.Name} {id} failed.");
+                } catch (Exception e) {
+                    Logger.Error($"Fetching {table.Name} {id} failed.");
+                    Logger.Debug($"Error: {e}");
                     continue;
                 }
 
@@ -278,34 +291,67 @@ namespace Jobs.Fetcher.Facebook {
             /**
                Fetch children on the `edge` api api path of the social media artifact `node`.
              */
+            if (!node.TryGetValue("id", out var id)) {
+                Logger.Warning($"Could not get ID from node of {edge.Name}");
+                return;
+            }
             JObject tip;
             try {
-                tip = FetchEndpoint(edge, node["id"].ToString(), edge.Name, edge.Columns.Select(x => x.Value).ToList(), edge.Ordering).Result;
-            } catch (FacebookApiException) {
+                tip = FetchEndpoint(edge, id.ToString(), edge.Name, edge.Columns.Select(x => x.Value).ToList(), edge.Ordering).Result;
+            } catch (FacebookApiException e) {
+                Logger.Error($"Couldn't fetch data from edge {edge.Name} due to API exception.");
+                Logger.Debug($"Error: ({e}).");
+                return;
+            } catch (Exception e) {
+                Logger.Error($"Couldn't fetch data from edge {edge.Name}.");
+                Logger.Debug($"Error: ({e}).");
                 return;
             }
             var result = PaginateEndpoint(edge, tip, max_iters);
             var result2 = new List<JObject>();
-            DatabaseManager.Transactional(connection => {
-                foreach (JObject obj in result) {
-                    var o = obj;
-                    obj.Add(edge.Source.Name + "_id", node["id"]);
-                    AddSystime(edge, ref o);
-                    if (!DatabaseManager.CheckEdgeMatch(connection, edge, o)) {
-                        DatabaseManager.InsertRow(connection, edge, o);
-                    } else {
-                        if (edge.Ordering == "desc") {
-                            break;
-                        }
+
+            var transaction_batch = new List<JObject>();
+            var remaining = result.Count();
+            var total_batches = (long) Math.Ceiling(((double) remaining / (double) BATCH_SIZE));
+            Logger.Debug($"Adding {remaining} rows to Database.");
+            var batch_number = 1;
+            foreach (JObject batch_obj in result) {
+                transaction_batch.Add(batch_obj);
+                if (transaction_batch.Count >= BATCH_SIZE || transaction_batch.Count >= remaining) {
+                    Logger.Debug($"Adding batch {batch_number} of {total_batches} to Database.");
+                    try {
+                        DatabaseManager.Transactional(connection => {
+                            foreach (JObject obj in transaction_batch) {
+                                var o = obj;
+                                obj.Add(edge.Source.Name + "_id", id);
+                                AddSystime(edge, ref o);
+                                if (!DatabaseManager.CheckEdgeMatch(connection, edge, o)) {
+                                    DatabaseManager.InsertRow(connection, edge, o);
+                                } else {
+                                    if (edge.Ordering == "desc") {
+                                        break;
+                                    }
+                                }
+                                result2.Add(o);
+                            }
+                            if (result.Count() > 0) {
+                                if (edge.Ordering == "unordered") {
+                                    DatabaseManager.DeleteEdgeNotMatch(connection, edge, result2, "systime", "fetch_time");
+                                }
+                            }
+                        });
+                    }catch (Exception e) {
+                        Logger.Error($"Failed to insert batch {batch_number} into Database.");
+                        Logger.Debug($"Error: {e}.");
                     }
-                    result2.Add(o);
+                    remaining -= transaction_batch.Count;
+                    transaction_batch.Clear();
+                    batch_number++;
                 }
-                if (result.Count() > 0) {
-                    if (edge.Ordering == "unordered") {
-                        DatabaseManager.DeleteEdgeNotMatch(connection, edge, result2, "systime", "fetch_time");
-                    }
-                }
-            });
+            }
+            if (remaining > 0) {
+                Logger.Warning($"Not all objects were inserted into the Database. {remaining} were left out.");
+            }
         }
 
         public static bool EmptyMetric(JToken v) {
@@ -330,6 +376,7 @@ namespace Jobs.Fetcher.Facebook {
             JObject row = FetchInsights(node["id"].ToString(), edge, new Range<DateTime>(startN - new TimeSpan(3, 0, 0, 0), upperLimit));
             JObject nobj;
             if (!row.HasValues) {
+                Logger.Debug($"No Insights found.");
                 return null;
             } else if (edge.Transposed && row.SelectToken("data").Count() > 0) {
                 nobj = new JObject();
@@ -344,6 +391,7 @@ namespace Jobs.Fetcher.Facebook {
                 nobj = row.SelectToken("data").ToObject<List<JObject>>()[0];
                 nobj["fetch_time"] = row["fetch_time"];
             } else {
+                Logger.Debug($"No Insights data found.");
                 return null;
             }
 
@@ -360,13 +408,24 @@ namespace Jobs.Fetcher.Facebook {
             }
             switch (mod) {
                 case Modified.New:
-                    DatabaseManager.InsertInsights(edge, nobj);
+                    try {
+                        DatabaseManager.InsertInsights(edge, nobj);
+                    }catch (Exception) {
+                        Logger.Error($"Error adding {edge.TableName} with insights of values: ({nobj})");
+                        throw;
+                    }
+
                     break;
                 case Modified.Equal:
-                    if (edge.Source.IsRoot) {
-                        DatabaseManager.UpdateLastFetch(edge, nobj, new string[] {}, "systime", "fetch_time");
-                    } else {
-                        DatabaseManager.UpdateLastFetch(edge, nobj, new string[] { edge.Source.Name + "_id" }, "systime", "fetch_time");
+                    try {
+                        if (edge.Source.IsRoot) {
+                            DatabaseManager.UpdateLastFetch(edge, nobj, new string[] {}, "systime", "fetch_time");
+                        } else {
+                            DatabaseManager.UpdateLastFetch(edge, nobj, new string[] { edge.Source.Name + "_id" }, "systime", "fetch_time");
+                        }
+                    } catch (Exception) {
+                        Logger.Error($"Error updating last fetch of {edge.TableName}");
+                        throw;
                     }
                     break;
                 case Modified.Updated:
@@ -377,9 +436,9 @@ namespace Jobs.Fetcher.Facebook {
                             DatabaseManager.VersionEntityModified(edge, nobj, edge.Source.Name + "_id", "systime");
                         }
                         DatabaseManager.InsertInsights(edge, nobj);
-                    } catch (Exception e) {
+                    } catch (Exception) {
                         Logger.Error($"Error updating {edge.TableName} with insights of values: ({nobj})");
-                        throw e;
+                        throw;
                     }
 
                     break;
@@ -397,17 +456,34 @@ namespace Jobs.Fetcher.Facebook {
                 var mediaTypeOfRow = row["media_type"].ToString().ToLower();
                 var mediaSchema = table.InstagramInsights.GetValueOrDefault(mediaTypeOfRow, null);
                 if (mediaSchema != null) {
-                    ListLifetimeInsights(mediaSchema, row);
+                    try {
+                        ListLifetimeInsights(mediaSchema, row);
+                    }catch (Exception) {
+                        Logger.Warning("Unable to catch Instagram Lifetime Insights");
+                        throw;
+                    }
                 } else {
                     Logger.Warning($"Missing schema for media type {mediaTypeOfRow}");
                 }
             }
 
             if (lifetime != null) {
-                var lrow = ListLifetimeInsights(lifetime, row);
-
-                if (lrow.HasValue && daily != null) {
-                    ListDailyInsights(lifetime, daily, row);
+                var caught_lifetime = false;
+                try {
+                    var lrow = ListLifetimeInsights(lifetime, row);
+                    caught_lifetime = true;
+                    if (lrow.HasValue && daily != null) {
+                        if (daily.Summary) {
+                            SummaryDailyInsights(daily, row);
+                        } else {
+                            ListDailyInsights(lifetime, daily, row);
+                        }
+                    }
+                }catch (Exception) {
+                    if (!caught_lifetime)
+                        Logger.Error("Unable to catch Daily Insights");
+                    else
+                        Logger.Error("Unable to catch Lifetime Insights");
                 }
             }
             Logger.Information($"Finished to fetch table {table.TableName}");
@@ -466,28 +542,31 @@ namespace Jobs.Fetcher.Facebook {
             while (
                 (!hasRow || i < ITER_LIMIT || !ApiMan.ShouldPaginate)
                 && range.Minimum < upperLimit
-                && (!DatabaseManager.DailyInsightsAreComplete(lifetime, edge, node) || edge.Summary)
+                && (!DatabaseManager.DailyInsightsAreComplete(lifetime, edge, node))
                 ) {
                 Logger.Debug("Fetching date range {From} {To}", range.Minimum.Date, range.Maximum.Date);
                 i++;
                 var row = FetchInsights(node["id"].ToString(), edge, range);
 
                 var result = new List<JObject>();
+                result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
 
-                if (edge.Summary) {
-                    result.Add((JObject) row.SelectToken("summary"));
-                } else {
-                    result.AddRange(((JArray) row.SelectToken("data")).ToObject<List<JObject>>());
-                }
-
-                if (edge.Transposed && !edge.Summary) {
+                if (edge.Transposed) {
                     var names = result.Select(x => x["name"]).Where(y => y != null);
+                    //Result is a list of all the values fetched as a JSON with its value, start and end of the fetch
                     result = result.Select(x =>
-                                           x["values"].ToObject<List<JObject>>().Select(o => new JObject(){ { (string) x["name"], o["value"] }, { "date_start", o["end_time"] }, { "date_stop", o["end_time"] } }))
-                                 .Where(x => x.Count() > 0).DefaultIfEmpty(new List<JObject>()).Aggregate((x, y) => x.Zip(y, (a, b) => {
+                                           x["values"].ToObject<List<JObject>>()
+                                               .Select(o => new JObject(){
+                        { (string) x["name"], o["value"] },
+                        { "date_start", o["end_time"] },
+                        { "date_stop", o["end_time"] } })
+                                           )
+                                 .Where(x => x.Count() > 0).DefaultIfEmpty(new List<JObject>()).Aggregate((x, y) =>
+                                                                                                          x.Zip(y, (a, b) => {
                         a.Merge(b);
                         return a;
                     })).ToList();
+                    //Removes metrics with 0 as value
                     result = result.Where(x => names.Any(n => (int) x[(string) n] != 0)).ToList();
                 }
 
@@ -496,10 +575,6 @@ namespace Jobs.Fetcher.Facebook {
                     nobj.Add("systime", "[" + row["fetch_time"].ToObject<DateTime>().ToString("yyyy-MM-dd HH:mm:ss") + ",)");
                     if (!edge.Source.IsRoot) {
                         nobj.Add(edge.Source.Name + "_id", node["id"]);
-                    }
-                    if (edge.Summary) {
-                        nobj.Add("date_start", row["fetch_time"].ToObject<DateTime>().ToString("yyyy-MM-dd 12:00:00"));
-                        nobj.Add("date_stop", row["fetch_time"].ToObject<DateTime>().AddDays(1.0).ToString("yyyy-MM-dd 12:00:00"));
                     }
 
                     string[] pk;
@@ -531,6 +606,51 @@ namespace Jobs.Fetcher.Facebook {
                     return;
                 range.Minimum = range.Maximum;
                 range.Maximum = range.Minimum.Add(maxTimespan);
+            }
+        }
+
+        public void SummaryDailyInsights(Insights edge, JObject node) {
+            //Summary Daily Insights are metrics that cannot be fetched for past days, summaries are fetched daily
+            // and the differences are used for daily increases.
+            var now = this.ApiMan.GetUtcTime().Date;
+            Logger.Debug($"Fetching summary insights for ({node["id"]}, {edge.Name}) at {now}");
+
+            var row = FetchInsights(node["id"].ToString(), edge);
+
+            var result = new List<JObject>();
+
+            result.Add((JObject) row.SelectToken("summary"));
+
+            foreach (var nobj in result) {
+                nobj.Add("fetch_time", row["fetch_time"]);
+                nobj.Add("systime", "[" + row["fetch_time"].ToObject<DateTime>().ToString("yyyy-MM-dd HH:mm:ss") + ",)");
+                if (!edge.Source.IsRoot) {
+                    nobj.Add(edge.Source.Name + "_id", node["id"]);
+                }
+                if (edge.Summary) {
+                    nobj.Add("date_start", now.ToString("yyyy-MM-dd 12:00:00"));
+                    nobj.Add("date_stop", now.AddDays(1.0).ToString("yyyy-MM-dd 12:00:00"));
+                }
+
+                string[] pk;
+                if (edge.Source.IsRoot) {
+                    pk = new string[] { "date_start", "date_end" };
+                } else {
+                    pk = new string[] { $"{edge.Source.Name}_id", "date_start", "date_end" };
+                }
+                var modified = DatabaseManager.CheckInsightDailyMatch(edge, nobj);
+                switch (modified) {
+                    case Modified.New:
+                        DatabaseManager.InsertInsights(edge, nobj);
+                        break;
+                    case Modified.Equal:
+                        DatabaseManager.UpdateLastFetch(edge, nobj, pk, "systime", "fetch_time");
+                        break;
+                    case Modified.Updated:
+                        DatabaseManager.VersionEntityModified(edge, nobj, pk, "systime");
+                        DatabaseManager.InsertInsights(edge, nobj);
+                        break;
+                }
             }
         }
     }

@@ -1,7 +1,7 @@
 {
     "name": "instagram",
     "threads": 1,
-    "delay": 2,
+    "delay": 200,
     "page_size": 100,
     "columns":[
         ["id", "bigint"]
