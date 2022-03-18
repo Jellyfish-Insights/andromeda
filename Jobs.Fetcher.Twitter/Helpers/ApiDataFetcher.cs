@@ -138,7 +138,7 @@ namespace Jobs.Fetcher.Twitter.Helpers {
 
                 Callback(GetUserTweetsTimelineIterator(GetTimeLineParametersWithPublicMetrics(userId, start, end), client));
 
-                Callback(GetUserTweetsTimelineIterator(GetTimelineParametersWithNonPublicMetrics(userId, start, end), client));        
+                Callback(GetUserTweetsTimelineIterator(GetTimelineParametersWithNonPublicMetrics(userId, start, end), client));
 
                 Callback(GetUserTweetsTimelineIterator(GetTimelineParametersWithAllMetrics(userId, start, end), client));
             }
