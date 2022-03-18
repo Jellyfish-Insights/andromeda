@@ -226,10 +226,10 @@ namespace Jobs.Fetcher.Facebook {
                             if (result["error"] == null) {
                                 return result;
                             }
+                        } else if ((int) errorCode == INVALID_PARAMETER) {
+                            LoggerFactory.GetFacebookLogger().Warning("Invalid Parameter was send. Instagram post from before the account was for business.");
+                            throw new FacebookApiException("Invalid Parameter");
                         } else {
-                            if ((int) errorCode == INVALID_PARAMETER) {
-                                LoggerFactory.GetFacebookLogger().Warning("Invalid Parameter was send. Retrying once.");
-                            }
                             if (retries == 0) {
                                 result = await RequestOrCache(client, retries + 1, prefix, url, true);
                             }
