@@ -59,13 +59,13 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                 lock (YTDLock) {
                     YTDRequests++;
                     if (YTDRequests % 100 == 0)
-                        _logger.Debug($"\n*** QUOTA ***\n{YTDRequests++} requests sent to YouTube Data\n");
+                        _logger.Debug($"\n*** QUOTA ***\n{YTDRequests} requests sent to YouTube Data\n");
                 }
             } else if (r.GetType().BaseType.GetGenericTypeDefinition().IsAssignableFrom(typeof(YouTubeAnalyticsBaseServiceRequest<>))) {
                 lock (YTALock) {
                     YTARequests++;
                     if (YTARequests % 100 == 0)
-                        _logger.Debug($"\n*** QUOTA ***\n{YTARequests++} requests sent to YouTube Analytics\n");
+                        _logger.Debug($"\n*** QUOTA ***\n{YTARequests} requests sent to YouTube Analytics\n");
                 }
             }
             var startTime = DateTime.UtcNow;
@@ -676,7 +676,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     lock (YTALock) {
                         YTARequests++;
                         if (YTARequests % 1000 == 0)
-                            _logger.Information($"{YTARequests++} requests sent to YouTube Analytics");
+                            _logger.Information($"{YTARequests} requests sent to YouTube Analytics");
                     }
                 }
                 catch (Exception exc) {
@@ -711,7 +711,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
                     lock (YTDLock) {
                         YTDRequests++;
                         if (YTDRequests % 1000 == 0)
-                            _logger.Information($"{YTDRequests++} requests sent to YouTube Data");
+                            _logger.Information($"{YTDRequests} requests sent to YouTube Data");
                     }
                 }
                 catch (Exception exc) {
