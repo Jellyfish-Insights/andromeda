@@ -203,11 +203,12 @@ namespace Jobs.Fetcher.YouTube {
             Logger.Information($"We are comparing (after filtering): {comparisonFiltered.Count()} items");
 
             Logger.Information($"forceFetch is {forceFetch}");
+            Logger.Information($"Videos with 'ratio' > {comparisonThreshold} will be reprocessed");
 
             foreach (var item in comparisonFiltered) {
                 if (item.Lifetime > 0 && item.Lifetime > comparisonMinLimit) {
                     var ratio = Math.Abs((double) item.Lifetime - item.Total) / ((double) item.Lifetime);
-                    Logger.Information("Ratio is " + string.Format("{0:0.000}", ratio));
+                    Logger.Debug("Ratio is " + string.Format("{0:0.000}", ratio));
                     if (forceFetch || ratio > comparisonThreshold) {
                         Logger.Information($"Reprocessing video {item.Id.VideoId}");
                         DbWriter.Write(fetcher.FetchDailyMetrics(channelId, item.Id, true), Logger);

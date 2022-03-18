@@ -462,7 +462,7 @@ namespace Jobs.Fetcher.YouTube.Helpers {
             YTD.Video video,
             bool reprocess = false
             ) {
-            _logger.Debug($"Processing channel {channelId} , video {video.VideoId}");
+            _logger.Verbose($"Processing channel {channelId} , video {video.VideoId}");
             var dailyMetrics = FetchVideoDailyMetrics(channelId, video, reprocess);
             var subscriberViews = FetchSubscriberViews(channelId, video, reprocess);
 
