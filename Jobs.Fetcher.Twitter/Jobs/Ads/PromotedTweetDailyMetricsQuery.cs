@@ -41,7 +41,7 @@ namespace Jobs.Fetcher.Twitter {
             DataLakeTwitterAdsContext adsDbContext,
             DataLakeTwitterDataContext dataDbContext) {
 
-            var user = DbReader.GetUserByUsername(username, dataDbContext, GetLogger());
+            var user = DbReader.GetUserByUsername(username, dataDbContext);
 
             if (user == null) {
                 GetLogger().Error($"User {username} not found in database");
@@ -63,16 +63,16 @@ namespace Jobs.Fetcher.Twitter {
                     GetLogger());
             }
 
-            var promotedTweetIds = DbReader.GetPromotedTweetIdsFromUser(user.Id, dataDbContext, adsDbContext, GetLogger());
+            var promotedTweetIds = DbReader.GetPromotedTweetIdsFromUser(user.Id, dataDbContext, adsDbContext);
 
             if (!promotedTweetIds.Any()) {
                 GetLogger().Error($"User {username} has no Ads promoted tweets");
                 return;
             }
 
-            var startDate = DbReader.GetPromotedTweetDailyMetricsStartingDate(user.Id, dataDbContext, adsDbContext, GetLogger());
+            var startDate = DbReader.GetPromotedTweetDailyMetricsStartingDate(user.Id, dataDbContext, adsDbContext);
 
-            foreach (var adsAccount in DbReader.GetAdsAccounts(username, adsDbContext, GetLogger())) {
+            foreach (var adsAccount in DbReader.GetAdsAccounts(username, adsDbContext)) {
                 try {
                     await ApiDataFetcher.GetPromotedTweetDailyMetricsReport(
                         adsAccount,

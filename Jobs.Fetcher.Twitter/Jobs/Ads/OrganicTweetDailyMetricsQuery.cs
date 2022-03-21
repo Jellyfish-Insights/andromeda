@@ -45,7 +45,7 @@ namespace Jobs.Fetcher.Twitter {
             User user;
 
             try {
-                user = DbReader.GetUserByUsername(username, dataDbContext, GetLogger());
+                user = DbReader.GetUserByUsername(username, dataDbContext);
             }catch (Exception e) {
                 Logger.Error($"User {username} not found in database");
                 Logger.Verbose($"Error: {e}");
@@ -75,7 +75,7 @@ namespace Jobs.Fetcher.Twitter {
             IEnumerable<string> tweetIds;
 
             try {
-                tweetIds = DbReader.GetTweetIdsFromUser(user.Id, dataDbContext, GetLogger());
+                tweetIds = DbReader.GetTweetIdsFromUser(user.Id, dataDbContext);
             }catch (Exception e) {
                 Logger.Error($"User {username} has no Ads tweets");
                 Logger.Verbose($"Error: {e}");
@@ -89,10 +89,9 @@ namespace Jobs.Fetcher.Twitter {
             var startDate = DbReader.GetOrganicTweetDailyMetricsStartingDate(
                 user.Id,
                 dataDbContext,
-                adsDbContext,
-                GetLogger());
+                adsDbContext);
 
-            foreach (var adsAccount in DbReader.GetAdsAccounts(username, adsDbContext, GetLogger())) {
+            foreach (var adsAccount in DbReader.GetAdsAccounts(username, adsDbContext)) {
                 try {
                     await ApiDataFetcher.GetOrganicTweetDailyMetricsReport(
                         adsAccount,

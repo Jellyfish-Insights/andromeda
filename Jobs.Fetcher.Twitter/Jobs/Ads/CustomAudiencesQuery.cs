@@ -48,7 +48,7 @@ namespace Jobs.Fetcher.Twitter {
                 }
             }
 
-            foreach (var adsAccountId in DbReader.GetAdsAccountIds(username, adsDbContext, GetLogger())) {
+            foreach (var adsAccountId in DbReader.GetAdsAccountIds(username, adsDbContext)) {
                 ApiDataFetcher.GetCustomAudiences(adsAccountId, client as TwitterAdsClient, ProccessCustomAudiencesResult);
             }
         }

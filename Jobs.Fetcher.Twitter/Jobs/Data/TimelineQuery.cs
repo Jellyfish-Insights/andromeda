@@ -29,7 +29,7 @@ namespace Jobs.Fetcher.Twitter {
 
         private void RunBody(string username, ITwitterClient client, DataLakeTwitterDataContext dbContext) {
 
-            var user = DbReader.GetUserByUsername(username, dbContext, GetLogger());
+            var user = DbReader.GetUserByUsername(username, dbContext);
             if (user == null) {
                 GetLogger().Error($"User {username} not found in database");
                 return;
@@ -50,7 +50,7 @@ namespace Jobs.Fetcher.Twitter {
                 }
             }
 
-            var latestTweet = DbReader.GetLatestTweetFromUser(user.Id, dbContext, GetLogger());
+            var latestTweet = DbReader.GetLatestTweetFromUser(user.Id, dbContext);
 
             ApiDataFetcher.GetUserTweetsTimeline(user.Id, latestTweet, client as TwitterDataClient, ProccessTimeLineResult);
         }

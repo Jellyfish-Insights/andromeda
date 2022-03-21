@@ -32,7 +32,7 @@ namespace Jobs.Fetcher.Twitter {
         }
 
         private void RunBody(string username, ITwitterClient client, DataLakeTwitterAdsContext dbContext) {
-            var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext, GetLogger());
+            var adsAccountIds = DbReader.GetAdsAccountIds(username, dbContext);
 
             void ProccessPromotedTweetResult(string adsAccountId, ITwitterRequestIterator<PromotedTweetsResponse, string> iterator) {
                 var page_count = 0;

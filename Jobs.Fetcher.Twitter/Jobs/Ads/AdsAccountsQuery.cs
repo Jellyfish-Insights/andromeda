@@ -32,7 +32,7 @@ namespace Jobs.Fetcher.Twitter {
             DataLakeTwitterAdsContext adsContext,
             DataLakeTwitterDataContext dataContext) {
 
-            var user = DbReader.GetUserByUsername(username, dataContext, Logger);
+            var user = DbReader.GetUserByUsername(username, dataContext);
 
             if (user == null) {
                 Logger.Warning($"User {username} not found in database");
