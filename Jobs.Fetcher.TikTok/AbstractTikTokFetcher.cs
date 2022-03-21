@@ -17,6 +17,7 @@ namespace Jobs.Fetcher.TikTok {
 
         public override void Run() {
             foreach (var username in Usernames) {
+                Logger.Information($"Analyzing {username}");
                 RunBody(username);
             }
         }
