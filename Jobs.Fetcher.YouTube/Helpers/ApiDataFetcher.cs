@@ -613,6 +613,11 @@ namespace Jobs.Fetcher.YouTube.Helpers {
         }
 
         public void DoViewerPercentageTask(ViewerPercentagesTask task) {
+            if (task == null || task.VideoId == null || task.EndDate == null) {
+                _logger.Error("DoViewerPercentageTask: received a null task! Skipping");
+                return;
+            }
+
             var viewerPercentages = RunViewerPercentageReport(task);
 
             if (viewerPercentages.Any()) {
