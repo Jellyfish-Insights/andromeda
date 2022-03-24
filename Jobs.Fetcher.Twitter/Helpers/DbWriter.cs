@@ -759,18 +759,24 @@ namespace Jobs.Fetcher.Twitter.Helpers {
             T newEntry,
             DbContext dbContext,
             Logger logger) where T : IEquatable<T> where Context : DbContext {
-            var modified = CompareEntries.CompareOldAndNewEntry<T>(oldEntry, newEntry);
-            switch (modified) {
-                case Modified.New:
-                    logger.Debug("Inserting new {Type}: {Id}", typeof(T).Name, newEntry);
-                    (dbContext as Context).Add(newEntry);
-                    break;
-                case Modified.Updated:
-                    logger.Debug("Found update to {Type}: {Id}", typeof(T).Name, newEntry);
-                    (dbContext as Context).Entry(oldEntry).CurrentValues.SetValues(newEntry);
-                    break;
-                default:
-                    break;
+
+            try {
+                var modified = CompareEntries.CompareOldAndNewEntry<T>(oldEntry, newEntry);
+                switch (modified) {
+                    case Modified.New:
+                        logger.Debug("Inserting new {Type}: {Id}", typeof(T).Name, newEntry);
+                        (dbContext as Context).Add(newEntry);
+                        break;
+                    case Modified.Updated:
+                        logger.Debug("Found update to {Type}: {Id}", typeof(T).Name, newEntry);
+                        (dbContext as Context).Entry(oldEntry).CurrentValues.SetValues(newEntry);
+                        break;
+                    default:
+                        break;
+                }
+            }catch (Exception e) {
+                logger.Error($"Could not upsert {typeof(T).Name}: {newEntry}");
+                logger.Debug($"Error: {e}");
             }
         }
 
@@ -779,20 +785,26 @@ namespace Jobs.Fetcher.Twitter.Helpers {
             T newEntry,
             DbContext dbContext,
             Logger logger) where T : IValidityRange, IEquatable<T> where Context : DbContext {
-            var modified = CompareEntries.CompareOldAndNewEntry<T>(oldEntry, newEntry);
-            switch (modified) {
-                case Modified.New:
-                    logger.Debug("Inserting new {Type}: {Id}", typeof(T).Name, newEntry);
-                    break;
-                case Modified.Updated:
-                    logger.Debug("Found update to {Type}: {Id}", typeof(T).Name, newEntry);
-                    oldEntry.ValidityEnd = newEntry.ValidityStart;
-                    (dbContext as Context).Update(oldEntry);
-                    break;
-                default:
-                    return;
+
+            try {
+                var modified = CompareEntries.CompareOldAndNewEntry<T>(oldEntry, newEntry);
+                switch (modified) {
+                    case Modified.New:
+                        logger.Debug("Inserting new {Type}: {Id}", typeof(T).Name, newEntry);
+                        break;
+                    case Modified.Updated:
+                        logger.Debug("Found update to {Type}: {Id}", typeof(T).Name, newEntry);
+                        oldEntry.ValidityEnd = newEntry.ValidityStart;
+                        (dbContext as Context).Update(oldEntry);
+                        break;
+                    default:
+                        return;
+                }
+                (dbContext as Context).Add(newEntry);
+            }catch (Exception e) {
+                logger.Error($"Could not insert {typeof(T).Name}: {newEntry}");
+                logger.Debug($"Error: {e}");
             }
-            (dbContext as Context).Add(newEntry);
         }
     }
 }

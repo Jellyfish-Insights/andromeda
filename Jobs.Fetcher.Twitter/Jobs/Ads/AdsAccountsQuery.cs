@@ -20,7 +20,6 @@ using FlycatcherAds.Client;
 namespace Jobs.Fetcher.Twitter {
 
     public class AdsAccountsQuery : AbstractTwitterFetcher {
-
         public AdsAccountsQuery(Dictionary<string, ITwitterClient> clients): base(clients) {}
 
         public override List<string> Dependencies() {
@@ -34,20 +33,24 @@ namespace Jobs.Fetcher.Twitter {
             DataLakeTwitterDataContext dataContext) {
 
             var user = DbReader.GetUserByUsername(username, dataContext);
+
             if (user == null) {
-                Logger.Error($"User {username} not found in database");
+                Logger.Warning($"User {username} not found in database");
                 return;
             }
 
             void ProccessAdsAccountResult(ITwitterRequestIterator<AdsAccountsResponse, string> iterator) {
-                try {
-                    while (!iterator.Completed) {
+                var page_count = 0;
+                while (!iterator.Completed) {
+                    try {
+                        page_count++;
+                        Logger.Error($"Fetching Twitter Ads Accounts for {username}, page {page_count}");
                         var adsAccountPage = iterator.NextPageAsync().GetAwaiter().GetResult();
                         DbWriter.WriteAdsAccounts(user.Id, username, adsAccountPage.Content, adsContext, Logger);
+                    }catch (Exception e) {
+                        Logger.Error($"Could not fetch Twitter Ads Accounts for {username}, page {page_count}");
+                        Logger.Verbose($"Error: {e}");
                     }
-                }catch (Exception e) {
-                    Logger.Error($"Could not fetch Twitter Video Libraries for {username}");
-                    throw e;
                 }
             }
 

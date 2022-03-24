@@ -34,14 +34,17 @@ namespace Jobs.Fetcher.Twitter {
             DataLakeTwitterDataContext dataDbContext) {
 
             void ProccessCustomAudiencesResult(ITwitterRequestIterator<CustomAudiencesResponse, string> iterator) {
-                try {
-                    while (!iterator.Completed) {
+                var page_count = 0;
+                while (!iterator.Completed) {
+                    try {
+                        page_count++;
+                        GetLogger().Information($"Fetching Twitter Ads Custom Audiences for {username}, page {page_count}");
                         var customAudiencesPage = iterator.NextPageAsync().GetAwaiter().GetResult();
                         DbWriter.WriteCustomAudiences(customAudiencesPage.Content, adsDbContext, GetLogger());
+                    }catch (Exception e) {
+                        GetLogger().Error($"Could not fetch or write Twitter Ads Custom Audiences for {username}, page {page_count}");
+                        GetLogger().Verbose($"Error: {e}");
                     }
-                }catch (Exception e) {
-                    GetLogger().Error($"Could not fetch Twitter Video Libraries for {username}");
-                    throw e;
                 }
             }
 

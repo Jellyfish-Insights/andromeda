@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Tweetinvi;
 using DataLakeModels;
+using DataLakeModels.Models.Twitter.Data;
 using Tweetinvi.Models.V2;
 using Tweetinvi.Parameters.V2;
 using Tweetinvi.WebLogic;
@@ -41,7 +42,16 @@ namespace Jobs.Fetcher.Twitter {
             DataLakeTwitterAdsContext adsDbContext,
             DataLakeTwitterDataContext dataDbContext) {
 
-            var user = DbReader.GetUserByUsername(username, dataDbContext);
+            User user;
+
+            try {
+                user = DbReader.GetUserByUsername(username, dataDbContext);
+            }catch (Exception e) {
+                Logger.Error($"User {username} not found in database");
+                Logger.Verbose($"Error: {e}");
+                return;
+            }
+
             if (user == null) {
                 GetLogger().Error($"User {username} not found in database");
                 return;
@@ -62,10 +72,17 @@ namespace Jobs.Fetcher.Twitter {
                     GetLogger());
             }
 
-            var tweetIds = DbReader.GetTweetIdsFromUser(user.Id, dataDbContext);
+            IEnumerable<string> tweetIds;
 
+            try {
+                tweetIds = DbReader.GetTweetIdsFromUser(user.Id, dataDbContext);
+            }catch (Exception e) {
+                Logger.Error($"User {username} has no Ads tweets");
+                Logger.Verbose($"Error: {e}");
+                return;
+            }
             if (!tweetIds.Any()) {
-                GetLogger().Error($"User {username} has no tweets");
+                GetLogger().Error($"User {username} has no Ads tweets");
                 return;
             }
 
@@ -75,13 +92,17 @@ namespace Jobs.Fetcher.Twitter {
                 adsDbContext);
 
             foreach (var adsAccount in DbReader.GetAdsAccounts(username, adsDbContext)) {
-
-                await ApiDataFetcher.GetOrganicTweetDailyMetricsReport(
-                    adsAccount,
-                    startDate,
-                    tweetIds,
-                    client as TwitterAdsClient,
-                    ProccessOrganicTweetDailyMetricsResult);
+                try {
+                    await ApiDataFetcher.GetOrganicTweetDailyMetricsReport(
+                        adsAccount,
+                        startDate,
+                        tweetIds,
+                        client as TwitterAdsClient,
+                        ProccessOrganicTweetDailyMetricsResult);
+                }catch (Exception e) {
+                    Logger.Error($"Could not get Organic Daily Metrics from {adsAccount}");
+                    Logger.Verbose($"Error: {e}");
+                }
             }
         }
     }
