@@ -19,6 +19,7 @@ namespace Jobs.Fetcher.Facebook {
         // values taken from: https://developers.facebook.com/docs/graph-api/using-graph-api/error-handling/
         const int INVALID_PARAMETER = 100;
         const int INVALID_FETCH_TIME = 101;
+        const int NONEXISTENT_OBJECT = 10;
         const int APPLICATION_LEVEL_THROTTLING = 4;
         const int APPLICATION_QUOTA_WINDOW = 60 * 60; // seconds
         const int ACCOUNT_LEVEL_THROTTLING = 17;
@@ -199,8 +200,14 @@ namespace Jobs.Fetcher.Facebook {
                             !((JObject) result["error"]).TryGetValue("message", out var errorMessage)) {
 
                             LoggerFactory.GetFacebookLogger().Error("Unknown error found while getting cache or request. Couldn't get error code or message.");
+                        } else if ((int) errorCode == INVALID_PARAMETER){
+                            LoggerFactory.GetFacebookLogger().Warning($"This looks like an Instagram post from before the account was for business (read more on the invalid parameter report).");
+                            throw new FacebookApiException("Invalid Parameter");
+                        } else if ((int) errorCode == NONEXISTENT_OBJECT){
+                            LoggerFactory.GetFacebookLogger().Warning($"This looks like a deleted post (read more on the deleted object report).");
+                            throw new FacebookApiException("Nonexistent Object");
                         } else {
-                            LoggerFactory.GetFacebookLogger().Error($"Cached Request error({errorCode.ToString()}): ({errorMessage.ToString()}).");
+                            LoggerFactory.GetFacebookLogger().Error($"Request or Cached error({errorCode.ToString()}): ({errorMessage.ToString()}).");
                         }
                         var elapsed = this.GetUtcTime().Subtract(result["fetch_time"].ToObject<DateTime>()).TotalSeconds;
                         if ((int) errorCode == ACCOUNT_LEVEL_THROTTLING) {
@@ -226,9 +233,6 @@ namespace Jobs.Fetcher.Facebook {
                             if (result["error"] == null) {
                                 return result;
                             }
-                        } else if ((int) errorCode == INVALID_PARAMETER) {
-                            LoggerFactory.GetFacebookLogger().Warning("Invalid Parameter was send. Instagram post from before the account was for business.");
-                            throw new FacebookApiException("Invalid Parameter");
                         } else {
                             if (retries == 0) {
                                 result = await RequestOrCache(client, retries + 1, prefix, url, true);
