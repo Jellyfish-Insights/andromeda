@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+
 using DataLakeModels.Models.TikTok;
 using Serilog.Core;
 using Newtonsoft.Json;
@@ -12,14 +13,18 @@ using Andromeda.Common;
 using Andromeda.Common.Extensions;
 
 namespace Jobs.Fetcher.TikTok.Helpers {
-
     public static class ApiDataFetcher {
-        public static IEnumerable<JObject> GetPosts(string username, DateTime lastFetch, Logger logger) {
+        public static IEnumerable<JObject> GetPosts(string username,
+                                                    DateTime lastFetch,
+                                                    Logger logger
+                                                    ) {
             logger.Information(@"Fetching posts for '" + username + "' after '" + lastFetch + "'.");
             int lastOffset = 0;
             while (true) {
                 var somePosts = DatabaseManager.GetPayload(username, lastFetch, lastOffset);
-                logger.Information("Found " + somePosts.Count + " posts.");
+                logger.Information($"Reading next page of results... "
+                                   + $"found {somePosts.Count} posts.");
+
                 if (somePosts.Count() == 0) {
                     yield break;
                 }
@@ -30,13 +35,16 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             }
         }
 
-        public static Video GetTikTokVideoFromJson(JObject videoJson, string postId) {
+        public static Video GetTikTokVideoFromJson(JObject videoJson,
+                                                   string postId,
+                                                   Logger logger) {
             var shareCovers = new List<string>();
 
-            bool nullId = !videoJson.TryGetValue("id", out var id);
-            bool nullDuration = !videoJson.TryGetValue("duration", out var duration);
-            bool nullCover = !videoJson.TryGetValue("cover", out var cover);
-            bool nullPlayAddr = !videoJson.TryGetValue("playAddr", out var playAddr);
+            // essential fields, checked for in DoWeHaveTheBareMinimum
+            videoJson.TryGetValue("id", out var id);
+            videoJson.TryGetValue("duration", out var duration);
+            videoJson.TryGetValue("cover", out var cover);
+            videoJson.TryGetValue("playAddr", out var playAddr);
 
             videoJson.TryGetValue("height", out var height);
             videoJson.TryGetValue("width", out var width);
@@ -54,37 +62,38 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             videoJson.TryGetValue("definition", out var definition);
             videoJson.TryGetValue("shareCover", out var shareCoverJson);
 
-            if (nullId || nullDuration || nullCover || nullPlayAddr) {
-                throw new NullReferenceException();
-            }
-
             foreach (var shareCover in shareCoverJson) {
                 shareCovers.Add(shareCover.ToString());
             }
 
-            var newVideo = new Video() {
-                Id = id.ToString(),
-                Height = height.ToObject<int>(),
-                Width = width.ToObject<int>(),
-                Duration = duration.ToObject<int>(),
-                Ratio = ratio.ToString(),
-                Cover = cover.ToString(),
-                OriginCover = originCover.ToString(),
-                DynamicCover = dynamicCover.ToString(),
-                PlayAddress = playAddr.ToString(),
-                DownloadAddress = downloadAddr.ToString(),
-                ShareCover = shareCovers,
-                ReflowCover = reflowCover.ToString(),
-                BitRate = bitrate.ToObject<int>(),
-                EncodedType = encodedType.ToString(),
-                Format = format.ToString(),
-                VideoQuality = videoQuality.ToString(),
-                EncodedUserTag = encodeUserTag.ToString(),
-                CodecType = codecType.ToString(),
-                Definition = definition.ToString()
-            };
+            try {
+                var newVideo = new Video() {
+                    Id = id.ToString(),
+                    Height = height.ToObject<int>(),
+                    Width = width.ToObject<int>(),
+                    Duration = duration.ToObject<int>(),
+                    Ratio = ratio.ToString(),
+                    Cover = cover.ToString(),
+                    OriginCover = originCover.ToString(),
+                    DynamicCover = dynamicCover.ToString(),
+                    PlayAddress = playAddr.ToString(),
+                    DownloadAddress = downloadAddr.ToString(),
+                    ShareCover = shareCovers,
+                    ReflowCover = reflowCover.ToString(),
+                    BitRate = bitrate.ToObject<int>(),
+                    EncodedType = encodedType.ToString(),
+                    Format = format.ToString(),
+                    VideoQuality = videoQuality.ToString(),
+                    EncodedUserTag = encodeUserTag.ToString(),
+                    CodecType = codecType.ToString(),
+                    Definition = definition.ToString()
+                };
 
-            return newVideo;
+                return newVideo;
+            } catch {
+                logger.Error($"id = {postId} - error converting JToken to object! Returning null");
+                return null;
+            }
         }
 
         public static Music GetTikTokMusicFromJson(JToken musicJson) {
@@ -192,14 +201,22 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             };
         }
 
-        public static AuthorStats GetTikTokAuthorStatsFromJson(JToken authorStatsJson, Author author, DateTime postTime) {
+        public static AuthorStats GetTikTokAuthorStatsFromJson(JObject authorStatsJson, Author author, DateTime postTime) {
+
+            authorStatsJson.TryGetValue("followingCount", out var followingCount);
+            authorStatsJson.TryGetValue("followerCount", out var followerCount);
+            authorStatsJson.TryGetValue("heartCount", out var heartCount);
+            authorStatsJson.TryGetValue("videoCount", out var videoCount);
+            authorStatsJson.TryGetValue("diggCount", out var diggCount);
+            authorStatsJson.TryGetValue("heart", out var heart);
+
             return new AuthorStats() {
-                       FollowingCount = authorStatsJson["followingCount"].ToObject<long>(),
-                       FollowerCount = authorStatsJson["followerCount"].ToObject<long>(),
-                       HeartCount = authorStatsJson["heartCount"].ToObject<long>(),
-                       VideoCount = authorStatsJson["videoCount"].ToObject<long>(),
-                       DiggCount = authorStatsJson["diggCount"].ToObject<long>(),
-                       Heart = authorStatsJson["heart"].ToObject<long>(),
+                       FollowingCount = followingCount?.ToObject<long>() ?? 0,
+                       FollowerCount = followerCount?.ToObject<long>() ?? 0,
+                       HeartCount = heartCount?.ToObject<long>() ?? 0,
+                       VideoCount = videoCount?.ToObject<long>() ?? 0,
+                       DiggCount = diggCount?.ToObject<long>() ?? 0,
+                       Heart = heart?.ToObject<long>() ?? 0,
                        EventDate = DateTime.Today,
                        ValidityStart = DateTime.UtcNow,
                        ValidityEnd = DateTime.MaxValue,
@@ -256,6 +273,87 @@ namespace Jobs.Fetcher.TikTok.Helpers {
                        PostId = post.Id,
                        Post = post
             };
+        }
+
+        public static bool TryField(JObject post,
+                                    KeyValuePair<string, Type> fieldAndType,
+                                    Logger logger
+                                    ) {
+            JToken tmp;
+            string field = fieldAndType.Key;
+            Type type = fieldAndType.Value;
+            if (!post.TryGetValue(field, out tmp)) {
+                logger.Information($"Object rejected - no '{field}' field");
+                return false;
+            }
+            try {
+                var extracted = tmp.ToObject(type);
+            } catch (Exception exc) {
+                logger.Information($"Object rejected - failed to decode '{field}' as '{type}'");
+                logger.Information(tmp.ToString());
+                logger.Information(exc.ToString());
+                return false;
+            }
+
+            return true;
+        }
+
+        public static bool DoWeHaveTheBareMinimum(JObject post, Logger logger) {
+            var topLevelFields = new Dictionary<string, Type>() {
+                { "id", typeof(string) },
+                { "desc", typeof(string) },
+
+                { "originalItem", typeof(bool) },
+                { "officalItem", typeof(bool) },
+                { "secret", typeof(bool) },
+                { "forFriend", typeof(bool) },
+                { "digged", typeof(bool) },
+                { "itemCommentStatus", typeof(bool) },
+                { "showNotPass", typeof(bool) },
+                { "vl1", typeof(bool) },
+                { "itemMute", typeof(bool) },
+                { "privateItem", typeof(bool) },
+                { "duetEnabled", typeof(bool) },
+                { "stitchEnabled", typeof(bool) },
+                { "shareEnabled", typeof(bool) },
+                { "isAd", typeof(bool) },
+
+                { "createTime", typeof(int) },
+                { "duetDisplay", typeof(int) },
+                { "stitchDisplay", typeof(int) },
+
+                { "stats", typeof(JObject) },
+                { "video", typeof(JObject) },
+                { "duetInfo", typeof(JObject) },
+            };
+
+            var videoFields = new Dictionary<string, Type>() {
+                { "cover", typeof(string) },
+                { "playAddr", typeof(string) },
+                { "duration", typeof(int) },
+            };
+
+            var statsFields = new Dictionary<string, Type>() {
+                { "diggCount", typeof(long) },
+                { "shareCount", typeof(long) },
+                { "commentCount", typeof(long) },
+                { "playCount", typeof(long) },
+            };
+
+            var duetFields = new Dictionary<string, Type>() {
+                { "duetFromId", typeof(string) },
+            };
+
+            var result = topLevelFields.All(x => TryField(post, x, logger))
+                         && videoFields.All(x => TryField((JObject) post["video"], x, logger))
+                         && statsFields.All(x => TryField((JObject) post["stats"], x, logger))
+                         && duetFields.All(x => TryField((JObject) post["duetInfo"], x, logger));
+
+            if (result == false) {
+                logger.Error("🔴🔴🔴 ERROR 🔴🔴🔴 This payload does not contain the bare minimum! Skipping!");
+            }
+
+            return result;
         }
     }
 }
