@@ -45,6 +45,3 @@ docker run --rm \
     --privileged \
     scraper
 
-sleep_time=$(( 60 * 60 * 10 ))
-echo "Now we will fall asleep for 10 hours"
-sleep "$sleep_time"
