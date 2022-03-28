@@ -76,7 +76,7 @@ namespace Jobs.Fetcher.TikTok.Helpers {
         public static void WritePostStats(PostStats newEntry, DataLakeTikTokContext dbContext, Logger logger) {
             var now = DateTime.UtcNow;
             lock (DbLock) {
-                var oldEntry = dbContext.Stats.SingleOrDefault(m => m.PostId == newEntry.PostId && m.ValidityStart <= now && m.ValidityEnd > now);
+                var oldEntry = dbContext.Stats.SingleOrDefault(m => m.PostId == newEntry.PostId && m.ValidityStart <= now && m.ValidityEnd > now && m.EventDate == newEntry.EventDate);
                 Insert<PostStats, DataLakeTikTokContext>(oldEntry, newEntry, dbContext, logger);
                 dbContext.SaveChanges();
             }
