@@ -211,12 +211,12 @@ namespace Jobs.Fetcher.TikTok.Helpers {
             authorStatsJson.TryGetValue("heart", out var heart);
 
             return new AuthorStats() {
-                       FollowingCount = followingCount == null ? 0 : followingCount.ToObject<long>(),
-                       FollowerCount = followerCount == null ? 0 : followerCount.ToObject<long>(),
-                       HeartCount = heartCount == null ? 0 : heartCount.ToObject<long>(),
-                       VideoCount = videoCount == null ? 0 : videoCount.ToObject<long>(),
-                       DiggCount = diggCount == null ? 0 : diggCount.ToObject<long>(),
-                       Heart = heart == null ? 0 : heart.ToObject<long>(),
+                       FollowingCount = followingCount?.ToObject<long>() ?? 0,
+                       FollowerCount = followerCount?.ToObject<long>() ?? 0,
+                       HeartCount = heartCount?.ToObject<long>() ?? 0,
+                       VideoCount = videoCount?.ToObject<long>() ?? 0,
+                       DiggCount = diggCount?.ToObject<long>() ?? 0,
+                       Heart = heart?.ToObject<long>() ?? 0,
                        EventDate = DateTime.Today,
                        ValidityStart = DateTime.UtcNow,
                        ValidityEnd = DateTime.MaxValue,
