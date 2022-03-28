@@ -200,10 +200,10 @@ namespace Jobs.Fetcher.Facebook {
                             !((JObject) result["error"]).TryGetValue("message", out var errorMessage)) {
 
                             LoggerFactory.GetFacebookLogger().Error("Unknown error found while getting cache or request. Couldn't get error code or message.");
-                        } else if ((int) errorCode == INVALID_PARAMETER){
+                        } else if ((int) errorCode == INVALID_PARAMETER) {
                             LoggerFactory.GetFacebookLogger().Warning($"This looks like an Instagram post from before the account was for business (read more on the invalid parameter report).");
                             throw new FacebookApiException("Invalid Parameter");
-                        } else if ((int) errorCode == NONEXISTENT_OBJECT){
+                        } else if ((int) errorCode == NONEXISTENT_OBJECT) {
                             LoggerFactory.GetFacebookLogger().Warning($"This looks like a deleted post (read more on the deleted object report).");
                             throw new FacebookApiException("Nonexistent Object");
                         } else {
