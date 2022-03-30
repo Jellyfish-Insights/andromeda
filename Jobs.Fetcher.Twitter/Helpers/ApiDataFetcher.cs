@@ -127,7 +127,8 @@ namespace Jobs.Fetcher.Twitter.Helpers {
             string userId,
             LocalTweet latestTweet,
             TwitterDataClient client,
-            Action<ITwitterRequestIterator<TimelinesV2Response, string>> Callback) {
+            Action<ITwitterRequestIterator<TimelinesV2Response, string>> Callback,
+            Logger logger) {
 
             var dateRange = DateHelper.GetSemestersRange(latestTweet?.CreatedAt.DateTime ?? startDate, DateTime.UtcNow);
 
@@ -136,10 +137,13 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                 var start = item.Item1;
                 var end = item.Item2;
 
+                logger.Information("Fetching with Public Metrics");
                 Callback(GetUserTweetsTimelineIterator(GetTimeLineParametersWithPublicMetrics(userId, start, end), client));
 
+                logger.Information("Fetching with Non Public Metrics");
                 Callback(GetUserTweetsTimelineIterator(GetTimelineParametersWithNonPublicMetrics(userId, start, end), client));
 
+                logger.Information("Fetching with All Metrics ");
                 Callback(GetUserTweetsTimelineIterator(GetTimelineParametersWithAllMetrics(userId, start, end), client));
             }
         }

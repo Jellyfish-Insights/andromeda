@@ -39,12 +39,12 @@ namespace Jobs.Fetcher.Twitter {
                 while (!iterator.Completed) {
                     try {
                         page_count++;
-                        GetLogger().Error($"Fetching Twitter Ads Promoted Tweets for {username}, page {page_count}");
+                        Logger.Error($"Fetching Twitter Ads Promoted Tweets for {username}, page {page_count}");
                         var promotedTweetsPage = iterator.NextPageAsync().GetAwaiter().GetResult();
-                        DbWriter.WritePromotedTweets(adsAccountId, promotedTweetsPage.Content, dbContext, GetLogger());
+                        DbWriter.WritePromotedTweets(adsAccountId, promotedTweetsPage.Content, dbContext, Logger);
                     }catch (Exception e) {
-                        GetLogger().Error($"Could not fetch Twitter Ads Promoted Tweets for {username}, page {page_count}");
-                        GetLogger().Verbose($"Error: {e}");
+                        Logger.Error($"Could not fetch Twitter Ads Promoted Tweets for {username}, page {page_count}");
+                        Logger.Debug($"Error: {e}");
                     }
                 }
             }

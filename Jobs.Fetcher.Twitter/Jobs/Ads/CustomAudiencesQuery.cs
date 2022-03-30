@@ -38,12 +38,12 @@ namespace Jobs.Fetcher.Twitter {
                 while (!iterator.Completed) {
                     try {
                         page_count++;
-                        GetLogger().Information($"Fetching Twitter Ads Custom Audiences for {username}, page {page_count}");
+                        Logger.Information($"Fetching Twitter Ads Custom Audiences for {username}, page {page_count}");
                         var customAudiencesPage = iterator.NextPageAsync().GetAwaiter().GetResult();
-                        DbWriter.WriteCustomAudiences(customAudiencesPage.Content, adsDbContext, GetLogger());
+                        DbWriter.WriteCustomAudiences(customAudiencesPage.Content, adsDbContext, Logger);
                     }catch (Exception e) {
-                        GetLogger().Error($"Could not fetch or write Twitter Ads Custom Audiences for {username}, page {page_count}");
-                        GetLogger().Verbose($"Error: {e}");
+                        Logger.Error($"Could not fetch or write Twitter Ads Custom Audiences for {username}, page {page_count}");
+                        Logger.Debug($"Error: {e}");
                     }
                 }
             }

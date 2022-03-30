@@ -49,7 +49,7 @@ namespace Jobs.Fetcher.Twitter {
                         DbWriter.WriteAdsAccounts(user.Id, username, adsAccountPage.Content, adsContext, Logger);
                     }catch (Exception e) {
                         Logger.Error($"Could not fetch Twitter Ads Accounts for {username}, page {page_count}");
-                        Logger.Verbose($"Error: {e}");
+                        Logger.Debug($"Error: {e}");
                     }
                 }
             }

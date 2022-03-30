@@ -30,7 +30,7 @@ namespace Jobs.Fetcher.Twitter {
         public override void RunBody(KeyValuePair<string, ITwitterClient> kvp) {
             using (var dbContext = new DataLakeTwitterDataContext()) {
                 var user = ApiDataFetcher.GetUserByName(kvp.Key, kvp.Value as TwitterDataClient);
-                DbWriter.WriteUser(user, dbContext, GetLogger());
+                DbWriter.WriteUser(user, dbContext, Logger);
             }
         }
     }

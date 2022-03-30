@@ -48,12 +48,12 @@ namespace Jobs.Fetcher.Twitter {
                 user = DbReader.GetUserByUsername(username, dataDbContext);
             }catch (Exception e) {
                 Logger.Error($"User {username} not found in database");
-                Logger.Verbose($"Error: {e}");
+                Logger.Debug($"Error: {e}");
                 return;
             }
 
             if (user == null) {
-                GetLogger().Error($"User {username} not found in database");
+                Logger.Error($"User {username} not found in database");
                 return;
             }
 
@@ -69,7 +69,7 @@ namespace Jobs.Fetcher.Twitter {
                     end,
                     synchronousAnalyticsResponse,
                     adsDbContext,
-                    GetLogger());
+                    Logger);
             }
 
             IEnumerable<string> tweetIds;
@@ -78,11 +78,11 @@ namespace Jobs.Fetcher.Twitter {
                 tweetIds = DbReader.GetTweetIdsFromUser(user.Id, dataDbContext);
             }catch (Exception e) {
                 Logger.Error($"User {username} has no Ads tweets");
-                Logger.Verbose($"Error: {e}");
+                Logger.Debug($"Error: {e}");
                 return;
             }
             if (!tweetIds.Any()) {
-                GetLogger().Error($"User {username} has no Ads tweets");
+                Logger.Error($"User {username} has no Ads tweets");
                 return;
             }
 
@@ -101,7 +101,7 @@ namespace Jobs.Fetcher.Twitter {
                         ProccessOrganicTweetDailyMetricsResult);
                 }catch (Exception e) {
                     Logger.Error($"Could not get Organic Daily Metrics from {adsAccount}");
-                    Logger.Verbose($"Error: {e}");
+                    Logger.Debug($"Error: {e}");
                 }
             }
         }
