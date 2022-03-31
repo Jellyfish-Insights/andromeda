@@ -38,6 +38,7 @@ namespace Jobs.Fetcher.Twitter {
 
             void ProcessCampaignResult(string accountId, ITwitterRequestIterator<CampaignsResponse, string> iterator) {
                 var page_count = 0;
+                var error_count = 0;
                 while (!iterator.Completed) {
                     try {
                         page_count++;
@@ -48,6 +49,11 @@ namespace Jobs.Fetcher.Twitter {
                     }catch (Exception e) {
                         Logger.Error($"Could not fetch or write Twitter Ads Campaigns for {username}, page {page_count}");
                         Logger.Debug($"Error: {e}");
+                        error_count++;
+                        if (error_count > ERROR_THRESHOLD) {
+                            Logger.Debug($"It was not possible to get campaigns. Giving up for now.");
+                            break;
+                        }
                     }
                 }
             }

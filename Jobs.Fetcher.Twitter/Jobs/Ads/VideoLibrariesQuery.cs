@@ -20,7 +20,6 @@ using FlycatcherAds.Client;
 namespace Jobs.Fetcher.Twitter {
 
     public class VideoLibrariesQuery : AbstractTwitterFetcher {
-
         public VideoLibrariesQuery(Dictionary<string, ITwitterClient> clients): base(clients) {}
 
         public override List<string> Dependencies() {
@@ -38,6 +37,7 @@ namespace Jobs.Fetcher.Twitter {
 
             void ProccessVideoLibraryResult(ITwitterRequestIterator<MediaLibraryResponse, string> iterator) {
                 var page_count = 0;
+                var error_count = 0;
                 while (!iterator.Completed) {
                     try {
                         page_count++;
@@ -47,6 +47,11 @@ namespace Jobs.Fetcher.Twitter {
                     }catch (Exception e) {
                         Logger.Error($"Could not fetch Twitter Ads Video Libraries for {username}, page {page_count}");
                         Logger.Debug($"Error: {e}");
+                        error_count++;
+                        if (error_count > ERROR_THRESHOLD) {
+                            Logger.Debug($"It was not possible to get ads video libraries. Giving up for now.");
+                            break;
+                        }
                     }
                 }
             }

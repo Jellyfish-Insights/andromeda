@@ -71,18 +71,25 @@ namespace Jobs.Fetcher.Twitter {
             }
 
             var startDate = DbReader.GetPromotedTweetDailyMetricsStartingDate(user.Id, dataDbContext, adsDbContext);
-
+            var error_count = 0;
             foreach (var adsAccount in DbReader.GetAdsAccounts(username, adsDbContext)) {
+                Logger.Information($"Fetching Promoted Daily Metrics for {username} from {startDate.Date}");
                 try {
                     await ApiDataFetcher.GetPromotedTweetDailyMetricsReport(
                         adsAccount,
                         startDate,
                         promotedTweetIds,
                         client as TwitterAdsClient,
-                        ProccessPromotedTweetDailyMetricsResult);
+                        ProccessPromotedTweetDailyMetricsResult,
+                        Logger);
                 }catch (Exception e) {
                     Logger.Error($"Could not get Promoted Daily Metrics from {adsAccount}");
                     Logger.Debug($"Error: {e}");
+                    error_count++;
+                    if (error_count > ERROR_THRESHOLD) {
+                        Logger.Debug($"It was not possible to get ads video libraries. Giving up for now.");
+                        continue;
+                    }
                 }
             }
         }

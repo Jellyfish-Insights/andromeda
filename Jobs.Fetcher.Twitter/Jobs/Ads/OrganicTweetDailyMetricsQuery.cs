@@ -90,17 +90,18 @@ namespace Jobs.Fetcher.Twitter {
                 user.Id,
                 dataDbContext,
                 adsDbContext);
-
             foreach (var adsAccount in DbReader.GetAdsAccounts(username, adsDbContext)) {
+                Logger.Information($"Fetching Organic Daily Metrics for {username} from {startDate.Date}");
                 try {
                     await ApiDataFetcher.GetOrganicTweetDailyMetricsReport(
                         adsAccount,
                         startDate,
                         tweetIds,
                         client as TwitterAdsClient,
-                        ProccessOrganicTweetDailyMetricsResult);
+                        ProccessOrganicTweetDailyMetricsResult,
+                        Logger);
                 }catch (Exception e) {
-                    Logger.Error($"Could not get Organic Daily Metrics from {adsAccount}");
+                    Logger.Error($"Could not get Organic Daily Metrics from {username}");
                     Logger.Debug($"Error: {e}");
                 }
             }

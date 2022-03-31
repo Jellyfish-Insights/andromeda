@@ -29,7 +29,7 @@ using LocalTweet = DataLakeModels.Models.Twitter.Data.Tweet;
 namespace Jobs.Fetcher.Twitter.Helpers {
 
     public static class ApiDataFetcher {
-
+        const int BATCH_SIZE = 20;
         private static readonly DateTime startDate = new DateTime(2021, 1, 1);
 
         public static User GetUserByName(string username, TwitterDataClient client) {
@@ -201,7 +201,8 @@ namespace Jobs.Fetcher.Twitter.Helpers {
             DateTimeOffset startDate,
             IEnumerable<string> tweetIds,
             ITwitterAdsClient client,
-            Action<string, DateTime, DateTime, SynchronousAnalyticsResponse> Callback) {
+            Action<string, DateTime, DateTime, SynchronousAnalyticsResponse> Callback,
+            Logger logger) {
 
             var parameters = new GetSynchronousAnalyticsParameters() {
                 AccountId = adsAccount.Id,
@@ -217,16 +218,24 @@ namespace Jobs.Fetcher.Twitter.Helpers {
 
                 var start = item.Item1;
                 var end = item.Item2;
-
-                foreach (var batch in tweetIds.SplitIntoBatches(20)) {
+                var batch_count = 0;
+                var total_batches = Math.Ceiling((double) tweetIds.Count() / (double) BATCH_SIZE);
+                logger.Information($"Fetching metrics from {start.Date} to {end.Date} ({total_batches} batches)");
+                foreach (var batch in tweetIds.SplitIntoBatches(BATCH_SIZE)) {
+                    batch_count++;
+                    logger.Information($"Fetching batch {batch_count}/{total_batches}");
 
                     parameters.EntityIds = batch.ToHashSet<string>();
                     parameters.StartTime = DateHelper.AddTimezoneOffset(start, adsAccount.TimeZone);
                     parameters.EndTime = DateHelper.AddTimezoneOffset(end, adsAccount.TimeZone);
 
-                    var result = await client.AnalyticsClient.GetSynchronousAnalyticsAsync(parameters).ConfigureAwait(false);
-
-                    Callback(adsAccount.Id, start, end, result);
+                    try {
+                        var result = await client.AnalyticsClient.GetSynchronousAnalyticsAsync(parameters).ConfigureAwait(false);
+                        Callback(adsAccount.Id, start, end, result);
+                    }catch (Exception e) {
+                        logger.Error($"Failed fetching batch {batch_count}/{total_batches}");
+                        logger.Debug($"Error {e}");
+                    }
                 }
             }
         }
@@ -236,7 +245,8 @@ namespace Jobs.Fetcher.Twitter.Helpers {
             DateTimeOffset startDate,
             IEnumerable<string> promotedTweetIds,
             ITwitterAdsClient client,
-            Action<string, DateTime, DateTime, SynchronousAnalyticsResponse> Callback) {
+            Action<string, DateTime, DateTime, SynchronousAnalyticsResponse> Callback,
+            Logger logger) {
 
             var parameters = new GetSynchronousAnalyticsParameters() {
                 AccountId = adsAccount.Id,
@@ -254,16 +264,25 @@ namespace Jobs.Fetcher.Twitter.Helpers {
 
                 var start = item.Item1;
                 var end = item.Item2;
+                var batch_count = 0;
+                var total_batches = Math.Ceiling((double) promotedTweetIds.Count() / (double) BATCH_SIZE);
 
-                foreach (var batch in promotedTweetIds.SplitIntoBatches(20)) {
+                logger.Information($"Fetching metrics from {start.Date} to {end.Date} ({total_batches} batches)");
+                foreach (var batch in promotedTweetIds.SplitIntoBatches(BATCH_SIZE)) {
+                    batch_count++;
+                    logger.Information($"Fetching batch {batch_count}/{total_batches}");
 
                     parameters.EntityIds = batch.ToHashSet<string>();
                     parameters.StartTime = DateHelper.AddTimezoneOffset(start, adsAccount.TimeZone);
                     parameters.EndTime = DateHelper.AddTimezoneOffset(end, adsAccount.TimeZone);
 
-                    var result = await client.AnalyticsClient.GetSynchronousAnalyticsAsync(parameters).ConfigureAwait(false);
-
-                    Callback(adsAccount.Id, start, end, result);
+                    try {
+                        var result = await client.AnalyticsClient.GetSynchronousAnalyticsAsync(parameters).ConfigureAwait(false);
+                        Callback(adsAccount.Id, start, end, result);
+                    }catch (Exception e) {
+                        logger.Error($"Failed fetching batch {batch_count}/{total_batches}");
+                        logger.Debug($"Error {e}");
+                    }
                 }
             }
         }

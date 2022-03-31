@@ -20,7 +20,6 @@ using FlycatcherAds.Client;
 namespace Jobs.Fetcher.Twitter {
 
     public class LineItemsQuery : AbstractTwitterFetcher {
-
         public LineItemsQuery(Dictionary<string, ITwitterClient> clients): base(clients) {}
 
         public override List<string> Dependencies() {
@@ -36,6 +35,7 @@ namespace Jobs.Fetcher.Twitter {
 
             void ProccessLineItemResult(string adsAccountId, ITwitterRequestIterator<LineItemsResponse, string> iterator) {
                 var page_count = 0;
+                var error_count = 0;
                 while (!iterator.Completed) {
                     try {
                         page_count++;
@@ -45,6 +45,11 @@ namespace Jobs.Fetcher.Twitter {
                     }catch (Exception e) {
                         Logger.Error($"Could not fetch or write Twitter Ads Line Items for {username}");
                         Logger.Debug($"Error: {e}");
+                        error_count++;
+                        if (error_count > ERROR_THRESHOLD) {
+                            Logger.Debug($"It was not possible to get line items. Giving up for now.");
+                            break;
+                        }
                     }
                 }
             }
