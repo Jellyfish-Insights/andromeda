@@ -47,9 +47,7 @@ namespace Jobs.Fetcher.Twitter {
                         Logger.Error($"Could not fetch Twitter Timelines for {username}, page {page_count}");
                         Logger.Debug($"Error: {e}");
                     }
-                    Logger.Information($"End of loop");
                 }
-                Logger.Information($"End of function");
             }
 
             var latestTweet = DbReader.GetLatestTweetFromUser(user.Id, dbContext);
