@@ -36,15 +36,21 @@ namespace Jobs.Fetcher.Twitter {
 
             void ProccessPromotedTweetResult(string adsAccountId, ITwitterRequestIterator<PromotedTweetsResponse, string> iterator) {
                 var page_count = 0;
+                var error_count = 0;
                 while (!iterator.Completed) {
                     try {
                         page_count++;
-                        GetLogger().Error($"Fetching Twitter Ads Promoted Tweets for {username}, page {page_count}");
+                        Logger.Error($"Fetching Twitter Ads Promoted Tweets for {username}, page {page_count}");
                         var promotedTweetsPage = iterator.NextPageAsync().GetAwaiter().GetResult();
-                        DbWriter.WritePromotedTweets(adsAccountId, promotedTweetsPage.Content, dbContext, GetLogger());
+                        DbWriter.WritePromotedTweets(adsAccountId, promotedTweetsPage.Content, dbContext, Logger);
                     }catch (Exception e) {
-                        GetLogger().Error($"Could not fetch Twitter Ads Promoted Tweets for {username}, page {page_count}");
-                        GetLogger().Verbose($"Error: {e}");
+                        Logger.Error($"Could not fetch Twitter Ads Promoted Tweets for {username}, page {page_count}");
+                        Logger.Debug($"Error: {e}");
+                        error_count++;
+                        if (error_count > ERROR_THRESHOLD) {
+                            Logger.Debug($"It was not possible to get ads video libraries. Giving up for now.");
+                            break;
+                        }
                     }
                 }
             }

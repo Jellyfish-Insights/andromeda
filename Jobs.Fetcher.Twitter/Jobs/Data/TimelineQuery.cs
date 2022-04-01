@@ -31,28 +31,28 @@ namespace Jobs.Fetcher.Twitter {
 
             var user = DbReader.GetUserByUsername(username, dbContext);
             if (user == null) {
-                GetLogger().Error($"User {username} not found in database");
+                Logger.Error($"User {username} not found in database");
                 return;
             }
 
             void ProccessTimeLineResult(ITwitterRequestIterator<TimelinesV2Response, string> iterator) {
                 var page_count = 0;
                 while (!iterator.Completed) {
+                    page_count++;
+                    Logger.Information($"Fetching Twitter Timelines for {username}, page {page_count}");
                     try {
-                        page_count++;
-                        GetLogger().Information($"Fetching Twitter Video Libraries for {username}, page {page_count}");
                         var timelinePage = iterator.NextPageAsync().GetAwaiter().GetResult();
-                        DbWriter.WriteTimeline(timelinePage.Content, dbContext, GetLogger());
+                        DbWriter.WriteTimeline(timelinePage.Content, dbContext, Logger);
                     }catch (Exception e) {
-                        GetLogger().Error($"Could not fetch Twitter Video Libraries for {username}, page {page_count}");
-                        GetLogger().Verbose($"Error: {e}");
+                        Logger.Error($"Could not fetch Twitter Timelines for {username}, page {page_count}");
+                        Logger.Debug($"Error: {e}");
                     }
                 }
             }
 
             var latestTweet = DbReader.GetLatestTweetFromUser(user.Id, dbContext);
 
-            ApiDataFetcher.GetUserTweetsTimeline(user.Id, latestTweet, client as TwitterDataClient, ProccessTimeLineResult);
+            ApiDataFetcher.GetUserTweetsTimeline(user.Id, latestTweet, client as TwitterDataClient, ProccessTimeLineResult, Logger);
         }
 
         public override void RunBody(KeyValuePair<string, ITwitterClient> kvp) {

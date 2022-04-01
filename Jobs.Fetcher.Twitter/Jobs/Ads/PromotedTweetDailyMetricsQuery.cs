@@ -44,7 +44,7 @@ namespace Jobs.Fetcher.Twitter {
             var user = DbReader.GetUserByUsername(username, dataDbContext);
 
             if (user == null) {
-                GetLogger().Error($"User {username} not found in database");
+                Logger.Error($"User {username} not found in database");
                 return;
             }
 
@@ -60,29 +60,36 @@ namespace Jobs.Fetcher.Twitter {
                     end,
                     synchronousAnalyticsResponse,
                     adsDbContext,
-                    GetLogger());
+                    Logger);
             }
 
             var promotedTweetIds = DbReader.GetPromotedTweetIdsFromUser(user.Id, dataDbContext, adsDbContext);
 
             if (!promotedTweetIds.Any()) {
-                GetLogger().Error($"User {username} has no Ads promoted tweets");
+                Logger.Error($"User {username} has no Ads promoted tweets");
                 return;
             }
 
             var startDate = DbReader.GetPromotedTweetDailyMetricsStartingDate(user.Id, dataDbContext, adsDbContext);
-
+            var error_count = 0;
             foreach (var adsAccount in DbReader.GetAdsAccounts(username, adsDbContext)) {
+                Logger.Information($"Fetching Promoted Daily Metrics for {username} from {startDate.Date}");
                 try {
                     await ApiDataFetcher.GetPromotedTweetDailyMetricsReport(
                         adsAccount,
                         startDate,
                         promotedTweetIds,
                         client as TwitterAdsClient,
-                        ProccessPromotedTweetDailyMetricsResult);
+                        ProccessPromotedTweetDailyMetricsResult,
+                        Logger);
                 }catch (Exception e) {
                     Logger.Error($"Could not get Promoted Daily Metrics from {adsAccount}");
-                    Logger.Verbose($"Error: {e}");
+                    Logger.Debug($"Error: {e}");
+                    error_count++;
+                    if (error_count > ERROR_THRESHOLD) {
+                        Logger.Debug($"It was not possible to get ads video libraries. Giving up for now.");
+                        continue;
+                    }
                 }
             }
         }

@@ -83,7 +83,7 @@ namespace Jobs.Fetcher.Twitter {
 
                     Logger.Warning($"Unable to fetch Twitter credentials for {usrDir}");
                     Logger.Verbose($"Error: {e}");
-                    return new Dictionary<string, TwitterCredentials>();
+                    continue;
                 }
             }
 

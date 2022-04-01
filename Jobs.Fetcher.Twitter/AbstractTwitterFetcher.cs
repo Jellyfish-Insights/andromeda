@@ -10,6 +10,7 @@ using FlycatcherAds.Client;
 
 namespace Jobs.Fetcher.Twitter {
     public abstract class AbstractTwitterFetcher : AbstractJob {
+        protected const int ERROR_THRESHOLD = 10;
         protected Dictionary<string, ITwitterClient> Clients { get; }
         public AbstractTwitterFetcher(Dictionary<string, ITwitterClient> clients) {
             Clients = clients;
