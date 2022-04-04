@@ -48,9 +48,11 @@ namespace Jobs.Fetcher.Twitter {
                         error_count++;
                         Logger.Error($"Could not fetch Twitter Timelines for {username}, page {page_count}");
                         Logger.Debug($"Error: {e}");
-                        if (error_count >= ERROR_THRESHOLD) {
+                        if (error_count > ERROR_THRESHOLD) {
                             Logger.Debug($"Too many errors occurred. Stopping this job for now.");
                             break;
+                        } else {
+                            Thread.Sleep(SLEEP_TIME);
                         }
                     }
                 }

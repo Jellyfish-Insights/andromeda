@@ -49,6 +49,8 @@ namespace Jobs.Fetcher.Twitter {
                         if (error_count > ERROR_THRESHOLD) {
                             Logger.Debug($"It was not possible to get custom audiences. Giving up for now.");
                             break;
+                        } else {
+                            Thread.Sleep(SLEEP_TIME);
                         }
                     }
                 }
