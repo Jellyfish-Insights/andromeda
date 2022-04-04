@@ -37,6 +37,7 @@ namespace Jobs.Fetcher.Twitter {
 
             void ProccessTimeLineResult(ITwitterRequestIterator<TimelinesV2Response, string> iterator) {
                 var page_count = 0;
+                var error_count = 0;
                 while (!iterator.Completed) {
                     page_count++;
                     Logger.Information($"Fetching Twitter Timelines for {username}, page {page_count}");
@@ -44,8 +45,13 @@ namespace Jobs.Fetcher.Twitter {
                         var timelinePage = iterator.NextPageAsync().GetAwaiter().GetResult();
                         DbWriter.WriteTimeline(timelinePage.Content, dbContext, Logger);
                     }catch (Exception e) {
+                        error_count++;
                         Logger.Error($"Could not fetch Twitter Timelines for {username}, page {page_count}");
                         Logger.Debug($"Error: {e}");
+                        if (error_count >= ERROR_THRESHOLD) {
+                            Logger.Debug($"Too many errors occurred. Stopping this job for now.");
+                            break;
+                        }
                     }
                 }
             }
