@@ -41,6 +41,7 @@ namespace Jobs.Fetcher.Twitter {
 
             void ProccessAdsAccountResult(ITwitterRequestIterator<AdsAccountsResponse, string> iterator) {
                 var page_count = 0;
+                var error_count = 0;
                 while (!iterator.Completed) {
                     try {
                         page_count++;
@@ -50,6 +51,13 @@ namespace Jobs.Fetcher.Twitter {
                     }catch (Exception e) {
                         Logger.Error($"Could not fetch Twitter Ads Accounts for {username}, page {page_count}");
                         Logger.Debug($"Error: {e}");
+                        error_count++;
+                        if (error_count > ERROR_THRESHOLD) {
+                            Logger.Debug($"It was not possible to get Twitter Ads Accounts. Giving up for now.");
+                            break;
+                        } else {
+                            Thread.Sleep(SLEEP_TIME);
+                        }
                     }
                 }
             }
