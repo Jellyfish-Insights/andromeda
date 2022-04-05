@@ -1,4 +1,3 @@
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
@@ -41,6 +40,18 @@ namespace WebHook.Controllers {
             table_name = schema + "." + configuration["TABLE_NAME"];
         }
 
+        private string GetDateString() {
+            return DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff");
+        }
+
+        private void Info(string s) {
+            Console.WriteLine($"{GetDateString()} [INF] {s}");
+        }
+
+        private void Err(string s) {
+            Console.WriteLine($"{GetDateString()} [ERR] {s}");
+        }
+
         public bool CheckSignature(string signatureWithPrefix, string payload_test) {
             if (signatureWithPrefix.StartsWith("sha1=", StringComparison.OrdinalIgnoreCase)) {
                 var signature = signatureWithPrefix.Substring("sha1=".Length);
@@ -57,10 +68,11 @@ namespace WebHook.Controllers {
                 {
                     byte[] hash = hmSha1.ComputeHash(payloadBytes);
                     string hashString = BitConverter.ToString(hash).Replace("-", string.Empty).ToLower();
-
+                    Info($"We are expecting signature {hashString}");
                     return hashString.Equals(signature);
                 }
             }
+            Err("Signature is not prefixed with 'sha1=', rejecting");
             return false;
         }
 
@@ -91,36 +103,39 @@ namespace WebHook.Controllers {
         [HttpPost]
         public ActionResult<string> Post([FromBody] JObject jsonPayload) {
             if (!Request.Headers.TryGetValue("X-Hub-Signature", out StringValues signature)) {
+                Err("X-Hub-Signature header missing");
                 Response.StatusCode = 400;
                 return "X-Hub-Signature header missing";
             }
 
-            Console.WriteLine($"\nSignature = {signature}\n");
+            Info($"Signature = {signature}");
 
             var bodyStream = new StreamReader(Request.Body);
             bodyStream.BaseStream.Seek(0, SeekOrigin.Begin);
             var bodyText = bodyStream.ReadToEnd();
 
-            Console.WriteLine("\nThe payload: {0}\n", bodyText);
+            Info($"Payload: {bodyText}");
 
             const bool check_signature = true;
             if (check_signature) {
+                Info("Checking signature");
                 if (!CheckSignature(signature, bodyText)) {
-                    Console.WriteLine("Signature was not valid. Check the code");
+                    Err("Signature was not valid");
                     Response.StatusCode = 400;
                     return "Signature invalid";
                 } else {
-                    Console.WriteLine("Signature validated successfully");
+                    Info("Signature validated successfully");
                 }
             } else {
-                Console.WriteLine($"Signature won't be checked");
+                Info("Signature won't be checked");
             }
 
             try {
                 var decoded = jsonPayload["object"].ToString();
                 if (decoded == "instagram") {
                     var instagram_data = jsonPayload["entry"];
-                    Console.WriteLine($"Found {instagram_data.Count()} updates in payload");
+                    Info($"Found {instagram_data.Count()} Instagram updates");
+
                     foreach (var each_update in instagram_data) {
                         var time = each_update["time"];
                         var id = each_update["id"];
@@ -130,18 +145,16 @@ namespace WebHook.Controllers {
                     }
                     return "Ok";
                 } else {
-                    Console.WriteLine($"Invalid payload: {decoded}");
+                    Err($"Invalid object field: {decoded}");
                     Response.StatusCode = 400;
                     return "Invalid payload";
                 }
-
             }
             catch (Exception exc) {
-                Console.WriteLine($"Unknown error processing payload: {exc.ToString()}");
+                Err($"Unknown error processing payload: {exc.ToString()}");
                 Response.StatusCode = 500;
                 return "Unknown error processing payload";
             }
-
         }
 
         public void InsertInsights(JObject insight_data, string time, string id) {
@@ -157,9 +170,9 @@ namespace WebHook.Controllers {
             var taps_forward = insight_data["value"]["taps_forward"];
             var taps_back = insight_data["value"]["taps_back"];
 
-            Console.WriteLine($"InsertInsights: systime={systime}, exits={exits}, media_id={media_id}, "
-                + $"impressions={impressions}, reach={reach}, replies={replies}, taps_forward={taps_forward}, "
-                + $"taps_back={taps_back}");
+            Info($"InsertInsights: systime={systime}, exits={exits}, media_id={media_id}, "
+                 + $"impressions={impressions}, reach={reach}, replies={replies}, taps_forward={taps_forward}, "
+                 + $"taps_back={taps_back}");
 
             var connection_string = String.Format("Host={0};Username={1};Password={2};Database={3};Port={4}",
                                                   host, username, password, database, port);
@@ -178,7 +191,7 @@ namespace WebHook.Controllers {
                 try {
                     cmd.ExecuteNonQuery();
                 } catch (Npgsql.PostgresException e) {
-                    Console.WriteLine("Could not insert story insight: {0}", e);
+                    Err($"Could not insert story insight: {e.ToString()}");
                 }
             }
         }
