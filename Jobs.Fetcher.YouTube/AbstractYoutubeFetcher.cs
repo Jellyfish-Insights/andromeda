@@ -47,6 +47,7 @@ namespace Jobs.Fetcher.YouTube {
         public override void Run() {
             var nAccounts = AccountInfos.Count();
             Logger.Information($"We have {nAccounts} accounts to process");
+            bool hasAnythingBadHappenedSoFar = false;
 
             if (_runParallel) {
                 var threads = new List<Thread>();
@@ -60,6 +61,7 @@ namespace Jobs.Fetcher.YouTube {
                         catch (Exception e) {
                             Logger.Error($"Oopsie... Thread # {i + 1} threw an error:\n"
                                          + e.ToString());
+                            hasAnythingBadHappenedSoFar = true;
                         }
                     });
                     threads.Add(t);
@@ -80,8 +82,14 @@ namespace Jobs.Fetcher.YouTube {
                     catch (Exception e) {
                         Logger.Error($"Oopsie... Error processing account # {i + 1}:\n"
                                      + e.ToString());
+                        hasAnythingBadHappenedSoFar = true;
                     }
                 }
+            }
+
+            if (hasAnythingBadHappenedSoFar) {
+                Logger.Error("One or more accounts failed, propagating...");
+                throw new Exception("Propagating exception caught in thread or loop, see log history");
             }
         }
 
