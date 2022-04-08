@@ -40,11 +40,11 @@ namespace Jobs.Fetcher.Twitter.Helpers {
 
             while (true) {
                 try {
-                    logger.Information($"Attempting to get user {username}, try {tryCount} / {maxTry}");;
+                    logger.Information($"Attempting to get user {username}, try {tryCount} / {maxTry}");
                     userV2Response = client.UsersV2
-                            .GetUserByNameAsync(username)
-                            .GetAwaiter()
-                            .GetResult();
+                                         .GetUserByNameAsync(username)
+                                         .GetAwaiter()
+                                         .GetResult();
                     if (userV2Response == null || userV2Response.User == null) {
                         throw new Exception("API returned null object");
                     }
@@ -75,7 +75,6 @@ namespace Jobs.Fetcher.Twitter.Helpers {
             };
             logger.Information($"Retrieved user {localUser.ToString()}");
             return localUser;
-
         }
 
         private static IGetTimelinesV2Parameters GetTimelineParameters(string userId, DateTime start, DateTime end) {

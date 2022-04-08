@@ -69,8 +69,8 @@ namespace DataLakeModels.Models.Twitter.Data {
 
         public override string ToString() {
             return $"Id={Id}, CreatedAt={CreatedAt}, Location={Location}, Name={Name}, "
-                + $"ProfileImageUrl={ProfileImageUrl}, IsProtected={IsProtected}, "
-                + $"Url={Url}, Username={Username}, Verified={Verified}";
+                   + $"ProfileImageUrl={ProfileImageUrl}, IsProtected={IsProtected}, "
+                   + $"Url={Url}, Username={Username}, Verified={Verified}";
         }
     }
 }
