@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Collections.Generic;
 using Tweetinvi;
 using DataLakeModels;
@@ -49,6 +50,9 @@ namespace Jobs.Fetcher.Twitter {
                         if (error_count > ERROR_THRESHOLD) {
                             Logger.Debug($"It was not possible to get line items. Giving up for now.");
                             break;
+
+                        } else {
+                            Thread.Sleep(SLEEP_TIME);
                         }
                     }
                 }

@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,30 +33,48 @@ namespace Jobs.Fetcher.Twitter.Helpers {
         const int BATCH_SIZE = 20;
         private static readonly DateTime startDate = new DateTime(2021, 1, 1);
 
-        public static User GetUserByName(string username, TwitterDataClient client) {
+        public static User GetUserByName(string username, TwitterDataClient client, Logger logger) {
+            Tweetinvi.Models.V2.UserV2Response userV2Response;
+            const int maxTry = 10;
+            int tryCount = 1;
 
-            var userV2Response = client.UsersV2.GetUserByNameAsync(username).GetAwaiter().GetResult();
-
-            if (userV2Response != null && userV2Response.User != null) {
-
-                UserV2 userV2 = userV2Response.User;
-
-                var localUser = new User() {
-                    Id = userV2.Id,
-                    CreatedAt = userV2.CreatedAt,
-                    Location = userV2.Location,
-                    Name = userV2.Name,
-                    ProfileImageUrl = userV2.ProfileImageUrl,
-                    IsProtected = userV2.IsProtected,
-                    Url = userV2.Url,
-                    Username = userV2.Username,
-                    Verified = userV2.Verified
-                };
-
-                return localUser;
+            while (true) {
+                try {
+                    logger.Information($"Attempting to get user {username}, try {tryCount} / {maxTry}");
+                    userV2Response = client.UsersV2
+                                         .GetUserByNameAsync(username)
+                                         .GetAwaiter()
+                                         .GetResult();
+                    if (userV2Response == null || userV2Response.User == null) {
+                        throw new Exception("API returned null object");
+                    }
+                    break;
+                }
+                catch (Exception e) {
+                    logger.Warning($"API Exception thrown: {e.ToString()}");
+                    if (++tryCount > maxTry) {
+                        logger.Error("Too many errors, bailing out");
+                        throw;
+                    }
+                    Thread.Sleep(10 * 1000);
+                }
             }
 
-            return null;
+            UserV2 userV2 = userV2Response.User;
+
+            var localUser = new User() {
+                Id = userV2.Id,
+                CreatedAt = userV2.CreatedAt,
+                Location = userV2.Location,
+                Name = userV2.Name,
+                ProfileImageUrl = userV2.ProfileImageUrl,
+                IsProtected = userV2.IsProtected,
+                Url = userV2.Url,
+                Username = userV2.Username,
+                Verified = userV2.Verified
+            };
+            logger.Information($"Retrieved user {localUser.ToString()}");
+            return localUser;
         }
 
         private static IGetTimelinesV2Parameters GetTimelineParameters(string userId, DateTime start, DateTime end) {
@@ -221,6 +240,9 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                 var batch_count = 0;
                 var total_batches = Math.Ceiling((double) tweetIds.Count() / (double) BATCH_SIZE);
                 logger.Information($"Fetching metrics from {start.Date} to {end.Date} ({total_batches} batches)");
+
+
+
                 foreach (var batch in tweetIds.SplitIntoBatches(BATCH_SIZE)) {
                     batch_count++;
                     logger.Information($"Fetching batch {batch_count}/{total_batches}");
@@ -229,12 +251,27 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                     parameters.StartTime = DateHelper.AddTimezoneOffset(start, adsAccount.TimeZone);
                     parameters.EndTime = DateHelper.AddTimezoneOffset(end, adsAccount.TimeZone);
 
-                    try {
-                        var result = await client.AnalyticsClient.GetSynchronousAnalyticsAsync(parameters).ConfigureAwait(false);
-                        Callback(adsAccount.Id, start, end, result);
-                    }catch (Exception e) {
-                        logger.Error($"Failed fetching batch {batch_count}/{total_batches}");
-                        logger.Debug($"Error {e}");
+
+                    const int maxTry = 10;
+                    int tryCount = 1;
+                    while (true) {
+                        try {
+                            var result = await client.AnalyticsClient.GetSynchronousAnalyticsAsync(parameters).ConfigureAwait(false);
+                            Callback(adsAccount.Id, start, end, result);
+                            break;
+                        }catch (Exception e) {
+                            logger.Error($"Failed fetching batch {batch_count}/{total_batches}");
+                            logger.Debug($"Error {e}");
+                            if (++tryCount > maxTry) {
+                                logger.Error("Too many errors, bailing out");
+                                break;
+                            }
+                            // works for maxTry <= 20
+                            var suffixes = new List<string>() { "st", "nd", "rd", "th" };
+                            string suffix = suffixes[Math.Min(tryCount, suffixes.Count()) - 1];
+                            logger.Information($"Trying for the {tryCount}{suffix} time (max = {maxTry})");
+                            Thread.Sleep(10 * 1000);
+                        }
                     }
                 }
             }
