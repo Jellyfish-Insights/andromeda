@@ -34,6 +34,12 @@ namespace Jobs.Fetcher.Twitter.Helpers {
         public static void WriteUser(User newEntry, DataLakeTwitterDataContext dbContext, Logger logger) {
 
             var oldEntry = dbContext.Users.Find(newEntry.Id);
+            if (oldEntry == null) {
+                logger.Information("No existing user was found");
+            } else {
+                logger.Information($"Update to user {oldEntry.ToString()}");
+            }
+
             Upsert<User, DataLakeTwitterDataContext>(oldEntry, newEntry, dbContext, logger);
             dbContext.SaveChanges();
         }

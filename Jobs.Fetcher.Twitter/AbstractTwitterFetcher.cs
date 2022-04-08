@@ -16,6 +16,7 @@ namespace Jobs.Fetcher.Twitter {
         protected Dictionary<string, ITwitterClient> Clients { get; }
         public AbstractTwitterFetcher(Dictionary<string, ITwitterClient> clients) {
             Clients = clients;
+            Logger = GetLogger();
         }
 
         protected override Logger GetLogger() {
