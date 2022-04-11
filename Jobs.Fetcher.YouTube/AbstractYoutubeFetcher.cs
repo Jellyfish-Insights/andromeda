@@ -53,13 +53,14 @@ namespace Jobs.Fetcher.YouTube {
                 var threads = new List<Thread>();
                 for (int i = 0; i < nAccounts; i++) {
                     var(DataService, AnalyticsService) = AccountInfos[i];
-                    Logger.Verbose($"Starting thread # {i + 1}");
+                    var threadNumber = i + 1;
+                    Logger.Debug($"Starting thread # {threadNumber}");
                     var t = new Thread(() => {
                         try {
                             RunBody(DataService, AnalyticsService);
                         }
                         catch (Exception e) {
-                            Logger.Error($"Oopsie... Thread # {i + 1} threw an error:\n"
+                            Logger.Error($"Oopsie... Thread # {threadNumber} threw an error:\n"
                                          + e.ToString());
                             hasAnythingBadHappenedSoFar = true;
                         }
@@ -75,7 +76,7 @@ namespace Jobs.Fetcher.YouTube {
                 Logger.Information("This job will NOT run in parallel");
                 for (int i = 0; i < nAccounts; i++) {
                     var(DataService, AnalyticsService) = AccountInfos[i];
-                    Logger.Verbose($"Processing account # {i + 1}");
+                    Logger.Debug($"Processing account # {i + 1}");
                     try {
                         RunBody(DataService, AnalyticsService);
                     }
