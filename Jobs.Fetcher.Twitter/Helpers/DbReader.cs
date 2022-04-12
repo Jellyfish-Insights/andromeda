@@ -57,6 +57,13 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                        .LastOrDefault();
         }
 
+        public static LocalTweet GetFirstTweetFromUser(string userId, DataLakeTwitterDataContext dataDbContext) {
+            return dataDbContext.Tweets
+                       .Where(t => t.UserId == userId)
+                       .OrderBy(t => t.CreatedAt)
+                       .FirstOrDefault();
+        }
+
         public static DateTimeOffset GetOrganicTweetDailyMetricsStartingDate(
             string userId,
             DataLakeTwitterDataContext dataDbContext,

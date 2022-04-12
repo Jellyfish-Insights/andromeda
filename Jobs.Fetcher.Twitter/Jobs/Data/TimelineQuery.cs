@@ -59,9 +59,9 @@ namespace Jobs.Fetcher.Twitter {
                 }
             }
 
-            var latestTweet = DbReader.GetLatestTweetFromUser(user.Id, dbContext);
+            var firstTweet = DbReader.GetFirstTweetFromUser(user.Id, dbContext);
 
-            ApiDataFetcher.GetUserTweetsTimeline(user.Id, latestTweet, client as TwitterDataClient, ProccessTimeLineResult, Logger);
+            ApiDataFetcher.GetUserTweetsTimeline(user.Id, firstTweet, client as TwitterDataClient, ProccessTimeLineResult, Logger);
         }
 
         public override void RunBody(KeyValuePair<string, ITwitterClient> kvp) {
