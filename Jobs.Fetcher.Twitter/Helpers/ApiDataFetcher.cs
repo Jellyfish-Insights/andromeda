@@ -56,7 +56,7 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                         logger.Error("Too many errors, bailing out");
                         throw;
                     }
-                    Thread.Sleep(10 * 1000);
+                    Thread.Sleep(15 * 1000);
                 }
             }
 
@@ -261,13 +261,13 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                             logger.Debug($"Error {e}");
                             if (++tryCount > maxTry) {
                                 logger.Error("Too many errors, bailing out");
-                                break;
+                                throw;
                             }
                             // works for maxTry <= 20
                             var suffixes = new List<string>() { "st", "nd", "rd", "th" };
                             string suffix = suffixes[Math.Min(tryCount, suffixes.Count()) - 1];
                             logger.Information($"Trying for the {tryCount}{suffix} time (max = {maxTry})");
-                            Thread.Sleep(10 * 1000);
+                            Thread.Sleep(15 * 1000);
                         }
                     }
                 }
