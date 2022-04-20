@@ -14,7 +14,7 @@
     </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp6.0</TargetFramework>
   </PropertyGroup>
 
 </Project>

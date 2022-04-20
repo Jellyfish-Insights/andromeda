@@ -4,7 +4,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DefaultItemExcludes>$(DefaultItemExcludes);out\**;cache\**</DefaultItemExcludes>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
