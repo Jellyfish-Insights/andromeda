@@ -28,6 +28,8 @@ namespace Jobs.Fetcher.Twitter {
             return new List<string>() { IdOf<UserQuery>() };
         }
 
+        public static int _globalErrors = 0;
+
         private void RunBody(string username, ITwitterClient client, DataLakeTwitterDataContext dbContext) {
 
             var user = DbReader.GetUserByUsername(username, dbContext);
@@ -47,11 +49,14 @@ namespace Jobs.Fetcher.Twitter {
                         DbWriter.WriteTimeline(timelinePage.Content, dbContext, Logger);
                     }catch (Exception e) {
                         error_count++;
+                        _globalErr++;
                         Logger.Error($"Could not fetch Twitter Timelines for {username}, page {page_count}");
                         Logger.Debug($"Error: {e}");
-                        if (error_count > ERROR_THRESHOLD) {
+                        if (error_count > LOCAL_ERR_LIMIT || _globalErr > GLOBAL_ERR_LIMIT) {
                             Logger.Debug($"Too many errors occurred. Stopping this job for now.");
-                            break;
+                            throw new TwitterTooManyErrors(
+                                $"Local errors: {error_count}, global errors: {_globalErr}",
+                                e);
                         } else {
                             Thread.Sleep(SLEEP_TIME);
                         }

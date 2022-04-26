@@ -5,18 +5,10 @@ using System.Collections.Generic;
 using Tweetinvi;
 using DataLakeModels;
 using DataLakeModels.Models.Twitter.Data;
-using Tweetinvi.Models.V2;
-using Tweetinvi.Parameters.V2;
-using Tweetinvi.WebLogic;
 using Jobs.Fetcher.Twitter.Helpers;
-using Tweetinvi.Iterators;
-
-using FlycatcherData;
-using FlycatcherData.Models.V2;
 
 using FlycatcherAds;
 using FlycatcherAds.Models;
-using FlycatcherAds.Client;
 
 namespace Jobs.Fetcher.Twitter {
 
@@ -103,6 +95,7 @@ namespace Jobs.Fetcher.Twitter {
                 }catch (Exception e) {
                     Logger.Error($"Could not get Organic Daily Metrics from {username}");
                     Logger.Debug($"Error: {e}");
+                    throw;
                 }
             }
         }

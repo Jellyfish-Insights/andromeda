@@ -49,9 +49,12 @@ namespace Jobs.Fetcher.Twitter {
                         Logger.Error($"Could not fetch Twitter Ads Video Libraries for {username}, page {page_count}");
                         Logger.Debug($"Error: {e}");
                         error_count++;
-                        if (error_count > ERROR_THRESHOLD) {
+                        _globalErr++;
+                        if (error_count > LOCAL_ERR_LIMIT || _globalErr > GLOBAL_ERR_LIMIT) {
                             Logger.Debug($"It was not possible to get ads video libraries. Giving up for now.");
-                            break;
+                            throw new TwitterTooManyErrors(
+                                $"Local errors: {error_count}, global errors: {_globalErr}",
+                                e);
                         } else {
                             Thread.Sleep(SLEEP_TIME);
                         }
