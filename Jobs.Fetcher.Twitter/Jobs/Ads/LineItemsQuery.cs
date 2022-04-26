@@ -47,7 +47,8 @@ namespace Jobs.Fetcher.Twitter {
                         Logger.Error($"Could not fetch or write Twitter Ads Line Items for {username}");
                         Logger.Debug($"Error: {e}");
                         error_count++;
-                        if (error_count > ERROR_THRESHOLD) {
+                        _globalErr++;
+                        if (error_count > LOCAL_ERR_LIMIT || _globalErr > GLOBAL_ERR_LIMIT) {
                             Logger.Debug($"It was not possible to get line items. Giving up for now.");
                             break;
                         } else {

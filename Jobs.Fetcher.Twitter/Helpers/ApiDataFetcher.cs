@@ -259,9 +259,12 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                         }catch (Exception e) {
                             logger.Error($"Failed fetching batch {batch_count}/{total_batches}");
                             logger.Debug($"Error {e}");
+                            _globalErr++;
                             if (++tryCount > maxTry) {
                                 logger.Error("Too many errors, bailing out");
-                                throw;
+                                throw new TwitterTooManyErrors(
+                                    $"Local errors: {tryCount - 1}, global errors: {_globalErr}",
+                                    e);
                             }
                             // works for maxTry <= 20
                             var suffixes = new List<string>() { "st", "nd", "rd", "th" };
