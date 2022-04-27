@@ -73,6 +73,9 @@ namespace Jobs.Fetcher.YouTube {
             };
 
             using (var stream = new FileStream(clientSecretFileName, FileMode.Open, FileAccess.Read)) {
+                Console.WriteLine($"Running GoogleWebAuthorizationBroker for " +
+                    $"clientSecretFileName={clientSecretFileName} " +
+                    $"dataStoreFolder={dataStoreFolder}");
                 return GoogleWebAuthorizationBroker.AuthorizeAsync(
                     GoogleClientSecrets.FromStream(stream).Secrets,
                     scopes,
