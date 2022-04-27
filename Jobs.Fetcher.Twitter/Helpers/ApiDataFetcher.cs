@@ -4,10 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 using Serilog.Core;
-using Tweetinvi;
-using Tweetinvi.Core.Iterators;
 using Tweetinvi.Iterators;
-using Tweetinvi.Core.Web;
 using Tweetinvi.Models.V2;
 using DataLakeModels.Models.Twitter.Data;
 using Tweetinvi.Parameters.V2;
@@ -15,7 +12,6 @@ using Tweetinvi.Parameters.V2;
 using FlycatcherAds;
 using FlycatcherAds.Models;
 using FlycatcherAds.Parameters;
-using FlycatcherAds.Client;
 
 using FlycatcherData;
 using FlycatcherData.Parameters.V2;
@@ -30,17 +26,22 @@ using LocalTweet = DataLakeModels.Models.Twitter.Data.Tweet;
 namespace Jobs.Fetcher.Twitter.Helpers {
 
     public static class ApiDataFetcher {
+
+        public const int GLOBAL_ERR_LIMIT = 20;
+        public const int LOCAL_ERR_LIMIT = 5;
+        public const int SLEEP_TIME = 5 * 1000;
+        public static int _globalErr = 0;
+
         const int BATCH_SIZE = 20;
         private static readonly DateTime startDate = new DateTime(2021, 1, 1);
 
         public static User GetUserByName(string username, TwitterDataClient client, Logger logger) {
             Tweetinvi.Models.V2.UserV2Response userV2Response;
-            const int maxTry = 10;
-            int tryCount = 1;
+            int error_count = 0;
 
             while (true) {
                 try {
-                    logger.Information($"Attempting to get user {username}, try {tryCount} / {maxTry}");
+                    logger.Information($"Attempting to get user {username}");
                     userV2Response = client.UsersV2
                                          .GetUserByNameAsync(username)
                                          .GetAwaiter()
@@ -52,11 +53,13 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                 }
                 catch (Exception e) {
                     logger.Warning($"API Exception thrown: {e.ToString()}");
-                    if (++tryCount > maxTry) {
+                    _globalErr++;
+                    if (++error_count > LOCAL_ERR_LIMIT || _globalErr > GLOBAL_ERR_LIMIT) {
                         logger.Error("Too many errors, bailing out");
-                        throw;
+                        throw new TwitterTooManyErrors(
+                                  $"Local errors: {error_count}, global errors: {_globalErr}", e);
                     }
-                    Thread.Sleep(15 * 1000);
+                    Thread.Sleep(SLEEP_TIME);
                 }
             }
 
@@ -249,8 +252,7 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                     parameters.StartTime = DateHelper.AddTimezoneOffset(start, adsAccount.TimeZone);
                     parameters.EndTime = DateHelper.AddTimezoneOffset(end, adsAccount.TimeZone);
 
-                    const int maxTry = 10;
-                    int tryCount = 1;
+                    int error_count = 0;
                     while (true) {
                         try {
                             var result = await client.AnalyticsClient.GetSynchronousAnalyticsAsync(parameters).ConfigureAwait(false);
@@ -259,15 +261,16 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                         }catch (Exception e) {
                             logger.Error($"Failed fetching batch {batch_count}/{total_batches}");
                             logger.Debug($"Error {e}");
-                            if (++tryCount > maxTry) {
+                            _globalErr++;
+                            if (++error_count > LOCAL_ERR_LIMIT || _globalErr > GLOBAL_ERR_LIMIT) {
                                 logger.Error("Too many errors, bailing out");
-                                throw;
+                                throw new TwitterTooManyErrors(
+                                          $"Local errors: {error_count}, global errors: {_globalErr}",
+                                          e);
                             }
-                            // works for maxTry <= 20
-                            var suffixes = new List<string>() { "st", "nd", "rd", "th" };
-                            string suffix = suffixes[Math.Min(tryCount, suffixes.Count()) - 1];
-                            logger.Information($"Trying for the {tryCount}{suffix} time (max = {maxTry})");
-                            Thread.Sleep(15 * 1000);
+                            logger.Information($"Retrying... Local errors: {error_count}, "
+                                               + $"global errors: {_globalErr}");
+                            Thread.Sleep(SLEEP_TIME);
                         }
                     }
                 }
