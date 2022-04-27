@@ -73,12 +73,7 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
             var ytServices = new List<(YouTubeService, YouTubeAnalyticsService)>();
             var dirs = Directory.GetDirectories(directory).ToList();
             if (dirs.Count == 0) {
-                const string newDirectory = "channel_1";
-                Console.WriteLine($"Directory {directory} is empty. A new "
-                                  + $"directory '{newDirectory}' will be created");
-                var path = $"{directory}/{newDirectory}";
-                Directory.CreateDirectory(path);
-                dirs.Add(path);
+                Console.WriteLine($"Directory {directory} is empty.");
             }
             foreach (var dir in dirs) {
                 Console.WriteLine($"Now in {dir}");
