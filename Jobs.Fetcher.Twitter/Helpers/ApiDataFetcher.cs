@@ -32,7 +32,6 @@ namespace Jobs.Fetcher.Twitter.Helpers {
         public const int SLEEP_TIME = 5 * 1000;
         public static int _globalErr = 0;
 
-
         const int BATCH_SIZE = 20;
         private static readonly DateTime startDate = new DateTime(2021, 1, 1);
 
@@ -58,7 +57,7 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                     if (++error_count > LOCAL_ERR_LIMIT || _globalErr > GLOBAL_ERR_LIMIT) {
                         logger.Error("Too many errors, bailing out");
                         throw new TwitterTooManyErrors(
-                            $"Local errors: {error_count}, global errors: {_globalErr}", e);
+                                  $"Local errors: {error_count}, global errors: {_globalErr}", e);
                     }
                     Thread.Sleep(SLEEP_TIME);
                 }
@@ -266,11 +265,11 @@ namespace Jobs.Fetcher.Twitter.Helpers {
                             if (++error_count > LOCAL_ERR_LIMIT || _globalErr > GLOBAL_ERR_LIMIT) {
                                 logger.Error("Too many errors, bailing out");
                                 throw new TwitterTooManyErrors(
-                                    $"Local errors: {error_count}, global errors: {_globalErr}",
-                                    e);
+                                          $"Local errors: {error_count}, global errors: {_globalErr}",
+                                          e);
                             }
                             logger.Information($"Retrying... Local errors: {error_count}, "
-                                + $"global errors: {_globalErr}");
+                                               + $"global errors: {_globalErr}");
                             Thread.Sleep(SLEEP_TIME);
                         }
                     }

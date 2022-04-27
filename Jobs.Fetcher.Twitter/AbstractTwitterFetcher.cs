@@ -12,12 +12,14 @@ using FlycatcherAds.Client;
 
 namespace Jobs.Fetcher.Twitter {
 
-    public class TwitterTooManyErrors : Exception
-    {
-        public TwitterTooManyErrors(){ }
-        public TwitterTooManyErrors(string msg) : base(msg) {}
-        public TwitterTooManyErrors(string msg, Exception inner) : base(msg, inner) {}
+    public class TwitterTooManyErrors : Exception {
+        public TwitterTooManyErrors() {}
+
+        public TwitterTooManyErrors(string msg): base(msg) {}
+
+        public TwitterTooManyErrors(string msg, Exception inner): base(msg, inner) {}
     }
+
     public abstract class AbstractTwitterFetcher : AbstractJob {
         protected const int GLOBAL_ERR_LIMIT = 20;
         protected const int LOCAL_ERR_LIMIT = 5;

@@ -51,7 +51,7 @@ namespace Jobs.Fetcher.Twitter {
                         if (error_count > LOCAL_ERR_LIMIT || _globalErr > GLOBAL_ERR_LIMIT) {
                             Logger.Debug($"It was not possible to get line items. Giving up for now.");
                             throw new TwitterTooManyErrors($"Local errors: {error_count}, "
-                                + $"global errors: {_globalErr}", e);
+                                                           + $"global errors: {_globalErr}", e);
                         } else {
                             Thread.Sleep(SLEEP_TIME);
                         }

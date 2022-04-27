@@ -55,8 +55,8 @@ namespace Jobs.Fetcher.Twitter {
                         if (error_count > LOCAL_ERR_LIMIT || _globalErr > GLOBAL_ERR_LIMIT) {
                             Logger.Debug($"Too many errors occurred. Stopping this job for now.");
                             throw new TwitterTooManyErrors(
-                                $"Local errors: {error_count}, global errors: {_globalErr}",
-                                e);
+                                      $"Local errors: {error_count}, global errors: {_globalErr}",
+                                      e);
                         } else {
                             Thread.Sleep(SLEEP_TIME);
                         }
