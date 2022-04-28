@@ -13,6 +13,7 @@ namespace Andromeda.Common.Jobs {
         Facebook,
         Instagram,
         Twitter,
-        TikTok
+        TikTok,
+        Reels
     }
 }
