@@ -57,7 +57,8 @@ class Options:
 			"account_name",
 			"password_encrypted",
 			"password_plain",
-			"credentials_file"
+			"credentials_file",
+			"managed_account"
 		]
 
 	@property

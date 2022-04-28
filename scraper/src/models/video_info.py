@@ -2,6 +2,7 @@ import datetime
 import time
 import os
 import json
+from scraper_core import UnexpectedResponse
 from sqlalchemy import Column, String, Integer, BigInteger, DateTime, select, and_
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -83,6 +84,41 @@ class VideoInfo(base):
 		
 		# Return first and only column
 		return [x[0] for x in videos]
+
+	@staticmethod
+	def add_reels(account_name: str, item: dict, save_in_fs: bool = True):
+		try:
+			reel_info = VideoInfo(
+				# Metadata
+				account_name = account_name,
+
+				# JSON payload
+				json_payload = item,
+				# Destructured data
+				tiktok_id = 0,
+				description = item["id"],
+				comment_count = int(item["comment_count"]),
+				digg_count = int(item["like_count"]),
+				play_count = int(item["play_count"]),
+				share_count = int(0),
+				create_time = datetime.datetime.fromtimestamp(int(item["taken_at"]))
+			)
+		except Exception as err:
+			log.error("A field was not present.")
+			log.error(err)
+			raise UnexpectedResponse
+		log.info(f"Saving reels_id={reel_info.description} to database...")
+
+		try:
+			session.add(reel_info)
+			session.commit()
+		except Exception as err:
+			log.error("An unknown error happened!")
+			log.error(err)
+			raise DBException
+
+		if save_in_fs:
+			reel_info.to_json()
 
 	def to_json(self):
 		filename = f"{self.account_name}___{self.tiktok_id}___{int(time.time() * 10 ** 6)}.json"
