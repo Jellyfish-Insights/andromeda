@@ -28,6 +28,7 @@ namespace WebHook.Controllers {
         private string password;
         private string port;
         private string app_secret;
+        private bool check_signature;
         public WebhooksController(IConfiguration configuration) {
             verify_token_expected = configuration["VERIFY_TOKEN"];
             app_secret = configuration["APP_SECRET"];
@@ -38,6 +39,7 @@ namespace WebHook.Controllers {
             port = configuration["POSTGRESPORT"];
             schema = configuration["SCHEMA"] + configuration["API_VERSION"];
             table_name = schema + "." + configuration["TABLE_NAME"];
+            check_signature = configuration.GetValue<bool>("CHECK_SIGNATURE");
         }
 
         private string GetDateString() {
@@ -116,7 +118,6 @@ namespace WebHook.Controllers {
 
             Info($"Payload: {bodyText}");
 
-            const bool check_signature = true;
             if (check_signature) {
                 Info("Checking signature");
                 if (!CheckSignature(signature, bodyText)) {
@@ -185,11 +186,12 @@ namespace WebHook.Controllers {
                     (fetch_time, media_id, systime, exits, impressions, reach, replies, taps_forward, taps_back)
                     VALUES ('{1}', '{2}', '{3}', '{4}', '{5}', '{6}', '{7}', '{8}', '{9}')",
                                                       table_name, fetch_time, media_id, systime, exits, impressions, reach, replies, taps_forward, taps_back);
-
+                Info($"Sending database command: << {insertion_command} >>");
                 cmd.CommandText = insertion_command;
 
                 try {
                     cmd.ExecuteNonQuery();
+                    Info("Command was successful!");
                 } catch (Npgsql.PostgresException e) {
                     Err($"Could not insert story insight: {e.ToString()}");
                 }
