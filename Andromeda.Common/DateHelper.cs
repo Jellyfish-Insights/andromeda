@@ -34,7 +34,7 @@ namespace Andromeda.Common {
             var end = reverse ? from.Date : to.Date;
             int _step = reverse ? -step : step;
 
-            while (current < end) {
+            while ((reverse && current > end) || current < end) {
                 yield return current;
                 current = current.AddDays(_step);
             }
