@@ -36,7 +36,6 @@ namespace Jobs.Fetcher.YouTubeStudio.Helpers {
                        ValidityStart = validityStart,
                        ValidityEnd = validityEnd,
                        EventDate = eventTime.ToUniversalTime().Date,
-                       ChannelId = dto.ChannelId,
                        VideoId = dto.VideoId,
                        Metric = dto.Metric,
                        Value = dto.Value

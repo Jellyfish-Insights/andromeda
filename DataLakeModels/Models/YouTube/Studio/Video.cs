@@ -10,7 +10,6 @@ namespace DataLakeModels.Models.YouTube.Studio {
             DateTime validityStart,
             DateTime validityEnd,
             DateTime eventDate,
-            string channelId,
             string videoId,
             string metric,
             double value
@@ -18,7 +17,6 @@ namespace DataLakeModels.Models.YouTube.Studio {
             ValidityStart = validityStart;
             ValidityEnd = validityEnd;
             EventDate = eventDate;
-            ChannelId = channelId;
             VideoId = videoId;
             Metric = metric;
             Value = value;
@@ -30,14 +28,12 @@ namespace DataLakeModels.Models.YouTube.Studio {
         public DateTime ValidityEnd { get; set; }
         [Column(TypeName = "date")]
         public DateTime EventDate { get; set; }
-        public string ChannelId { get; set; }
         public string VideoId { get; set; }
         public string Metric { get; set; }
         public double Value { get; set; }
 
         bool IEquatable<Video>.Equals(Video other) {
-            return ChannelId == other.ChannelId &&
-                   VideoId == other.VideoId &&
+            return VideoId == other.VideoId &&
                    Metric == other.Metric &&
                    EventDate == other.EventDate &&
                    (
@@ -51,7 +47,6 @@ namespace DataLakeModels.Models.YouTube.Studio {
                 ValidityStart: {ValidityStart},
                 ValidityEnd: {ValidityEnd},
                 EventDate: {EventDate},
-                ChannelId: {ChannelId},
                 VideoId: {VideoId},
                 Metric: {Metric},
                 Value: {Value}

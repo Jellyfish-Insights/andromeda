@@ -212,7 +212,6 @@ namespace Test.YouTubeStudio {
         protected Func<Video, bool> FindDTO(Video_DTO videoDTO) {
             return v =>
                    v.VideoId == videoDTO.VideoId
-                   && v.ChannelId == videoDTO.ChannelId
                    && v.EventDate == DbWriter.EpochToDateTime(videoDTO.EventDate).ToUniversalTime().Date
                    && v.Metric == videoDTO.Metric
                    && v.Value == videoDTO.Value;
