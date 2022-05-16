@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jobs.Fetcher.TikTok {
 
-    public class DatabaseManager : DataLakeModels.TikTokScraperDatabaseManager {
+    public class DatabaseManager : DataLakeModels.GeneralScraperDatabaseManager {
 
         private static HashSet<string> reserved = new HashSet<string> { "from" };
 

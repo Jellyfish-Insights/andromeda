@@ -57,3 +57,10 @@ class AccountName(base):
 		# it is reasonable to expect it
 		if not re.search(r'^@[a-zA-Z0-9_\.]{1,32}$', account_name):
 			raise ValueError
+
+	@staticmethod
+	def test_reels(account_name):
+		# Nowhere does it really say the maximum size is 32, but I guess
+		# it is reasonable to expect it
+		if not re.search(r'^[a-zA-Z0-9_\.]{1,32}$', account_name):
+			raise ValueError

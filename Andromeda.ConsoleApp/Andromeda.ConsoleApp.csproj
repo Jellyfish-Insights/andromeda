@@ -16,6 +16,7 @@
     <ProjectReference Include="..\Jobs.Fetcher.Facebook\Jobs.Fetcher.Facebook.csproj" />
     <ProjectReference Include="..\Jobs.Fetcher.Twitter\Jobs.Fetcher.Twitter.csproj" />
     <ProjectReference Include="..\Jobs.Fetcher.TikTok\Jobs.Fetcher.TikTok.csproj" />
+    <ProjectReference Include="..\Jobs.Fetcher.Reels\Jobs.Fetcher.Reels.csproj" />
   </ItemGroup>
 
   <ItemGroup>
