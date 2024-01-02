@@ -26,7 +26,7 @@ Andromeda allow:
 * [X] Pull data from all social platforms into PostgreSQL database
 * [X] Store a lifetime of insights and data across all channels
 
-Andromeda was developed by [Brick Abode](https://www.brickabode.com/) as part of the [Jellyfish Insights](http://jellyfishinsights.com/) and supported by the [Foundation for Economic Education (FEE)](https://fee.org).
+Andromeda was developed by [Brick Abode](https://www.brickabode.com/) as part of the [Jellyfish Insights](http://jellyfishinsights.com/) and supported by the [Foundation for Economic Education (FEE)](https://fee.org).  Feel free to [contact David Veksler with questions](https://www.linkedin.com/in/davidveksler/).
 
 # Documentation
 
